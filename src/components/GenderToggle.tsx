@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   selectedOption: {
-    backgroundColor: "#4caf50",
+    backgroundColor: "#D5DDFF",
   },
   optionText: {
     color: "#000",

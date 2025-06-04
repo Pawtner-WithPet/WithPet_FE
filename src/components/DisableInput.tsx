@@ -1,24 +1,17 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TextInputProps,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
-interface CustomInputProps extends TextInputProps {
+interface DisabledInputProps {
   label: string;
+  placeholder?: string;
+  value?: string;
   required?: boolean;
-  error?: string;
 }
 
-export const CustomInput: React.FC<CustomInputProps> = ({
+export const DisabledInput: React.FC<DisabledInputProps> = ({
   label,
+  placeholder,
   required = false,
-  error,
-  style,
-  ...props
 }) => {
   return (
     <View style={styles.container}>
@@ -26,11 +19,9 @@ export const CustomInput: React.FC<CustomInputProps> = ({
         {label}
         {required && <Text style={styles.required}> *</Text>}
       </Text>
-      <TextInput
-        style={[styles.input, style, error && styles.inputError]}
-        {...props}
-      />
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      <View style={styles.disabledInput}>
+        <Text style={styles.disabledText}>{placeholder}</Text>
+      </View>
     </View>
   );
 };
@@ -48,21 +39,16 @@ const styles = StyleSheet.create({
   required: {
     color: "#ff6b6b",
   },
-  input: {
+  disabledInput: {
     borderWidth: 1,
     borderColor: "#e0e0e0",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
+    backgroundColor: "#f8f9fa",
+  },
+  disabledText: {
     fontSize: 16,
-    backgroundColor: "#ffffff",
-  },
-  inputError: {
-    borderColor: "#ff6b6b",
-  },
-  errorText: {
-    color: "#ff6b6b",
-    fontSize: 12,
-    marginTop: 4,
+    color: "#999999",
   },
 });
