@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { CustomInput } from "../../components/PetDetail/InputField";
 import { DisabledInput } from "../../components/PetDetail/DisableInput";
@@ -14,6 +15,7 @@ import { SelectButton } from "../../components/PetDetail/SelectBtn";
 import { ProfileImagePicker } from "../../components/PetDetail/ImageUploader";
 import { NoseSelect } from "../../components/PetDetail/NoseSelect";
 import Header from "../../components/Header";
+import { Image } from "react-native";
 
 interface PetInfo {
   name: string;
@@ -22,6 +24,7 @@ interface PetInfo {
   gender: string;
   registrationNumber: string;
   rfidCode: string;
+  rfidLocation: string;
   organization: string;
   phoneNumber: string;
   features: string;
@@ -29,28 +32,38 @@ interface PetInfo {
   profileImage?: string;
 }
 
-const DogDetailScreen: React.FC = () => {
+const InfoScreen: React.FC = () => {
   const [petInfo, setPetInfo] = useState<PetInfo>({
     name: "해피",
-    age: "2",
+    age: "2세",
     breed: "골든 리트리버",
-    gender: "male",
-    registrationNumber: "1234567890",
-    rfidCode: "RFID-00112233",
-    organization: "서울 동물보호센터",
-    phoneNumber: "02-123-4567",
-    features: "",
-    neutered: "yes",
+    gender: "female",
+    registrationNumber: "골든 리트리버",
+    rfidCode: "골든 리트리버",
+    rfidLocation: "어장",
+    organization: "골든 리트리버",
+    phoneNumber: "골든 리트리버",
+    features: "골든 리트리버",
+    neutered: "no",
     profileImage: undefined,
   });
 
   const [errors, setErrors] = useState<Partial<PetInfo>>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleImageSelected = (uri: string) => {
     setPetInfo((prev) => ({
       ...prev,
       profileImage: uri,
     }));
+  };
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      Alert.alert("새로고침 완료", "반려견 정보가 업데이트되었습니다.");
+    }, 1500);
   };
 
   const validateForm = (): boolean => {
@@ -100,6 +113,17 @@ const DogDetailScreen: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.headerSection}>
+          <Text style={styles.headerTitle}>반려견 상세 정보 입력</Text>
+          <TouchableOpacity onPress={handleRefresh} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#666" />
+            ) : (
+              <Image source={require("../../assets/icons/refresh.png")}></Image>
+            )}
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.content}>
           <View style={styles.profileSection}>
             <ProfileImagePicker
@@ -133,9 +157,11 @@ const DogDetailScreen: React.FC = () => {
             label="성별"
             options={genderOptions}
             selectedValue={petInfo.gender}
-            onSelect={() => {}}
-            disabled
+            onSelect={(value) =>
+              setPetInfo((prev) => ({ ...prev, gender: value }))
+            }
             required
+            disabled
           />
 
           <DisabledInput
@@ -143,16 +169,25 @@ const DogDetailScreen: React.FC = () => {
             value={petInfo.registrationNumber}
             required
           />
+
           <DisabledInput
             label="RFID_CD코드"
             value={petInfo.rfidCode}
             required
           />
+
+          <DisabledInput
+            label="RFID 구분"
+            value={petInfo.rfidLocation}
+            required
+          />
+
           <DisabledInput
             label="담당기관명"
             value={petInfo.organization}
             required
           />
+
           <DisabledInput
             label="담당기관 전화번호"
             value={petInfo.phoneNumber}
@@ -177,9 +212,11 @@ const DogDetailScreen: React.FC = () => {
             label="중성화 여부"
             options={neuteredOptions}
             selectedValue={petInfo.neutered}
-            onSelect={() => {}}
-            disabled
+            onSelect={(value) =>
+              setPetInfo((prev) => ({ ...prev, neutered: value }))
+            }
             required
+            disabled
           />
 
           <NoseSelect
@@ -187,12 +224,13 @@ const DogDetailScreen: React.FC = () => {
             onVerify={handleBiometricVerify}
           />
         </View>
+
+        <View style={styles.bottomButton}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>저장하기</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-      <View style={styles.bottomButton}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>저장하기</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -201,6 +239,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  headerSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#101828",
+  },
+  refreshIcon: {
+    fontSize: 24,
+    color: "#161F40",
+    fontWeight: "bold",
   },
   scrollView: {
     flex: 1,
@@ -225,16 +280,13 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
   bottomButton: {
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
   },
   saveButton: {
-    backgroundColor: "#1f2937",
+    backgroundColor: "#161F40",
     paddingVertical: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
   },
   saveButtonText: {
@@ -244,5 +296,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DogDetailScreen;
-
+export default InfoScreen;

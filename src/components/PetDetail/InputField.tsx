@@ -37,13 +37,13 @@ export const CustomInput: React.FC<CustomInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333333",
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000000",
+    marginBottom: 5,
   },
   required: {
     color: "#ff6b6b",

@@ -19,7 +19,7 @@ const SubmitBtn: React.FC<SubmitButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "#0a0a23",
+    backgroundColor: "#161F40",
     padding: 14,
     borderRadius: 12,
     alignItems: "center",

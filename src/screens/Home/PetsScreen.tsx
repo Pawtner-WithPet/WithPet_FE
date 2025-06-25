@@ -1,53 +1,88 @@
-import React from 'react';
-import { Colors } from '../../constants/colors';
-import { View, FlatList, StyleSheet } from 'react-native';
-import Header from '../../components/Header';
-import PetCard from '../../components/PetCard';
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { PetsStackParamList } from "../../navigation/PetsStack";
+import { fetchDogs, Dog } from "../../services/api/dogs";
+import { Colors } from "../../constants/colors";
+import Header from "../../components/Header";
+import PetCard from "../../components/PetCard";
 
-
-// 로컬 이미지 import (asset bundling)
-const pets = [
-  {
-    id: '1',
-    name: '해피',
-    age: '1세',
-    breed: '골든리트리버',
-    gender: '암컷',
-    image: require('../../assets/images/happy1.png'),
-  },
-  {
-    id: '2',
-    name: '나나나',
-    age: '2세',
-    breed: '말티즈',
-    gender: '숫컷',
-    image: require('../../assets/images/happy2.png'),
-  },
-];
-
-
+type PetsScreenNavigationProp = NativeStackNavigationProp<
+  PetsStackParamList,
+  "PetsScreen"
+>;
 
 const PetsScreen: React.FC = () => {
+  const navigation = useNavigation<PetsScreenNavigationProp>();
+  const [dogs, setDogs] = useState<Dog[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const loadDogs = async () => {
+      try {
+        const fetchedDogs = await fetchDogs(1);
+        console.log("불러온 반려견 목록:", fetchedDogs);
+        setDogs(fetchedDogs);
+      } catch (error) {
+        Alert.alert("오류", "반려견 데이터를 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDogs();
+  }, []);
+
+  const handlePetPress = (petId: string) => {
+    navigation.navigate("DogDetailScreen", { petId });
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#666" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Header />
       <FlatList
-        data={pets}
-        keyExtractor={item => item.id}
+        data={dogs}
+        keyExtractor={(item) => item.dogRegNo}
         renderItem={({ item }) => (
-          <PetCard
-            name={item.name}
-            age={item.age}
-            breed={item.breed}
-            gender={item.gender}
-            image={item.image}
-          />
+          <TouchableOpacity onPress={() => handlePetPress(item.dogRegNo)}>
+            <PetCard
+              name={item.dogNm}
+              age={`${item.dogAge}세`}
+              breed={item.kindNm}
+              gender={item.sexNm}
+              image={
+                item.dogImg
+                  ? { uri: item.dogImg }
+                  : require("../../assets/images/default.png")
+              }
+            />
+          </TouchableOpacity>
         )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Header />
+          </View>
+        }
       />
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -55,7 +90,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     paddingTop: 16,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
 });
-
 
 export default PetsScreen;

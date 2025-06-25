@@ -1,18 +1,13 @@
-import React from 'react';
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  StatusBar,
-} from 'react-native';
-import { Colors } from '../constants/colors';
+import React from "react";
+import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Colors } from "../constants/colors";
+import { StatusBar, Platform } from "react-native";
 
 // 아이콘 파일은 assets/icons 아래에 두고 필요에 따라 바꿔주세요.
 const ICONS = {
-  logo: require('../assets/icons/logo.png'),
-  bell: require('../assets/icons/bell.png'),
-  user: require('../assets/icons/user.png'),
+  logo: require("../assets/icons/logo.png"),
+  bell: require("../assets/icons/bell.png"),
+  user: require("../assets/icons/user.png"),
 };
 
 const Header: React.FC = () => (
@@ -32,26 +27,29 @@ const Header: React.FC = () => (
 
 const styles = StyleSheet.create({
   container: {
-    height: 56,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 24, // ✅ 상단 여백
+    height:
+      56 + (Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0),
     backgroundColor: Colors.primaryLight,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
+
   logo: {
     width: 100,
     height: 24,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   icon: {
     width: 24,
     height: 24,
     marginLeft: 20,
-    tintColor: '#fff',
+    tintColor: "#fff",
   },
 });
 

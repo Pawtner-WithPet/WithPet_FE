@@ -28,27 +28,26 @@ export const DisabledInput: React.FC<DisabledInputProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333333",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000000",
     marginBottom: 8,
   },
   required: {
     color: "#ff6b6b",
   },
   disabledInput: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: "#F3F4F6",
   },
   disabledText: {
     fontSize: 16,
-    color: "#999999",
+    color: "#979696",
+    fontWeight: "bold",
   },
 });

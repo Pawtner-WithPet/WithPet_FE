@@ -21,46 +21,50 @@ export const SelectButton: React.FC<SelectButtonProps> = ({
   selectedValue,
   onSelect,
   required = false,
+  disabled = true,
 }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>
-        {label}
-        {required && <Text style={styles.required}> *</Text>}
-      </Text>
-      <View style={styles.buttonContainer}>
-        {options.map((option) => (
+    <View style={styles.buttonContainer}>
+      {options.map((option) => {
+        const isSelected = selectedValue === option.value;
+        return (
           <TouchableOpacity
             key={option.value}
             style={[
               styles.button,
-              selectedValue === option.value && styles.buttonActive,
+              isSelected && styles.buttonActive,
+              disabled && styles.button,
             ]}
-            onPress={() => onSelect(option.value)}
+            onPress={() => {
+              if (!disabled) onSelect(option.value);
+            }}
+            disabled={disabled}
+            activeOpacity={disabled ? 1 : 0.7}
           >
             <Text
               style={[
                 styles.buttonText,
-                selectedValue === option.value && styles.buttonTextActive,
+                isSelected && styles.buttonTextActive,
+                disabled && styles.buttonText,
               ]}
             >
               {option.label}
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        );
+      })}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333333",
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#000000",
     marginBottom: 8,
   },
   required: {
@@ -68,28 +72,28 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    gap: 12,
+    gap: 14,
   },
   button: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    backgroundColor: "#ffffff",
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    backgroundColor: "#F3F4F6",
     alignItems: "center",
   },
   buttonActive: {
-    backgroundColor: "#6366f1",
-    borderColor: "#6366f1",
+    backgroundColor: "#D5DDFF",
+    borderColor: "#4262FF",
+    borderWidth: 2,
   },
   buttonText: {
     fontSize: 16,
-    color: "#666666",
+    color: "#979696",
+    fontWeight: "bold",
   },
   buttonTextActive: {
-    color: "#ffffff",
-    fontWeight: "600",
+    color: "#000000",
+    fontWeight: "bold",
   },
 });
