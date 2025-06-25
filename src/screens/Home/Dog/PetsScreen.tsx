@@ -9,11 +9,11 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { PetsStackParamList } from "../../navigation/PetsStack";
-import { fetchDogs, Dog } from "../../services/api/dogs";
-import { Colors } from "../../constants/colors";
-import Header from "../../components/Header";
-import PetCard from "../../components/PetCard";
+import { PetsStackParamList } from "../../../navigation/PetsStack";
+import { fetchDogs, Dog } from "../../../services/api/dogs";
+import { Colors } from "../../../constants/colors";
+import Header from "../../../components/Header";
+import PetCard from "../../../components/PetCard";
 
 type PetsScreenNavigationProp = NativeStackNavigationProp<
   PetsStackParamList,
@@ -42,7 +42,7 @@ const PetsScreen: React.FC = () => {
   }, []);
 
   const handlePetPress = (petId: string) => {
-    navigation.navigate("DogDetailScreen", { petId });
+    navigation.navigate("PetDetailScreen", { petId });
   };
 
   if (loading) {
@@ -69,7 +69,7 @@ const PetsScreen: React.FC = () => {
               image={
                 item.dogImg
                   ? { uri: item.dogImg }
-                  : require("../../assets/images/default.png")
+                  : require("../../../assets/images/default.png")
               }
             />
           </TouchableOpacity>

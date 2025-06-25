@@ -23,8 +23,8 @@ const ICONS = {
     inactive: require("../assets/icons_bar/pet.png"),
     active: require("../assets/icons_bar/pet_active.png"),
   },
-  Info: {
-    inactive: require("../assets/icons_bar/nose.png"), // Info 탭 아이콘이 nose라면
+  Nose: {
+    inactive: require("../assets/icons_bar/nose.png"),
     active: require("../assets/icons_bar/nose_active.png"),
   },
 };

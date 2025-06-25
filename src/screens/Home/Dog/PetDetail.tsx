@@ -9,12 +9,12 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { CustomInput } from "../../components/PetDetail/InputField";
-import { DisabledInput } from "../../components/PetDetail/DisableInput";
-import { SelectButton } from "../../components/PetDetail/SelectBtn";
-import { ProfileImagePicker } from "../../components/PetDetail/ImageUploader";
-import { NoseSelect } from "../../components/PetDetail/NoseSelect";
-import Header from "../../components/Header";
+import { CustomInput } from "../../../components/PetDetail/InputField";
+import { DisabledInput } from "../../../components/PetDetail/DisableInput";
+import { SelectButton } from "../../../components/PetDetail/SelectBtn";
+import { ProfileImagePicker } from "../../../components/PetDetail/ImageUploader";
+import { NoseSelect } from "../../../components/PetDetail/NoseSelect";
+import Header from "../../../components/Header";
 import { Image } from "react-native";
 
 interface PetInfo {
@@ -32,7 +32,7 @@ interface PetInfo {
   profileImage?: string;
 }
 
-const InfoScreen: React.FC = () => {
+const PetDetailScreen: React.FC = () => {
   const [petInfo, setPetInfo] = useState<PetInfo>({
     name: "해피",
     age: "2세",
@@ -119,7 +119,7 @@ const InfoScreen: React.FC = () => {
             {isLoading ? (
               <ActivityIndicator size="small" color="#666" />
             ) : (
-              <Image source={require("../../assets/icons/refresh.png")}></Image>
+              <Image source={require("../../../assets/icons/refresh.png")} />
             )}
           </TouchableOpacity>
         </View>
@@ -296,4 +296,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default InfoScreen;
+export default PetDetailScreen;

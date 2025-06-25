@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Header from '../../components/Header';
-import { Colors } from '../../constants/colors';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import Header from "../../components/Header";
+import { Colors } from "../../constants/colors";
 
 const WalkScreen: React.FC = () => (
   <View>
@@ -11,6 +11,5 @@ const WalkScreen: React.FC = () => (
     </View>
   </View>
 );
-
 
 export default WalkScreen;
