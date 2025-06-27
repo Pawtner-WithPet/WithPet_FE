@@ -1,7 +1,7 @@
-// src/navigation/TabNavigator.tsx
+
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import WalkScreen from "../screens/Home/WalkScreen";
+import WalkScreen from "../screens/Home/petListScreenDetail"; //임시로 변경
 import LostScreen from "../screens/Home/LostScreen";
 import PetsScreen from "../screens/Home/Dog/PetsScreen";
 import CustomTabBar from "../components/CustomTabBar";

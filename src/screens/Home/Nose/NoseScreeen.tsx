@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import NoseCard from "../../../components/NoseList/NoseCard";
