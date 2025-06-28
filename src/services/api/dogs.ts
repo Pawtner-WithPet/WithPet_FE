@@ -17,7 +17,7 @@ export type DogListResponse = {
   data: Dog[];
 };
 
-const API_URL = "http://10.0.2.2:8080/api/pet/list";
+const API_URL = "http://192.168.219.112:8080/api/pet/list";
 
 export const fetchDogs = async (userId: number): Promise<Dog[]> => {
   try {
