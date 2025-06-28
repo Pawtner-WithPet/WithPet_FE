@@ -91,25 +91,9 @@ const PetDetailScreen: React.FC = () => {
       setIsLoading(true);
       const result = await uploadPetImage(1, uri, 1);
       console.log("✅ 이미지 업로드 완료:", result);
-      setPetInfo(prev => ({ ...prev, profileImage: uri }));
+      setPetInfo(prev => ({ ...prev, profileImage: prev.profileImage }));
     } catch (err) {
       Alert.alert("업로드 실패", "이미지 업로드 중 문제가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleUploadHappy1 = async () => {
-    try {
-      setIsLoading(true);
-      const asset = Asset.fromModule(require("../../../assets/images/happy1.png"));
-      await asset.downloadAsync();
-      const fileUri = asset.localUri || asset.uri;
-      const result = await uploadPetImage(1, fileUri, 1);
-      console.log("✅ 이미지 업로드 성공:", result);
-      setPetInfo(prev => ({ ...prev, profileImage: result.dogImg }));
-    } catch (err) {
-      Alert.alert("이미지 업로드 실패", "서버 전송 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +166,7 @@ const PetDetailScreen: React.FC = () => {
             {isLoading ? (
               <ActivityIndicator size="small" color="#666" />
             ) : (
-              <Image source={{ uri: petInfo.profileImage }} style={{ width: 50, height: 50 }} />
+              <Image source={require("../../../assets/icons/refresh.png")} style={{ width: 20, height: 20 }} />
             )}
           </TouchableOpacity>
         </View>
