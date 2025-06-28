@@ -24,35 +24,42 @@ export const SelectButton: React.FC<SelectButtonProps> = ({
   disabled = true,
 }) => {
   return (
-    <View style={styles.buttonContainer}>
-      {options.map((option) => {
-        const isSelected = selectedValue === option.value;
-        return (
-          <TouchableOpacity
-            key={option.value}
-            style={[
-              styles.button,
-              isSelected && styles.buttonActive,
-              disabled && styles.button,
-            ]}
-            onPress={() => {
-              if (!disabled) onSelect(option.value);
-            }}
-            disabled={disabled}
-            activeOpacity={disabled ? 1 : 0.7}
-          >
-            <Text
+    <View style={styles.container}>
+      <Text style={styles.label}>
+        {label}
+        {required && <Text style={styles.required}>*</Text>}
+      </Text>
+
+      <View style={styles.buttonContainer}>
+        {options.map((option) => {
+          const isSelected = selectedValue === option.value;
+          return (
+            <TouchableOpacity
+              key={option.value}
               style={[
-                styles.buttonText,
-                isSelected && styles.buttonTextActive,
-                disabled && styles.buttonText,
+                styles.button,
+                isSelected && styles.buttonActive,
+                disabled && styles.button,
               ]}
+              onPress={() => {
+                if (!disabled) onSelect(option.value);
+              }}
+              disabled={disabled}
+              activeOpacity={disabled ? 1 : 0.7}
             >
-              {option.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+              <Text
+                style={[
+                  styles.buttonText,
+                  isSelected && styles.buttonTextActive,
+                  disabled && styles.buttonText,
+                ]}
+              >
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 };
@@ -62,7 +69,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#000000",
     marginBottom: 8,

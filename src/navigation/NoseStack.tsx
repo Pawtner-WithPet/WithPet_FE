@@ -1,10 +1,11 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import NoseListScreen from "../screens/Home/Nose/NoseScreeen";
+import NoseListScreen from "../screens/Home/Nose/NoseList";
 
 export type NoseStackParamList = {
   NoseListScreen: undefined;
   NoseDetailScreen: { petId: string };
+  NoseImagePick: undefined;
 };
 
 const Stack = createNativeStackNavigator<NoseStackParamList>();

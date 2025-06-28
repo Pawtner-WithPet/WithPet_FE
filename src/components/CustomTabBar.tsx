@@ -1,5 +1,11 @@
 import React from "react";
-import { View, TouchableOpacity, Image, StyleSheet, Platform } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Colors } from "../constants/colors";
@@ -53,7 +59,7 @@ const styles = StyleSheet.create({
     height: Platform.select({ ios: 64, android: 87 }),
     borderTopWidth: 1,
     borderTopColor: Colors.card,
-    backgroundColor: Colors.background,
+    backgroundColor: "#FFFFFF",
   },
   tab: {
     flex: 1,

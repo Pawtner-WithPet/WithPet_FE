@@ -1,9 +1,15 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import NoseCard from "../../../components/NoseList/NoseCard";
-import { Image } from "react-native-svg";
 
 const NoseScreen: React.FC = () => {
   const noseData = [
@@ -59,13 +65,24 @@ const NoseScreen: React.FC = () => {
         ))}
       </ScrollView>
 
-      {/* 하단 플로팅 버튼들 */}
-      <View style={styles.floatingButtons}>
-        <TouchableOpacity style={styles.floatingButton}>
-          <Text style={styles.buttonText}>🐕</Text>
+      {/* 하단 플로팅 버튼들 - 좌우 배치 */}
+      <View style={styles.floatingButtonsContainer}>
+        {/* 왼쪽 버튼 */}
+        <TouchableOpacity style={[styles.floatingButton]}>
+          <Image
+            source={require("../../../assets/icons/dog.png")}
+            style={styles.buttonIcon}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.floatingButton}>
-          <Text style={styles.buttonText}>📷</Text>
+
+        {/* 오른쪽 버튼 */}
+        <TouchableOpacity style={[styles.floatingButton]}>
+          <Image
+            source={require("../../../assets/icons/camera.png")}
+            style={styles.buttonIcon}
+            resizeMode="contain"
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -83,10 +100,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
+    paddingBottom: 30,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 19,
+    fontWeight: "semibold",
     color: Colors.text || "#000",
   },
   sortContainer: {
@@ -106,17 +124,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 16,
   },
-  floatingButtons: {
+  floatingButtonsContainer: {
     position: "absolute",
     bottom: 100,
-    right: 20,
-    flexDirection: "column",
-    gap: 12,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
   },
   floatingButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 75,
+    height: 75,
+    borderRadius: 75,
+    backgroundColor: "#4262FF", // 파란색 배경
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
@@ -125,9 +146,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
-  buttonText: {
-    fontSize: 24,
-    color: "white",
+  buttonIcon: {
+    width: 50,
+    height: 50,
+    tintColor: "white",
   },
 });
 
