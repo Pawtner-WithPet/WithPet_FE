@@ -16,12 +16,11 @@ export const DisabledInput: React.FC<DisabledInputProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        {label}
-        {required && <Text style={styles.required}> *</Text>}
-      </Text>
+      <Text style={styles.label}>{label}</Text>
       <View style={styles.disabledInput}>
-        <Text style={styles.disabledText}>{value?.trim() ? value : placeholder || ""}</Text>
+        <Text style={styles.disabledText}>
+          {value?.trim() ? value : placeholder || ""}
+        </Text>
       </View>
     </View>
   );

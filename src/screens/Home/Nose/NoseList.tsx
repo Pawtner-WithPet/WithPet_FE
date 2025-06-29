@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonsContainer: {
     position: "absolute",
-    bottom: 100,
+    bottom: 30,
     left: 0,
     right: 0,
     flexDirection: "row",

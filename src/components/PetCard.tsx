@@ -19,16 +19,9 @@ const PetCard: React.FC<PetCardProps> = ({
 }) => (
   <View style={styles.card}>
     <View style={styles.markerContainer}>
-      <ImageBackground
-        source={require("../assets/images/bg_shape.png")}
-        style={styles.background}
-        imageStyle={styles.backgroundImage}
-      >
-        <View style={styles.marker}>
-          <Image source={image} style={styles.avatar} />
-        </View>
-      </ImageBackground>
-      <View style={styles.pointer} />
+      <View style={styles.marker}>
+        <Image source={image} style={styles.avatar} />
+      </View>
     </View>
 
     <View style={styles.info}>
@@ -63,31 +56,24 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     padding: 16,
     elevation: 3,
+    alignItems: "center", // 세로 중앙 정렬
   },
   markerContainer: {
-    width: 80,
+    width: 110,
     alignItems: "center",
-  },
-  background: {
-    width: 120,
-    height: 120,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backgroundImage: {
-    resizeMode: "contain",
+    justifyContent: "center", // 세로 중앙 정렬
   },
   marker: {
-    width: 70,
-    height: 70,
-    borderRadius: 30,
+    width: 108,
+    height: 108,
+    borderRadius: 100,
     backgroundColor: Colors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
   },
   avatar: {
-    width: 70,
-    height: 70,
+    width: 108,
+    height: 108,
     borderRadius: 50,
   },
   pointer: {
@@ -108,11 +94,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   line: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: "bold",
     color: Colors.text,
     marginBottom: 4,
   },
   label: {
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });

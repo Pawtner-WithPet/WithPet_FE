@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export type Dog = {
-  petId: string;
+  id: number;
   dogRegNo: string;
   dogNm: string;
   dogAge: number;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Alert,
   ActivityIndicator,
+  Image,
 } from "react-native";
 import { CustomInput } from "../../../components/PetDetail/InputField";
 import { DisabledInput } from "../../../components/PetDetail/DisableInput";
@@ -15,9 +16,27 @@ import { SelectButton } from "../../../components/PetDetail/SelectBtn";
 import { ProfileImagePicker } from "../../../components/PetDetail/ImageUploader";
 import { NoseSelect } from "../../../components/PetDetail/NoseSelect";
 import Header from "../../../components/Header";
-import { Image } from "react-native";
+import {
+  getPetDetail,
+  updatePetDetail,
+  uploadPetImage,
+} from "../../../services/api/PetDetail";
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import { PetsStackParamList } from "../../../navigation/PetsStack";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-interface PetInfo {
+type PetDetailRouteProp = RouteProp<PetsStackParamList, "PetDetailScreen">;
+type PetDetailScreenNavigationProp = NativeStackNavigationProp<
+  PetsStackParamList,
+  "PetDetailScreen"
+>;
+
+type PetInfo = {
   name: string;
   age: string;
   breed: string;
@@ -30,47 +49,96 @@ interface PetInfo {
   features: string;
   neutered: string;
   profileImage?: string;
-}
+};
 
 const PetDetailScreen: React.FC = () => {
+  const navigation = useNavigation<PetDetailScreenNavigationProp>();
+  const route = useRoute<PetDetailRouteProp>();
+  const { id: petId } = route.params;
+
   const [petInfo, setPetInfo] = useState<PetInfo>({
-    name: "해피",
-    age: "2세",
-    breed: "골든 리트리버",
-    gender: "female",
-    registrationNumber: "골든 리트리버",
-    rfidCode: "골든 리트리버",
-    rfidLocation: "어장",
-    organization: "골든 리트리버",
-    phoneNumber: "골든 리트리버",
-    features: "골든 리트리버",
-    neutered: "no",
+    name: "",
+    age: "",
+    breed: "",
+    gender: "",
+    registrationNumber: "",
+    rfidCode: "",
+    rfidLocation: "",
+    organization: "",
+    phoneNumber: "",
+    features: "",
+    neutered: "",
     profileImage: undefined,
   });
 
   const [errors, setErrors] = useState<Partial<PetInfo>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleImageSelected = (uri: string) => {
-    setPetInfo((prev) => ({
-      ...prev,
-      profileImage: uri,
-    }));
+  const fetchPetDetail = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getPetDetail(petId);
+      setPetInfo({
+        name: data.dogNm,
+        age: `${data.dogAge}세`,
+        breed: data.kindNm,
+        gender: data.sexNm === "암컷" ? "female" : "male",
+        registrationNumber: data.dogRegNo,
+        rfidCode: data.rfidCd,
+        rfidLocation: data.rfidGubun,
+        organization: data.orgNm,
+        phoneNumber: data.officeTel,
+        features: data.features,
+        neutered: data.neuterYn === "중성" ? "yes" : "no",
+        profileImage: data.dogImg,
+      });
+    } catch (error) {
+      Alert.alert("불러오기 실패", "반려견 정보를 불러오는 데 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPetDetail();
+  }, [petId]);
+
+  const handleImageSelected = async (uri: string) => {
+    try {
+      setIsLoading(true);
+      const result = await uploadPetImage(petId, uri, 1);
+      console.log("✅ 이미지 업로드 완료:", result);
+      setPetInfo((prev) => ({ ...prev, profileImage: uri }));
+    } catch (err) {
+      Alert.alert("업로드 실패", "이미지 업로드 중 문제가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRefresh = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      await fetchPetDetail();
+      Alert.alert(
+        "반려견 정보가 갱신되었습니다.",
+        "최신 정보로 업데이트되었습니다.",
+        [
+          {
+            text: "확인",
+            onPress: () => {}, // 확인 누르면 그대로 최신 정보가 반영됨
+          },
+        ],
+      );
+    } catch (error) {
+      Alert.alert("갱신 실패", "정보를 다시 불러오는 데 실패했습니다.");
+    } finally {
       setIsLoading(false);
-      Alert.alert("새로고침 완료", "반려견 정보가 업데이트되었습니다.");
-    }, 1500);
+    }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<PetInfo> = {};
-    if (!petInfo.features.trim()) {
-      newErrors.features = "특징을 입력해주세요.";
-    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -80,7 +148,20 @@ const PetDetailScreen: React.FC = () => {
       Alert.alert("저장 완료", "반려견 정보가 저장되었습니다.", [
         {
           text: "확인",
-          onPress: () => console.log("Pet info saved:", petInfo),
+          onPress: async () => {
+            try {
+              const payload = { userId: 1, features: petInfo.features };
+              const updated = await updatePetDetail(petId, payload);
+              console.log("✅ 저장 완료:", updated);
+
+              await fetchPetDetail(); // 최신 정보 즉시 반영
+
+              navigation.navigate("PetsScreen");
+            } catch (error) {
+              Alert.alert("저장 실패", "서버에 저장하지 못했습니다.");
+              console.error("❌ 저장 오류:", error);
+            }
+          },
         },
       ]);
     } else {
@@ -119,7 +200,10 @@ const PetDetailScreen: React.FC = () => {
             {isLoading ? (
               <ActivityIndicator size="small" color="#666" />
             ) : (
-              <Image source={require("../../../assets/icons/refresh.png")} />
+              <Image
+                source={require("../../../assets/icons/refresh.png")}
+                style={{ width: 20, height: 20 }}
+              />
             )}
           </TouchableOpacity>
         </View>
@@ -152,42 +236,34 @@ const PetDetailScreen: React.FC = () => {
             value={petInfo.breed}
             required
           />
-
           <SelectButton
             label="성별"
             options={genderOptions}
             selectedValue={petInfo.gender}
-            onSelect={(value) =>
-              setPetInfo((prev) => ({ ...prev, gender: value }))
-            }
+            onSelect={() => {}}
             required
             disabled
           />
-
           <DisabledInput
             label="동물등록번호"
             value={petInfo.registrationNumber}
             required
           />
-
           <DisabledInput
             label="RFID_CD코드"
             value={petInfo.rfidCode}
             required
           />
-
           <DisabledInput
             label="RFID 구분"
             value={petInfo.rfidLocation}
             required
           />
-
           <DisabledInput
             label="담당기관명"
             value={petInfo.organization}
             required
           />
-
           <DisabledInput
             label="담당기관 전화번호"
             value={petInfo.phoneNumber}
@@ -196,15 +272,14 @@ const PetDetailScreen: React.FC = () => {
 
           <CustomInput
             label="특징"
-            placeholder="골든 리트리버"
+            placeholder="특징을 입력해 주세요!"
             value={petInfo.features}
-            onChangeText={(value) =>
+            onChangeText={(value: string) =>
               setPetInfo((prev) => ({ ...prev, features: value }))
             }
             multiline
             numberOfLines={4}
             style={styles.textArea}
-            required
             error={errors.features}
           />
 
@@ -212,13 +287,10 @@ const PetDetailScreen: React.FC = () => {
             label="중성화 여부"
             options={neuteredOptions}
             selectedValue={petInfo.neutered}
-            onSelect={(value) =>
-              setPetInfo((prev) => ({ ...prev, neutered: value }))
-            }
+            onSelect={() => {}}
             required
             disabled
           />
-
           <NoseSelect
             onRegister={handleBiometricRegister}
             onVerify={handleBiometricVerify}
@@ -251,11 +323,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#101828",
-  },
-  refreshIcon: {
-    fontSize: 24,
-    color: "#161F40",
-    fontWeight: "bold",
   },
   scrollView: {
     flex: 1,

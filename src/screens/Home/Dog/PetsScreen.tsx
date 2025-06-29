@@ -34,7 +34,7 @@ const PetsScreen: React.FC = () => {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 등록 모달 관련 상태
+  // 등록 모달 상태
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [registerLoading, setRegisterLoading] = useState<boolean>(false);
   const [registeredDog, setRegisteredDog] = useState<RegisteredDog | null>(
@@ -51,7 +51,7 @@ const PetsScreen: React.FC = () => {
   useEffect(() => {
     const loadDogs = async () => {
       try {
-        const fetchedDogs = await fetchDogs(1);
+        const fetchedDogs = await fetchDogs(1); // userId 하드코딩
         setDogs(fetchedDogs);
       } catch (error) {
         Alert.alert("오류", "반려견 데이터를 불러오지 못했습니다.");
@@ -111,9 +111,9 @@ const PetsScreen: React.FC = () => {
     resetForm();
   };
 
-  // 펫 카드 클릭 시 상세 화면으로 이동
-  const handlePetCardPress = (dogRegNo: string) => {
-    navigation.navigate("PetDetailScreen", { dogRegNo });
+  // PetCard 클릭 시 상세 화면으로 이동 (id를 petId로 전달)
+  const handlePetCardPress = (petId: number) => {
+    navigation.navigate("PetDetailScreen", { id: petId });
   };
 
   if (loading) {
@@ -129,9 +129,9 @@ const PetsScreen: React.FC = () => {
       <Header />
       <FlatList
         data={dogs}
-        keyExtractor={(item, index) => `${item.dogRegNo}-${index}`}
+        keyExtractor={(item) => `${item.id}`}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handlePetCardPress(item.dogRegNo)}>
+          <TouchableOpacity onPress={() => handlePetCardPress(item.id)}>
             <PetCard
               name={item.dogNm}
               age={`${item.dogAge}세`}
@@ -255,7 +255,6 @@ const PetsScreen: React.FC = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
