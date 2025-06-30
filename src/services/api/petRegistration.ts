@@ -23,7 +23,7 @@ export type RegisterPetResponse = {
   data: RegisteredDog;
 };
 
-const API_BASE_URL = "http://10.0.2.2:8080/api";
+const API_BASE_URL = "http://172.20.69.114:8080/api";
 
 export const registerPet = async (
   petData: RegisterPetRequest,
