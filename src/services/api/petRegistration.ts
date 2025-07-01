@@ -1,4 +1,5 @@
 import axios from "axios";
+import api from "./api";
 
 export type RegisterPetRequest = {
   dogRegNo: string;
@@ -23,14 +24,12 @@ export type RegisterPetResponse = {
   data: RegisteredDog;
 };
 
-const API_BASE_URL = "http://10.0.2.2:8080/api";
-
 export const registerPet = async (
   petData: RegisterPetRequest,
 ): Promise<RegisteredDog> => {
   try {
     const response = await axios.post<RegisterPetResponse>(
-      `${API_BASE_URL}/pet/register`,
+      `/pet/register`,
       petData,
     );
 
