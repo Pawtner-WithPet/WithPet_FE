@@ -1,7 +1,7 @@
 import api from "./api";
 
 export type Dog = {
-  petId: string;
+  id: number;
   dogRegNo: string;
   dogNm: string;
   dogAge: number;
