@@ -10,6 +10,8 @@ import {
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import NoseCard from "../../../components/NoseList/NoseCard";
+import NoseCamera from "./NoseCamera";
+import { useNavigation } from '@react-navigation/native';
 
 const NoseScreen: React.FC = () => {
   const noseData = [
@@ -41,6 +43,7 @@ const NoseScreen: React.FC = () => {
       }, // 임시 이미지
     },
   ];
+  const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
@@ -77,7 +80,10 @@ const NoseScreen: React.FC = () => {
         </TouchableOpacity>
 
         {/* 오른쪽 버튼 */}
-        <TouchableOpacity style={[styles.floatingButton]}>
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => navigation.navigate('NoseCamera')} 
+        >
           <Image
             source={require("../../../assets/icons/camera.png")}
             style={styles.buttonIcon}
@@ -137,7 +143,7 @@ const styles = StyleSheet.create({
     width: 75,
     height: 75,
     borderRadius: 75,
-    backgroundColor: "#4262FF", // 파란색 배경
+    backgroundColor: "#4262FF", 
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,

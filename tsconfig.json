@@ -2,7 +2,11 @@
   "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
     "jsx": "react",
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@env": ["env.d.ts"]
+    }
+  },
+  "include": ["src", "src/types/images.d.ts", "env.d.ts", "src/types"]
 }
-
