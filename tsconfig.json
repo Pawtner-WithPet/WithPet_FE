@@ -8,5 +8,5 @@
       "@env": ["env.d.ts"]
     }
   },
-  "include": ["src", "src/types/images.d.ts", "env.d.ts"]
+  "include": ["src", "src/types/images.d.ts", "env.d.ts", "src/types"]
 }
