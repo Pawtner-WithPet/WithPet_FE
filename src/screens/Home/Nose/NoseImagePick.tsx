@@ -7,16 +7,32 @@ import {
   SafeAreaView,
   Image,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/Header";
 import NoseImage from "../../../components/NoseImagePick/NoseImage";
 import RetakeBtn from "../../../components/NoseImagePick/RetakeBtn";
 import ChoiceButtons from "../../../components/NoseImagePick/ChoiceBtn";
 
+// Route params 타입 정의
+type NoseImagePickRouteParams = {
+  imageUri?: string;
+};
+
+type NoseImagePickRouteProp = RouteProp<
+  { NoseImagePick: NoseImagePickRouteParams },
+  "NoseImagePick"
+>;
+
 const NoseImagePick: React.FC = () => {
+  const navigation = useNavigation();
+  const route = useRoute<NoseImagePickRouteProp>();
+  const { imageUri } = route.params || {}; // 전달받은 이미지 URI
+
   const handleTryAgain = () => {
     console.log("다시 촬영하기 클릭");
+    // 다시 촬영하기 버튼 클릭 시 카메라 화면으로 이동
+    navigation.goBack();
   };
 
   const handleLostPet = () => {
@@ -32,7 +48,14 @@ const NoseImagePick: React.FC = () => {
       <Header />
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
-          <NoseImage />
+          {/* 전달받은 이미지가 있으면 실제 사진을, 없으면 기본 NoseImage 컴포넌트를 표시 */}
+          {imageUri ? (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: imageUri }} style={styles.capturedImage} />
+            </View>
+          ) : (
+            <NoseImage />
+          )}
 
           <RetakeBtn onTryAgain={handleTryAgain} />
           <View style={styles.questionContainer}>
@@ -64,6 +87,20 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     marginBottom: 32,
+    width: 280,
+    height: 320,
+    borderRadius: 24,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  capturedImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   dogFaceContainer: {
     width: 280,

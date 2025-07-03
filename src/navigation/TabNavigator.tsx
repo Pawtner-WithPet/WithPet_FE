@@ -1,15 +1,12 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import LostScreen from "../screens/Home/LostScreen"; // NoseResult로 잠시 대체
+import LostScreen from "../screens/Home/LostScreen";
 import NoseResult from "../screens/Home/Nose/NoseResult";
-
 import PetsScreen from "../screens/Home/Dog/PetsScreen";
 import CustomTabBar from "../components/CustomTabBar";
 import PetsStack from "./PetsStack";
-import NoseStack from "./NoseStack";
-import NoseListScreen from "../screens/Home/Nose/NoseList";
+import NoseStack from "./NoseStack"; // 이미 import되어 있음
 import WalkScreen from "../screens/Home/WalkScreen";
-import NoseImagePick from "../screens/Home/Nose/NoseImagePick";
 import NoseImageR from "../screens/Home/Nose/NoseImageR";
 
 export type TabParamList = {
@@ -28,9 +25,9 @@ const TabNavigator: React.FC = () => {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Walk" component={NoseImageR} />
-      <Tab.Screen name="Lost" component={NoseResult} /> 
+      <Tab.Screen name="Lost" component={NoseResult} />
       <Tab.Screen name="Pets" component={PetsStack} />
-      <Tab.Screen name="Nose" component={NoseListScreen} />
+      <Tab.Screen name="Nose" component={NoseStack} />
     </Tab.Navigator>
   );
 };

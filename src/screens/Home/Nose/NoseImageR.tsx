@@ -7,7 +7,6 @@ import {
   SafeAreaView,
 } from "react-native";
 
-// Props 타입 정의
 interface RetakeBtnProps {
   onTryAgain: () => void;
 }
@@ -16,14 +15,12 @@ interface RegisterBtnProps {
   onRegister: () => void;
 }
 
-// RetakeBtn 컴포넌트
 const RetakeBtn: React.FC<RetakeBtnProps> = ({ onTryAgain }) => (
   <TouchableOpacity style={styles.retakeButton} onPress={onTryAgain}>
     <Text style={styles.buttonText}>다시 촬영하기</Text>
   </TouchableOpacity>
 );
 
-// RegisterBtn 컴포넌트 (비문 등록하기 버튼)
 const RegisterBtn: React.FC<RegisterBtnProps> = ({ onRegister }) => (
   <TouchableOpacity style={styles.registerButton} onPress={onRegister}>
     <Text style={styles.buttonText}>비문 등록하기</Text>

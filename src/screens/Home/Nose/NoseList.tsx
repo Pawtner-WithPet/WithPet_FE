@@ -18,17 +18,14 @@ import {
   fetchNoseprintPets,
   NoseprintPet,
 } from "../../../services/api/NoseList";
-import NoseCamera from "./NoseCamera";
-
 
 const NoseScreen: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false); // 왼쪽 버튼
-  const [isDogListVisible, setIsDogListVisible] = useState(false); // 비문 불러오기 목록
-  const [dogList, setDogList] = useState<NoseprintPet[]>([]); // API에서 받아온 강아지 목록
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태
-  const navigation = useNavigation();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isDogListVisible, setIsDogListVisible] = useState(false);
+  const [dogList, setDogList] = useState<NoseprintPet[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigation = useNavigation<any>();
 
-  // 컴포넌트 마운트 시 강아지 목록 불러오기
   useEffect(() => {
     loadDogList();
   }, []);
@@ -36,8 +33,7 @@ const NoseScreen: React.FC = () => {
   const loadDogList = async () => {
     setIsLoading(true);
     try {
-      // TODO: 실제 userId를 여기에 넣어주세요
-      const userId = 1; // 또는 현재 로그인된 사용자의 ID
+      const userId = 1; // 실제 사용자 ID로 교체
       const pets = await fetchNoseprintPets(userId);
       setDogList(pets);
     } catch (error) {
@@ -49,12 +45,11 @@ const NoseScreen: React.FC = () => {
 
   const handleDogButtonPress = () => {
     setIsExpanded((prev) => !prev);
-    if (isDogListVisible) setIsDogListVisible(false); // 다른 거 열려 있으면 닫기
+    if (isDogListVisible) setIsDogListVisible(false);
   };
 
   const handleLoadNoseDataToggle = () => {
     setIsDogListVisible((prev) => !prev);
-    // 목록이 열릴 때마다 최신 데이터 다시 불러오기 (선택사항)
     if (!isDogListVisible) {
       loadDogList();
     }
@@ -62,10 +57,6 @@ const NoseScreen: React.FC = () => {
 
   const handleDogSelect = (pet: NoseprintPet) => {
     console.log("선택된 강아지:", pet.dogNm, "ID:", pet.id);
-    // TODO: 선택된 강아지로 비문 데이터 불러오기 동작 추가
-    // 예: loadNoseprintData(pet.id) 또는 pet.noseprintId 사용
-
-    // 선택 후 목록 닫기
     setIsDogListVisible(false);
     setIsExpanded(false);
   };
@@ -99,7 +90,6 @@ const NoseScreen: React.FC = () => {
       },
     },
   ];
-  const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
@@ -122,6 +112,7 @@ const NoseScreen: React.FC = () => {
 
       {/* 하단 플로팅 버튼들 */}
       <View style={styles.floatingButtonsContainer}>
+        {/* 왼쪽 버튼들 */}
         <View style={styles.leftButtonGroup}>
           <FloatingBtn icon={dogIcon} onPress={handleDogButtonPress} />
 
@@ -173,23 +164,11 @@ const NoseScreen: React.FC = () => {
           )}
         </View>
 
-        {/* 오른쪽 버튼 */}
+        {/* 오른쪽 카메라 버튼 */}
         <FloatingBtn
           icon={cameraIcon}
-          onPress={() => {
-            console.log("카메라 기능 구현 필요");
-          }}
+          onPress={() => navigation.navigate("NoseCamera")}
         />
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => navigation.navigate('NoseCamera')} 
-        >
-          <Image
-            source={require("../../../assets/icons/camera.png")}
-            style={styles.buttonIcon}
-            resizeMode="contain"
-          />
-        </TouchableOpacity>
       </View>
     </View>
   );
