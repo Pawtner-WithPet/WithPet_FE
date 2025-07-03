@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { Colors } from "../constants/colors";
 
 const ICONS = {
@@ -32,8 +33,29 @@ const ICONS = {
 const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
   const insets = useSafeAreaInsets();
 
+  // 현재 포커스된 루트 이름 가져오기
+  const currentRoute = state.routes[state.index];
+  const currentRouteName =
+    getFocusedRouteNameFromRoute(currentRoute) || currentRoute.name;
+
+  // 숨겨야 할 화면들
+  const hideTabBarRoutes = ["NoseCamera", "NoseImagePick"];
+  const shouldHideTabBar = hideTabBarRoutes.includes(currentRouteName);
+
+  // 탭바를 숨겨야 하는 경우 null 반환
+  if (shouldHideTabBar) {
+    return null;
+  }
+
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingBottom: insets.bottom,
+        },
+      ]}
+    >
       {state.routes.map((route, idx) => {
         const isFocused = state.index === idx;
         const { inactive, active } = ICONS[route.name as keyof typeof ICONS];
@@ -42,10 +64,13 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
           <TouchableOpacity
             key={route.key}
             style={styles.tab}
-            activeOpacity={0.7}
             onPress={() => navigation.navigate(route.name)}
           >
-            <Image source={isFocused ? active : inactive} style={styles.icon} />
+            <Image
+              source={isFocused ? active : inactive}
+              style={styles.icon}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         );
       })}

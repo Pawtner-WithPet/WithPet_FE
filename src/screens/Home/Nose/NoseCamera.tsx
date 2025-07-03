@@ -10,6 +10,9 @@ import { launchImageLibrary } from "react-native-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { NoseStackParamList } from "../../../navigation/NoseStack";
+import GalleryButton from "../../../assets/Camera/gallay_button.png";
+import CameraButton from "../../../assets/Camera/camera_button.png";
+import ListButton from "../../../assets/Camera/list_button.png";
 
 type NoseCameraNavigationProp = NativeStackNavigationProp<
   NoseStackParamList,
@@ -91,28 +94,19 @@ const NoseCamera = () => {
       )}
 
       <View style={styles.buttonContainer}>
-        {/* 갤러리 버튼 */}
-        <TouchableOpacity onPress={openGallery}>
-          <Image
-            source={require("../../../assets/Camera/gallay_button.png")}
-            style={styles.icon}
-          />
+        <TouchableOpacity onPress={openGallery} style={styles.button}>
+          <Image source={GalleryButton} style={styles.icon} />
         </TouchableOpacity>
 
-        {/* 촬영 버튼 */}
-        <TouchableOpacity onPress={takePhoto}>
-          <Image
-            source={require("../../../assets/Camera/camera_button.png")}
-            style={styles.icon}
-          />
+        <TouchableOpacity onPress={takePhoto} style={styles.button}>
+          <Image source={CameraButton} style={styles.CameraButton} />
         </TouchableOpacity>
 
-        {/* 뒤로가기 버튼 */}
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image
-            source={require("../../../assets/Camera/list_button.png")}
-            style={styles.icon}
-          />
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.button}
+        >
+          <Image source={ListButton} style={styles.icon} />
         </TouchableOpacity>
       </View>
     </View>
@@ -125,7 +119,19 @@ const styles = StyleSheet.create({
     bottom: 40,
     width: "100%",
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    paddingHorizontal: 0,
+  },
+  button: {
+    width: 70,
+    height: 70,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  CameraButton: {
+    width: 85,
+    height: 85,
   },
   icon: {
     width: 60,
