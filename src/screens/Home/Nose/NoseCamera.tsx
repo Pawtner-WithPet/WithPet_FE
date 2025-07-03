@@ -1,5 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, TouchableOpacity, Image, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Alert,
+  Text,
+} from "react-native";
 import {
   Camera,
   useCameraDevices,
@@ -30,9 +37,12 @@ const NoseCamera = () => {
   useEffect(() => {
     (async () => {
       const granted = await requestPermission();
-      console.log("🎯 카메라 권한 granted?", granted);
       if (!granted) {
-        Alert.alert("카메라 권한이 필요합니다.");
+        Alert.alert(
+          "카메라 권한 필요",
+          "반려동물 코 촬영을 위해 카메라 권한이 필요합니다.",
+          [{ text: "확인" }],
+        );
       }
     })();
   }, []);
@@ -40,18 +50,17 @@ const NoseCamera = () => {
   const takePhoto = async () => {
     if (isTakingPhoto || !cameraRef.current) return;
     setIsTakingPhoto(true);
+
     try {
       const photo: PhotoFile = await cameraRef.current.takePhoto({
         flash: "off",
       });
-      console.log("📸 촬영된 사진 URI:", photo.path);
 
-      // 사진 촬영 후 NoseImagePick으로 이동하면서 사진 URI 전달
       navigation.navigate("NoseImagePick", {
         imageUri: `file://${photo.path}`,
       });
     } catch (error) {
-      console.error("사진 촬영 오류:", error);
+      Alert.alert("촬영 실패", "사진 촬영에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsTakingPhoto(false);
     }
@@ -62,51 +71,71 @@ const NoseCamera = () => {
       const result = await launchImageLibrary({
         mediaType: "photo",
         selectionLimit: 1,
+        quality: 0.8,
       });
 
       if (result.assets?.[0]?.uri) {
-        console.log("🖼️ 갤러리 사진 URI:", result.assets[0].uri);
-
-        // 갤러리에서 사진 선택 후 NoseImagePick으로 이동하면서 사진 URI 전달
         navigation.navigate("NoseImagePick", {
           imageUri: result.assets[0].uri,
         });
       }
     } catch (error) {
-      console.error("갤러리 열기 오류:", error);
+      Alert.alert("갤러리 오류", "갤러리를 열 수 없습니다. 다시 시도해주세요.");
     }
   };
 
-  if (!hasPermission || !device) {
-    return <View style={{ flex: 1, backgroundColor: "#000" }} />;
+  if (!hasPermission) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>카메라 권한이 필요합니다</Text>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={requestPermission}
+        >
+          <Text style={styles.permissionButtonText}>권한 요청</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!device) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionText}>카메라를 사용할 수 없습니다</Text>
+      </View>
+    );
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      {device && (
-        <Camera
-          ref={cameraRef}
-          style={StyleSheet.absoluteFill}
-          device={device}
-          isActive={true}
-          photo={true}
-        />
-      )}
+    <View style={styles.container}>
+      <Camera
+        ref={cameraRef}
+        style={StyleSheet.absoluteFill}
+        device={device}
+        isActive={true}
+        photo={true}
+      />
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={openGallery} style={styles.button}>
-          <Image source={GalleryButton} style={styles.icon} />
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={takePhoto} style={styles.button}>
-          <Image source={CameraButton} style={styles.CameraButton} />
+        <TouchableOpacity onPress={openGallery} style={styles.sideButton}>
+          <Image source={GalleryButton} style={styles.sideIcon} />
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.button}
+          onPress={takePhoto}
+          style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]}
+          disabled={isTakingPhoto}
         >
-          <Image source={ListButton} style={styles.icon} />
+          <Image source={CameraButton} style={styles.cameraIcon} />
+          {isTakingPhoto && (
+            <View style={styles.loadingOverlay}>
+              <Text style={styles.loadingText}>촬영 중...</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={navigation.goBack} style={styles.sideButton}>
+          <Image source={ListButton} style={styles.sideIcon} />
         </TouchableOpacity>
       </View>
     </View>
@@ -114,28 +143,81 @@ const NoseCamera = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#000",
+  },
+  permissionText: {
+    color: "white",
+    fontSize: 18,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  permissionButton: {
+    backgroundColor: "#4285F4",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  permissionButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   buttonContainer: {
     position: "absolute",
-    bottom: 40,
+    bottom: 50,
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
-    paddingHorizontal: 0,
+    paddingHorizontal: 40,
   },
-  button: {
-    width: 70,
-    height: 70,
+  sideButton: {
+    width: 60,
+    height: 60,
     justifyContent: "center",
     alignItems: "center",
   },
-  CameraButton: {
-    width: 85,
-    height: 85,
+  sideIcon: {
+    width: 50,
+    height: 50,
   },
-  icon: {
-    width: 60,
-    height: 60,
+  cameraButton: {
+    width: 80,
+    height: 80,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  cameraIcon: {
+    width: 80,
+    height: 80,
+  },
+  takingPhoto: {
+    opacity: 0.6,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 40,
+  },
+  loadingText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
 

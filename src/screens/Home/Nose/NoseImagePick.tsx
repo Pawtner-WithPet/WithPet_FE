@@ -6,13 +6,13 @@ import {
   StyleSheet,
   SafeAreaView,
   Image,
+  Dimensions,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Header from "../../../components/Header";
-import NoseImage from "../../../components/NoseImagePick/NoseImage";
-import RetakeBtn from "../../../components/NoseImagePick/RetakeBtn";
-import ChoiceButtons from "../../../components/NoseImagePick/ChoiceBtn";
+
+const { width, height } = Dimensions.get("window");
 
 // Route params 타입 정의
 type NoseImagePickRouteParams = {
@@ -27,203 +27,152 @@ type NoseImagePickRouteProp = RouteProp<
 const NoseImagePick: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<NoseImagePickRouteProp>();
-  const { imageUri } = route.params || {}; // 전달받은 이미지 URI
+  const { imageUri } = route.params || {};
 
   const handleTryAgain = () => {
     console.log("다시 촬영하기 클릭");
-    // 다시 촬영하기 버튼 클릭 시 카메라 화면으로 이동
     navigation.goBack();
   };
 
   const handleLostPet = () => {
     console.log("실종 동물 신고");
+    // 실종 동물 신고 화면으로 이동
+    // navigation.navigate("LostPetReport", { imageUri });
   };
 
   const handleFoundPet = () => {
     console.log("발견 동물 신고");
+    // 발견 동물 신고 화면으로 이동
+    // navigation.navigate("FoundPetReport", { imageUri });
   };
 
-  return (
-    <>
-      <Header />
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          {/* 전달받은 이미지가 있으면 실제 사진을, 없으면 기본 NoseImage 컴포넌트를 표시 */}
-          {imageUri ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: imageUri }} style={styles.capturedImage} />
-            </View>
-          ) : (
-            <NoseImage />
-          )}
+  // 이미지가 없으면 카메라 화면으로 돌아가기
+  if (!imageUri) {
+    React.useEffect(() => {
+      navigation.goBack();
+    }, []);
+    return null;
+  }
 
-          <RetakeBtn onTryAgain={handleTryAgain} />
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* 메인 컨텐츠 오버레이 */}
+      <View style={styles.overlay}>
+        <View style={styles.imageCard}>
+          <Image source={{ uri: imageUri }} style={styles.capturedImage} />
+
+          {/* 다시 촬영하기 버튼 */}
+          <TouchableOpacity
+            style={styles.retakeButton}
+            onPress={handleTryAgain}
+          >
+            <Text style={styles.retakeButtonText}>다시 촬영하기</Text>
+          </TouchableOpacity>
+
+          {/* 질문 텍스트 */}
           <View style={styles.questionContainer}>
             <Text style={styles.questionText}>
-              촬영한 동물이 실종동물인가요?{"\n"}
-              발견 동물인가요?
+              촬영한 동물이 실종동물인가요?
             </Text>
+            <Text style={styles.questionText}>발견 동물인가요?</Text>
           </View>
-          <ChoiceButtons
-            onLostPet={handleLostPet}
-            onFoundPet={handleFoundPet}
-          />
+
+          {/* 선택 버튼들 */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.choiceButton, styles.lostButton]}
+              onPress={handleLostPet}
+            >
+              <Text style={styles.choiceButtonText}>실종 동물</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.choiceButton, styles.foundButton]}
+              onPress={handleFoundPet}
+            >
+              <Text style={styles.choiceButtonText}>발견 동물</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </SafeAreaView>
-    </>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "rgba(0, 0, 0, 0.8)", // 반투명 배경
   },
-  content: {
+  overlay: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 24,
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
-  imageContainer: {
-    marginBottom: 32,
-    width: 280,
-    height: 320,
-    borderRadius: 24,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
+  imageCard: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+    maxWidth: width * 0.9,
+    width: "100%",
   },
   capturedImage: {
-    width: "100%",
-    height: "100%",
+    width: width * 0.8,
+    height: width * 1,
+    borderRadius: 12,
     resizeMode: "cover",
-  },
-  dogFaceContainer: {
-    width: 280,
-    height: 320,
-    borderRadius: 24,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  dogFaceBackground: {
-    flex: 1,
-    backgroundColor: "#D2691E", // 강아지 털색
-    position: "relative",
-    alignItems: "center",
-  },
-  noseContainer: {
-    position: "absolute",
-    bottom: 90,
-    alignItems: "center",
-  },
-  nose: {
-    width: 80,
-    height: 64,
-    backgroundColor: "#000",
-    borderRadius: 40,
-    position: "relative",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  nostril: {
-    position: "absolute",
-    width: 20,
-    height: 32,
-    backgroundColor: "#333",
-    borderRadius: 10,
-    top: 12,
-  },
-  leftNostril: {
-    left: 12,
-    transform: [{ rotate: "12deg" }],
-  },
-  rightNostril: {
-    right: 12,
-    transform: [{ rotate: "-12deg" }],
-  },
-  noseLine: {
-    position: "absolute",
-    top: 0,
-    left: "50%",
-    marginLeft: -1,
-    width: 2,
-    height: 16,
-    backgroundColor: "#555",
-  },
-  mouth: {
-    position: "absolute",
-    bottom: 64,
-    width: 32,
-    height: 16,
-    backgroundColor: "#FFB6C1",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    marginBottom: 20,
   },
   retakeButton: {
-    backgroundColor: "#4285F4",
+    backgroundColor: "#4262FF",
     paddingHorizontal: 32,
     paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 48,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  questionContainer: {
-    marginBottom: 32,
+    borderRadius: 10,
+    marginBottom: 24,
+    minWidth: 120,
     alignItems: "center",
   },
-  questionText: {
-    fontSize: 18,
-    color: "#333",
-    fontWeight: "500",
-    textAlign: "center",
-    lineHeight: 28,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    gap: 16,
-    marginBottom: 32,
-  },
-  choiceButton: {
-    backgroundColor: "#4285F4",
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 100,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  buttonText: {
+  retakeButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
   },
-  backButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 8,
+  questionContainer: {
+    marginBottom: 24,
+    alignItems: "center",
   },
-  backButtonText: {
-    color: "#666",
-    fontSize: 14,
-    textDecorationLine: "underline",
+  questionText: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 27,
+    width: "100%",
+    justifyContent: "center",
+  },
+  choiceButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    maxWidth: 140,
+  },
+  lostButton: {
+    backgroundColor: "#161F40",
+  },
+  foundButton: {
+    backgroundColor: "#161F40",
+  },
+  choiceButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 
