@@ -1,5 +1,6 @@
 module.exports = {
-  presets: ["@react-native/babel-preset"], // ✅ 수정된 부분Add commentMore actions
+  presets: ["@react-native/babel-preset"], 
+
   plugins: [
     [
       "module:react-native-dotenv",

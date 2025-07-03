@@ -1,6 +1,6 @@
 import api from "./api";
 
-export type Dog = {
+export type NoseprintPet = {
   id: number;
   dogRegNo: string;
   dogNm: string;
@@ -8,25 +8,31 @@ export type Dog = {
   kindNm: string;
   sexNm: string;
   dogImg: string | null;
+  noseprintId?: string;
+  noseprintImg?: string;
 };
 
-export type DogListResponse = {
+export type NoseprintPetsResponse = {
   status: number;
   code: string;
   message: string;
-  data: Dog[];
+  data: NoseprintPet[];
 };
 
-
-export const fetchDogs = async (userId: number): Promise<Dog[]> => {
+export const fetchNoseprintPets = async (
+  userId: number,
+): Promise<NoseprintPet[]> => {
   try {
-    const response = await api.get<DogListResponse>("/api/pet/list", {
-      params: { userId },
-    });
-    console.log("서버 응답 데이터:", response.data);
+    const response = await api.get<NoseprintPetsResponse>(
+      "/api/noseprint/pets",
+      {
+        params: { userId }, // data 대신 params 사용
+      },
+    );
+    console.log("비문 반려동물 응답 데이터:", response.data);
     return response.data.data;
   } catch (error: any) {
-    console.error("🐶 Failed to fetch dogs:", error.message);
+    console.error("🐾 Failed to fetch noseprint pets:", error.message);
     if (error.response) {
       console.error("📦 서버 응답 상태:", error.response.status);
       console.error("📦 서버 응답 데이터:", error.response.data);

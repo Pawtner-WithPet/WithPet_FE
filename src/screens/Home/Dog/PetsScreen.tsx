@@ -111,7 +111,6 @@ const PetsScreen: React.FC = () => {
     resetForm();
   };
 
-  // PetCard 클릭 시 상세 화면으로 이동 (id를 petId로 전달)
   const handlePetCardPress = (petId: number) => {
     navigation.navigate("PetDetailScreen", { id: petId });
   };

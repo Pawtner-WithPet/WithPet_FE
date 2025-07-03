@@ -1,12 +1,5 @@
-import axios from "axios";
+import api from "./api";
 
-const api = axios.create({
-  baseURL: "http://172.20.69.114:8080",
-  timeout: 5000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
 
 // 반려견 타입
 export interface PetDetail {
