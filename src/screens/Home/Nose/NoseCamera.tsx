@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 0,
   },
   sideButton: {
     width: 60,
