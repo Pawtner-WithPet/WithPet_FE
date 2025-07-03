@@ -1,5 +1,6 @@
 import api from "./api";
 
+
 // 반려견 타입
 export interface PetDetail {
   petId: number;

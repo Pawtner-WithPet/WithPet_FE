@@ -18,6 +18,8 @@ import {
   fetchNoseprintPets,
   NoseprintPet,
 } from "../../../services/api/NoseList";
+import NoseCamera from "./NoseCamera";
+
 
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false); // 왼쪽 버튼
@@ -97,6 +99,7 @@ const NoseScreen: React.FC = () => {
       },
     },
   ];
+  const navigation = useNavigation<any>();
 
   return (
     <View style={styles.container}>
@@ -177,6 +180,16 @@ const NoseScreen: React.FC = () => {
             console.log("카메라 기능 구현 필요");
           }}
         />
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => navigation.navigate('NoseCamera')} 
+        >
+          <Image
+            source={require("../../../assets/icons/camera.png")}
+            style={styles.buttonIcon}
+            resizeMode="contain"
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );

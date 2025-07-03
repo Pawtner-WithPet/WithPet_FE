@@ -24,6 +24,7 @@ export type RegisterPetResponse = {
   data: RegisteredDog;
 };
 
+
 export const registerPet = async (
   petData: RegisterPetRequest,
 ): Promise<RegisteredDog> => {
