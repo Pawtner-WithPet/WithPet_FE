@@ -20,6 +20,8 @@ import { NoseStackParamList } from "../../../navigation/NoseStack";
 import GalleryButton from "../../../assets/Camera/gallay_button.png";
 import CameraButton from "../../../assets/Camera/camera_button.png";
 import ListButton from "../../../assets/Camera/list_button.png";
+import focus from "../../../assets/Camera/focus.png";
+import back from "../../../assets/Camera/back.png";
 
 type NoseCameraNavigationProp = NativeStackNavigationProp<
   NoseStackParamList,
@@ -116,27 +118,43 @@ const NoseCamera = () => {
         photo={true}
       />
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={openGallery} style={styles.sideButton}>
-          <Image source={GalleryButton} style={styles.sideIcon} />
+      <View style={styles.topOverlay}>
+        <TouchableOpacity onPress={navigation.goBack} style={styles.backButton}>
+          <Image source={back} style={styles.backIcon} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={takePhoto}
-          style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]}
-          disabled={isTakingPhoto}
-        >
-          <Image source={CameraButton} style={styles.cameraIcon} />
-          {isTakingPhoto && (
-            <View style={styles.loadingOverlay}>
-              <Text style={styles.loadingText}>촬영 중...</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.guideTextContainer}>
+          <Text style={styles.guideText}>코가 잘 보이도록{"\n"}촬영해주세요</Text>
+        </View>
+      </View>
+      
+      <Image source={focus} style={styles.focus} />
 
-        <TouchableOpacity onPress={navigation.goBack} style={styles.sideButton}>
-          <Image source={ListButton} style={styles.sideIcon} />
-        </TouchableOpacity>
+      <View style={styles.bottomOverlay}>
+        <View style={styles.buttonContainer}>
+          {/* 갤러리 버튼 */}
+          <TouchableOpacity onPress={openGallery} style={styles.sideButton}>
+            <Image source={GalleryButton} style={styles.sideIcon} />
+          </TouchableOpacity>
+
+          {/* 촬영 버튼 */}
+          <TouchableOpacity
+            onPress={takePhoto}
+            style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]}
+            disabled={isTakingPhoto}
+          >
+            <Image source={CameraButton} style={styles.cameraIcon} />
+            {isTakingPhoto && (
+              <View style={styles.loadingOverlay}>
+                <Text style={styles.loadingText}>촬영 중...</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          {/* 뒤로가기 버튼 */}
+          <TouchableOpacity onPress={navigation.goBack} style={styles.sideButton}>
+            <Image source={ListButton} style={styles.sideIcon} />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -218,6 +236,72 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 12,
     fontWeight: "600",
+  },
+
+  topOverlay: {
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    height: 120,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+
+  bottomOverlay: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    height: 200,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "flex-end",
+    paddingBottom: 20,
+    zIndex: 2,
+  },
+
+  guideText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+    fontWeight: "500",
+    lineHeight: 22,
+  },
+
+  focus: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: 400,   
+    height: 400, 
+    transform: [{ translateX: -200 }, { translateY: -240 }, ],
+    zIndex: 10,
+    resizeMode: "contain",
+  },
+  guideRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    gap: 8, 
+    paddingLeft: 20,
+  },
+
+  backIcon: {
+    width: 40,
+    height: 40,
+    marginLeft: 8,
+    marginTop: 10,
+  },
+  guideTextContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  backButton: {
+    position: "absolute",
+    top: 20, 
+    left: 16,
+    padding: 8,
+    zIndex: 3,
   },
 });
 
