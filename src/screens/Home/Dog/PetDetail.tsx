@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Modal,
 } from "react-native";
 import { CustomInput } from "../../../components/PetDetail/InputField";
 import { DisabledInput } from "../../../components/PetDetail/DisableInput";
@@ -21,12 +22,7 @@ import {
   updatePetDetail,
   uploadPetImage,
 } from "../../../services/api/PetDetail";
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { PetsStackParamList } from "../../../navigation/PetsStack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { fetchNoseprintByPetId } from "../../../services/api/NoseRegister";
@@ -56,6 +52,10 @@ const PetDetailScreen: React.FC = () => {
   const navigation = useNavigation<PetDetailScreenNavigationProp>();
   const route = useRoute<PetDetailRouteProp>();
   const { id: petId } = route.params;
+
+  const [noseprintModalVisible, setNoseprintModalVisible] = useState(false);
+  const [noseprintImage, setNoseprintImage] = useState<string | null>(null);
+  const [noseprintDate, setNoseprintDate] = useState<string | null>(null);
 
   const [petInfo, setPetInfo] = useState<PetInfo>({
     name: "",
@@ -171,41 +171,42 @@ const PetDetailScreen: React.FC = () => {
   };
 
   const handleBiometricRegister = () => {
-    Alert.alert("비문 등록", "비문 등록 기능이 실행됩니다.");
+    Alert.alert("비문 등록", "비문을 등록하시겠습니까?", [
+      {
+        text: "아니요",
+        style: "cancel",
+      },
+      {
+        text: "네",
+        onPress: () => {
+          navigation.navigate("NoseCamera", {
+            fromScreen: "PetDetail",
+            petId,
+          });
+        },
+      },
+    ]);
   };
 
   const handleBiometricVerify = async () => {
     try {
       setIsLoading(true);
-      console.log("🔍 비문 확인 시작 - petId:", petId);
 
       const noseprintData = await fetchNoseprintByPetId(petId);
 
       if (noseprintData) {
-        Alert.alert(
-          "비문 확인 완료",
-          `비문 정보를 찾았습니다.\n등록일: ${new Date(noseprintData.registerDatetime).toLocaleDateString("ko-KR")}`,
-          [
-            {
-              text: "확인",
-              onPress: () => console.log("✅ 비문 확인 완료:", noseprintData),
-            },
-          ],
+        setNoseprintImage(noseprintData.nosePrintImg); // ✅ 필드명 수정
+        setNoseprintDate(
+          new Date(noseprintData.registerDatetime).toLocaleDateString("ko-KR"),
         );
+        setNoseprintModalVisible(true);
       } else {
         Alert.alert(
           "비문 정보 없음",
           "등록된 비문 정보가 없습니다.\n비문 등록을 먼저 진행해주세요.",
-          [
-            {
-              text: "확인",
-              onPress: () => console.log("❌ 비문 정보 없음"),
-            },
-          ],
         );
       }
-    } catch (error) {
-      console.error("❌ 비문 확인 오류:", error);
+    } catch (err) {
       Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -338,9 +339,40 @@ const PetDetailScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* ✅ 비문 확인 모달 */}
+      <Modal
+        visible={noseprintModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNoseprintModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>📷 비문 정보</Text>
+            {noseprintImage && (
+              <Image
+                source={{ uri: noseprintImage }}
+                style={{ width: 200, height: 200, marginBottom: 16 }}
+                resizeMode="contain"
+              />
+            )}
+            {noseprintDate && (
+              <Text style={{ fontSize: 14 }}>등록일: {noseprintDate}</Text>
+            )}
+            <TouchableOpacity
+              onPress={() => setNoseprintModalVisible(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>확인</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -394,6 +426,35 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    width: 280,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  modalButton: {
+    marginTop: 20,
+    backgroundColor: "#4CAF50",
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
 });
 

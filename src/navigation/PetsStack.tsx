@@ -6,6 +6,10 @@ import PetDetailScreen from "../screens/Home/Dog/PetDetail";
 export type PetsStackParamList = {
   PetsScreen: undefined;
   PetDetailScreen: { id: number };
+  NoseCamera: {
+    fromScreen?: "PetDetail" | "NoseList";
+    petId?: number;
+  };
 };
 
 const Stack = createNativeStackNavigator<PetsStackParamList>();
