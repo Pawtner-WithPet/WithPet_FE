@@ -18,7 +18,16 @@ const NoseStack: React.FC = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="NoseListScreen" component={NoseListScreen} />
       <Stack.Screen name="NoseCamera" component={NoseCamera} />
-      <Stack.Screen name="NoseImagePick" component={NoseImagePick} />
+      <Stack.Screen
+        name="NoseImagePick"
+        component={NoseImagePick}
+        options={{
+          presentation: "modal",
+          headerShown: false,
+          contentStyle: { backgroundColor: "transparent" },
+          animation: "fade",
+        }}
+      />
     </Stack.Navigator>
   );
 };

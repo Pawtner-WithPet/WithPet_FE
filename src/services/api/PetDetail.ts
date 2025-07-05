@@ -1,28 +1,8 @@
 import api from "./api";
-
-
-// 반려견 타입
-export interface PetDetail {
-  petId: number;
-  userId: number;
-  dogRegNo: string;
-  dogNm: string;
-  dogAge: number;
-  kindNm: string;
-  sexNm: string;
-  rfidCd: string;
-  rfidGubun: string;
-  orgNm: string;
-  officeTel: string;
-  features: string;
-  neuterYn: string;
-  dogImg?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { PetDetail, UpdatePetPayload } from "../../types/PetTypes";
 
 // 반려견 상세 조회
-export const getPetDetail = async (petId: number) => {
+export const getPetDetail = async (petId: number): Promise<PetDetail> => {
   const res = await api.get(`/api/pet/${petId}`);
   return res.data.data;
 };
@@ -30,8 +10,8 @@ export const getPetDetail = async (petId: number) => {
 // 반려견 정보 업데이트 (features)
 export const updatePetDetail = async (
   petId: number,
-  payload: { userId: number; features: string },
-) => {
+  payload: UpdatePetPayload,
+): Promise<PetDetail> => {
   const res = await api.patch(`/api/pet/${petId}`, payload);
   return res.data.data;
 };
@@ -41,7 +21,7 @@ export const uploadPetImage = async (
   petId: number,
   imageUri: string,
   userId: number,
-) => {
+): Promise<PetDetail> => {
   const formData = new FormData();
   formData.append("userId", String(userId));
   formData.append("dogImg", {
@@ -56,10 +36,4 @@ export const uploadPetImage = async (
     },
   });
   return res.data.data;
-};
-
-// 반려견 정보 갱신
-export const refreshPetInfo = async (petId: number, payload: object) => {
-  const res = await api.post(`/api/pet/${petId}/refresh`, payload);
-  return res.data;
 };

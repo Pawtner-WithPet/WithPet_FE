@@ -9,8 +9,6 @@ import {
   Dimensions,
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import Header from "../../../components/Header";
 
 const { width, height } = Dimensions.get("window");
 

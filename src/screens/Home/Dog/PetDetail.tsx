@@ -29,6 +29,7 @@ import {
 } from "@react-navigation/native";
 import { PetsStackParamList } from "../../../navigation/PetsStack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { fetchNoseprintByPetId } from "../../../services/api/NoseRegister";
 
 type PetDetailRouteProp = RouteProp<PetsStackParamList, "PetDetailScreen">;
 type PetDetailScreenNavigationProp = NativeStackNavigationProp<
@@ -173,8 +174,42 @@ const PetDetailScreen: React.FC = () => {
     Alert.alert("비문 등록", "비문 등록 기능이 실행됩니다.");
   };
 
-  const handleBiometricVerify = () => {
-    Alert.alert("비문 확인", "비문 확인 기능이 실행됩니다.");
+  const handleBiometricVerify = async () => {
+    try {
+      setIsLoading(true);
+      console.log("🔍 비문 확인 시작 - petId:", petId);
+
+      const noseprintData = await fetchNoseprintByPetId(petId);
+
+      if (noseprintData) {
+        Alert.alert(
+          "비문 확인 완료",
+          `비문 정보를 찾았습니다.\n등록일: ${new Date(noseprintData.registerDatetime).toLocaleDateString("ko-KR")}`,
+          [
+            {
+              text: "확인",
+              onPress: () => console.log("✅ 비문 확인 완료:", noseprintData),
+            },
+          ],
+        );
+      } else {
+        Alert.alert(
+          "비문 정보 없음",
+          "등록된 비문 정보가 없습니다.\n비문 등록을 먼저 진행해주세요.",
+          [
+            {
+              text: "확인",
+              onPress: () => console.log("❌ 비문 정보 없음"),
+            },
+          ],
+        );
+      }
+    } catch (error) {
+      console.error("❌ 비문 확인 오류:", error);
+      Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const genderOptions = [
@@ -306,7 +341,6 @@ const PetDetailScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

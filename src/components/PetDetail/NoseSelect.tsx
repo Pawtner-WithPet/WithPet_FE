@@ -1,29 +1,45 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 
-interface BiometricSectionProps {
+interface NoseSelectProps {
   onRegister: () => void;
   onVerify: () => void;
+  isLoadingVerify?: boolean;
 }
 
-export const NoseSelect: React.FC<BiometricSectionProps> = ({
+export const NoseSelect: React.FC<NoseSelectProps> = ({
   onRegister,
   onVerify,
+  isLoadingVerify = false,
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>비문 정보</Text>
+      <Text style={styles.label}>비문 관리</Text>
+
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={onRegister}>
-          <Text style={styles.buttonText}>비문 등록하기</Text>
-        </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.button, styles.buttonActive]}
-          onPress={onVerify}
+          style={[styles.button, styles.registerButton]}
+          onPress={onRegister}
         >
-          <Text style={[styles.buttonText, styles.buttonTextActive]}>
-            비문 확인
-          </Text>
+          <Text style={styles.registerButtonText}>비문 등록하기</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.verifyButton]}
+          onPress={onVerify}
+          disabled={isLoadingVerify}
+        >
+          {isLoadingVerify ? (
+            <ActivityIndicator size="small" color="#007AFF" />
+          ) : (
+            <Text style={styles.verifyButtonText}>비문 확인</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -32,38 +48,44 @@ export const NoseSelect: React.FC<BiometricSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    marginBottom: 20,
   },
-  title: {
+  label: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#333333",
-    marginBottom: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 8,
   },
   buttonContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
     gap: 12,
   },
   button: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    backgroundColor: "#ffffff",
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
   },
-  buttonActive: {
-    backgroundColor: "#6366f1",
-    borderColor: "#6366f1",
+  registerButton: {
+    backgroundColor: "#161F40",
   },
-  buttonText: {
-    fontSize: 14,
-    color: "#666666",
+  verifyButton: {
+    backgroundColor: "#4262FF",
+    borderWidth: 1,
+    borderColor: "#007AFF",
   },
-  buttonTextActive: {
-    color: "#ffffff",
-    fontWeight: "600",
+  registerButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  verifyButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
