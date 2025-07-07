@@ -1,5 +1,5 @@
 export type RootStackParamList = {
   NoseCamera: undefined; 
   NoseList: undefined;
-  NoseResult: { resultId: number }; 
+  NoseResult: { dogId: number; type?: 'found' | 'lost' };
 };

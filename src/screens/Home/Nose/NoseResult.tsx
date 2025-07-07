@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   TextInput,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 
@@ -28,12 +30,24 @@ const mockList = [
   { id: '2', match: '50%', image: require('../../../assets/images/nose.png') },
 ];
 
+
+
 const NoseResultScreen = () => {
-  const route = useRoute();
-  const type = (route.params as any)?.type ?? 'found';
+
+  const route = useRoute<RouteProp<RootStackParamList, 'NoseResult'>>();
+  const dogId = route.params?.dogId;
+  const type = route.params?.type ?? 'found';
+
+  useEffect(() => {
+    if (dogId === undefined || dogId === null) {
+      console.warn('dogId가 전달되지 않았습니다.');
+      return;
+    }
+    console.log('넘어온 dogId:', dogId);
+  }, []);
 
   const titleText =
-    type === 'found' ? '실종된 내 반려동물과의 비문 인식률' : '촬영한 발견동물과의 비문 인식률';
+    type === 'found' ? '실종된 내 반려동물과의' : '촬영한 발견동물과의';
   const listTitleText =
     type === 'found' ? '등록된 실종동물 일치율 목록' : '등록된 발견동물 일치율 목록';
 
@@ -52,7 +66,13 @@ const NoseResultScreen = () => {
       <Header />
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>{titleText}</Text>
+
+          <Text style={styles.title}>
+            {titleText}
+            {'\n'}
+            <Text style={styles.highlight}>비문 인식률</Text>
+          </Text>
+
 
         <View style={styles.imageRow}>
           <View style={styles.myNoseCard}>
@@ -202,7 +222,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     textAlign: 'left',
+  },
+  highlight: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'left',
     marginBottom: 20,
+    color: '#5b6eff',
   },
   imageRow: {
     flexDirection: 'row',

@@ -18,13 +18,16 @@ import {
   fetchNoseprintPets,
   NoseprintPet,
 } from "../../../services/api/NoseList";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { NoseStackParamList } from "../../../navigation/NoseStack";
+
 
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
   const [dogList, setDogList] = useState<NoseprintPet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<NoseStackParamList>>();
 
   useEffect(() => {
     loadDogList();
@@ -59,6 +62,7 @@ const NoseScreen: React.FC = () => {
     console.log("선택된 강아지:", pet.dogNm, "ID:", pet.id);
     setIsDogListVisible(false);
     setIsExpanded(false);
+    navigation.push("NoseResult", { dogId: pet.id, type: 'found' }); //
   };
 
   const noseData = [
@@ -106,6 +110,7 @@ const NoseScreen: React.FC = () => {
             location={item.location}
             percentage={item.percentage}
             image={item.image}
+            onPress={() => navigation.navigate("NoseResult", { dogId: item.id, type: 'found' })}
           />
         ))}
       </ScrollView>
@@ -140,7 +145,7 @@ const NoseScreen: React.FC = () => {
                         <TouchableOpacity
                           key={pet.id || index}
                           style={styles.dogItem}
-                          onPress={() => handleDogSelect(pet)}
+                          onPress={() => {console.log("눌림!", pet); handleDogSelect(pet)}}
                         >
                           <View style={styles.dogItemContent}>
                             <Text style={styles.dogItemText}>{pet.dogNm}</Text>
@@ -167,7 +172,7 @@ const NoseScreen: React.FC = () => {
         {/* 오른쪽 카메라 버튼 */}
         <FloatingBtn
           icon={cameraIcon}
-          onPress={() => navigation.navigate("NoseCamera")}
+          onPress={() => navigation.navigate("NoseCamera",{})}
         />
       </View>
     </View>
