@@ -6,6 +6,7 @@ import { Colors } from "./src/constants/colors";
 import NoseCamera from "./src/screens/Home/Nose/NoseCamera";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import NoseImageR from "./src/screens/Home/Nose/NoseImageRModal";
+import NoseList from "./src/screens/Home/Nose/NoseList";
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ const App: React.FC = () => (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         <Stack.Screen name="NoseCamera" component={NoseCamera} />
+        <Stack.Screen name="NoseList" component={NoseList} />
       </Stack.Navigator>
     </SafeAreaView>
   </NavigationContainer>
