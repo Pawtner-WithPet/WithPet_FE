@@ -27,6 +27,10 @@ import NoseImageRModal from "./NoseImageRModal";
 import { uploadNoseprintImage } from "../../../services/api/NoseRegister";
 import { RootStackParamList } from '../../../types/NoseCamera';
 
+import { useNavigation as useTabNavigation } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { TabParamList } from "../../../navigation/TabNavigator";
+
 type NoseCameraRouteParams = {
   fromScreen?: "PetDetail" | "NoseList";
   petId?: string;
@@ -42,6 +46,7 @@ type NoseCameraRouteProp = RouteProp<RootStackParamList, 'NoseCamera'>;
 
 const NoseCamera = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const tabNavigation = useTabNavigation<BottomTabNavigationProp<TabParamList>>();
   const route = useRoute<RouteProp<NoseStackParamList, "NoseCamera">>();
   const { fromScreen, petId } = route.params || {};
 
@@ -253,9 +258,12 @@ const NoseCamera = () => {
           </TouchableOpacity>
 
           {/* 리스트 버튼 */}
-          <TouchableOpacity onPress={() => navigation.navigate('NoseList')} style={styles.sideButton}>
-            <Image source={ListButton} style={styles.sideIcon} />
-          </TouchableOpacity>
+          <TouchableOpacity
+  onPress={() => tabNavigation.navigate("Nose", { screen: "NoseListScreen" })}
+  style={styles.sideButton}
+>
+  <Image source={ListButton} style={styles.sideIcon} />
+</TouchableOpacity>
         </View>
       </View>
 
