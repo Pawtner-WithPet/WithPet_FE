@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Image,
+  Alert,
   TouchableOpacity,
   FlatList,
   SafeAreaView,
@@ -15,7 +16,7 @@ import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { fetchNoseResult, NoseResultResponse } from "../../../services/api/NoseResult";
+import { fetchNoseResult, NoseResultResponse, saveNoseprintResult } from "../../../services/api/NoseResult";
 
 const NoseResultScreen = () => {
 
@@ -122,11 +123,45 @@ const NoseResultScreen = () => {
           horizontal
           data={matchedInfo?.result || []}
           keyExtractor={(item) => item.resultId.toString()}
+          contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => {
             const percent = Math.round(item.matchRate);
+            const radius = 64;
+            const strokeDash = (1 - percent / 100) * 2 * Math.PI * radius;
+
             return (
               <View style={styles.listItem}>
                 <View style={styles.noseItemWrapper}>
+                  <Svg width={140} height={140}>
+                    <Defs>
+                      <LinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <Stop offset="0%" stopColor="#4361ee" />
+                        <Stop offset="100%" stopColor="#a0c4ff" />
+                      </LinearGradient>
+                    </Defs>
+                    <Circle
+                      cx={70}
+                      cy={70}
+                      r={radius}
+                      stroke="#e0e0e0"
+                      strokeWidth={6}
+                      fill="none"
+                    />
+                    <Circle
+                      cx={70}
+                      cy={70}
+                      r={radius}
+                      stroke="url(#grad)"
+                      strokeWidth={6}
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * radius}
+                      strokeDashoffset={strokeDash}
+                      strokeLinecap="round"
+                      rotation="-90"
+                      origin="70,70"
+                    />
+                  </Svg>
+
                   <Image source={{ uri: item.nosePrintImg }} style={styles.listImage} />
                   <View style={styles.overlayCircle}>
                     <Text style={styles.overlayText}>{percent}%</Text>
@@ -158,12 +193,34 @@ const NoseResultScreen = () => {
             onChangeText={setFoundLocation}
           />
 
-          <TouchableOpacity style={styles.popupButton} onPress={() => {
-            console.log('저장된 위치:', foundLocation);
-            setShowPopup(false);
-          }}>
-            <Text style={styles.popupButtonText}>결과 저장하기</Text>
-          </TouchableOpacity>
+         <TouchableOpacity style={styles.popupButton} onPress={async () => {  
+          console.log('저장된 위치:', foundLocation);
+          setShowPopup(false);
+
+          const payload = {
+            searchId: 1,          
+            ownerId: 1,           
+            nosePrintId: 1,        
+            matchRate: 93.4,       
+            isMyMissingPet: true  
+          };
+
+          try { 
+            const response = await saveNoseprintResult(payload);
+            console.log('저장 성공:', response);
+            Alert.alert('저장 완료!');
+          } catch (error: any) {
+            console.error('❌ 저장 실패:', {
+              message: error.message,
+              url: error.config?.url,
+              data: error.response?.data,
+              status: error.response?.status,
+            });
+          }
+        }}>
+          <Text style={styles.popupButtonText}>결과 저장하기</Text>
+        </TouchableOpacity>
+
         </View>
       </View>
     )}

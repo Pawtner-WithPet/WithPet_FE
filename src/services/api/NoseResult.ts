@@ -23,3 +23,18 @@ export const fetchNoseResult = async (searchId: number): Promise<NoseResultRespo
   const response = await axios.get(`${API_BASE_URL}/api/noseprint/list/${searchId}`);
   return response.data.data;
 };
+
+
+
+export interface SaveNoseResultRequest {
+  searchId: number;
+  ownerId: number;
+  nosePrintId: number;
+  matchRate: number;
+  isMyMissingPet: boolean;
+}
+
+export const saveNoseprintResult = async (body: SaveNoseResultRequest) => {
+  const response = await axios.post(`${API_BASE_URL}/api/noseprint/result`, body);
+  return response.data;
+};
