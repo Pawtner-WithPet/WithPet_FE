@@ -1,3 +1,4 @@
+// App.tsx
 import React from "react";
 import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -5,7 +6,6 @@ import TabNavigator from "./src/navigation/TabNavigator";
 import { Colors } from "./src/constants/colors";
 import NoseCamera from "./src/screens/Home/Nose/NoseCamera";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import NoseImageR from "./src/screens/Home/Nose/NoseImageRModal";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +17,9 @@ const App: React.FC = () => (
         backgroundColor={Colors.primaryLight}
       />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {/* ✅ 탭 전체를 Stack의 하나의 화면으로 넣음 */}
         <Stack.Screen name="MainTabs" component={TabNavigator} />
+        {/* ✅ NoseCamera도 Stack에 등록 */}
         <Stack.Screen name="NoseCamera" component={NoseCamera} />
       </Stack.Navigator>
     </SafeAreaView>

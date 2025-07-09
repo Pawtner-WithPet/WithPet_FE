@@ -126,6 +126,7 @@ const PetsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Header />
+      <Text style={styles.modalTitle}>반려견 정보</Text>
       <FlatList
         data={dogs}
         keyExtractor={(item) => `${item.id}`}
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#4285F4",
+    backgroundColor: "#4262FF",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
@@ -367,9 +368,9 @@ const styles = StyleSheet.create({
   },
   resultTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Roboto-SemiBold",
     marginBottom: 10,
-    color: "#333",
+    color: "#101828",
   },
   resultText: {
     fontSize: 14,
@@ -380,6 +381,8 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     marginTop: 10,
+    borderColor: "white",
+    borderWidth: 2,
     borderRadius: 8,
   },
 });

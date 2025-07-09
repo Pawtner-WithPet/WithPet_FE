@@ -82,3 +82,42 @@ export const uploadNoseprintImage = async (
     return null;
   }
 };
+
+export const updateNoseprintImage = async (
+  imageUri: string,
+  petId: number,
+  ownerId: number = 1,
+): Promise<NoseprintDetail | null> => {
+  try {
+    const formData = new FormData();
+
+    formData.append("nosePrintImg", {
+      uri: imageUri,
+      name: "noseprint.jpg",
+      type: "image/jpeg",
+    } as any);
+
+    formData.append("petId", String(petId));
+    formData.append("ownerId", String(ownerId));
+
+    const res = await api.put(`/api/noseprint/image`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("✏️ 비문 이미지 업데이트 성공:", res.data);
+    return res.data.data;
+  } catch (error: any) {
+    console.error("❌ 비문 이미지 업데이트 실패:", error.message);
+    if (error.response) {
+      console.error("📦 서버 응답 상태:", error.response.status);
+      console.error("📦 서버 응답 데이터:", error.response.data);
+    } else if (error.request) {
+      console.error("🚫 요청이 전송됐으나 응답이 없습니다:", error.request);
+    } else {
+      console.error("❗ 알 수 없는 에러:", error.message);
+    }
+    return null;
+  }
+};

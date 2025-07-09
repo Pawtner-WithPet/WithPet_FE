@@ -22,11 +22,15 @@ import ListButton from "../../../assets/Camera/list_button.png";
 import { useRoute } from "@react-navigation/native";
 import NoseImagePickModal from "./NoseImagePickModal";
 import NoseImageRModal from "./NoseImageRModal";
-import { uploadNoseprintImage } from "../../../services/api/NoseRegister";
+import {
+  updateNoseprintImage,
+  uploadNoseprintImage,
+} from "../../../services/api/NoseRegister";
 
 type NoseCameraRouteParams = {
   fromScreen?: "PetDetail" | "NoseList";
   petId?: string;
+  hasNoseprint?: boolean;
 };
 
 type NoseStackParamList = {
@@ -41,7 +45,7 @@ type NoseCameraNavigationProp = NativeStackNavigationProp<
 const NoseCamera = () => {
   const navigation = useNavigation<NoseCameraNavigationProp>();
   const route = useRoute<RouteProp<NoseStackParamList, "NoseCamera">>();
-  const { fromScreen, petId } = route.params || {};
+  const { fromScreen, petId, hasNoseprint } = route.params || {};
 
   const cameraRef = useRef<Camera>(null);
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -146,15 +150,11 @@ const NoseCamera = () => {
   };
 
   const handleRegister = async () => {
-    console.log("비문 등록하기 클릭");
-
-    // petId가 없으면 경고
     if (!petId) {
       Alert.alert("오류", "반려동물 정보를 찾을 수 없습니다.");
       return;
     }
 
-    // 이미지 URI가 없으면 경고
     if (!capturedImageUri) {
       Alert.alert("오류", "등록할 이미지를 찾을 수 없습니다.");
       return;
@@ -163,12 +163,23 @@ const NoseCamera = () => {
     setIsUploading(true);
 
     try {
-      // API 호출
-      const result = await uploadNoseprintImage(
-        capturedImageUri,
-        parseInt(petId),
-        1, // ownerId - 실제 사용자 ID로 변경 필요
-      );
+      let result;
+
+      if (hasNoseprint) {
+        // ✅ 이미 등록된 경우 → 비문 수정 API 호출
+        result = await updateNoseprintImage(
+          capturedImageUri,
+          parseInt(petId),
+          1, // ownerId
+        );
+      } else {
+        // ✅ 등록되지 않은 경우 → 신규 등록 API 호출
+        result = await uploadNoseprintImage(
+          capturedImageUri,
+          parseInt(petId),
+          1, // ownerId
+        );
+      }
 
       if (result) {
         Alert.alert("성공", "비문이 성공적으로 등록되었습니다!", [
@@ -177,7 +188,7 @@ const NoseCamera = () => {
             onPress: () => {
               setShowNoseImageRModal(false);
               setCapturedImageUri("");
-              navigation.goBack(); // 이전 화면으로 돌아가기
+              navigation.goBack();
             },
           },
         ]);

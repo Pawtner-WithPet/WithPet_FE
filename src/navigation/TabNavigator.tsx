@@ -11,13 +11,12 @@ import CustomTabBar from "../components/CustomTabBar";
 import PetsStack from "./PetsStack";
 import NoseStack, { NoseStackParamList } from "./NoseStack";
 import WalkScreen from "../screens/Home/WalkScreen";
-import NoseImageR from "../screens/Home/Nose/NoseImageRModal";
 
 export type TabParamList = {
   Walk: undefined;
   Lost: undefined;
   Pets: undefined;
-  Nose: NavigatorScreenParams<NoseStackParamList>; // ✅ 중첩된 stack
+  Nose: undefined;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();

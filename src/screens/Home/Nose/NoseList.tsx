@@ -17,17 +17,22 @@ import cameraIcon from "../../../assets/icons/camera.png";
 import {
   fetchNoseprintPets,
   NoseprintPet,
+  fetchNoseprintSearchList,
+  NoseprintSearchResult,
 } from "../../../services/api/NoseList";
 
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
   const [dogList, setDogList] = useState<NoseprintPet[]>([]);
+  const [noseData, setNoseData] = useState<NoseprintSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingNoseData, setIsLoadingNoseData] = useState(false);
   const navigation = useNavigation<any>();
 
   useEffect(() => {
     loadDogList();
+    loadNoseprintList();
   }, []);
 
   const loadDogList = async () => {
@@ -40,6 +45,20 @@ const NoseScreen: React.FC = () => {
       console.error("강아지 목록 불러오기 실패:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadNoseprintList = async () => {
+    setIsLoadingNoseData(true);
+    try {
+      const ownerId = 1; // 임시로 프론트에서 넘김.
+      const data = await fetchNoseprintSearchList(ownerId);
+      console.log("🎯 비문 탐색 결과 불러오기 성공:", data);
+      setNoseData(data);
+    } catch (error) {
+      console.error("❌ 비문 탐색 결과 불러오기 실패:", error);
+    } finally {
+      setIsLoadingNoseData(false);
     }
   };
 
@@ -59,37 +78,18 @@ const NoseScreen: React.FC = () => {
     console.log("선택된 강아지:", pet.dogNm, "ID:", pet.id);
     setIsDogListVisible(false);
     setIsExpanded(false);
+    // 이 부분에서 특정 강아지로 필터링해서 탐색 결과 다시 불러오려면 로직 추가 가능
   };
 
-  const noseData = [
-    {
-      id: 1,
-      date: "2025.03.01 11:25",
-      location: "서울특별시 도봉구",
-      percentage: "99%",
-      image: {
-        uri: "https://via.placeholder.com/100x100/FFB6C1/000000?text=👃",
-      },
-    },
-    {
-      id: 2,
-      date: "2025.03.01 11:25",
-      location: "서울특별시 도봉구",
-      percentage: "95%",
-      image: {
-        uri: "https://via.placeholder.com/100x100/87CEEB/000000?text=👃",
-      },
-    },
-    {
-      id: 3,
-      date: "2025.03.01 11:25",
-      location: "서울특별시 도봉구",
-      percentage: "94%",
-      image: {
-        uri: "https://via.placeholder.com/100x100/98FB98/000000?text=👃",
-      },
-    },
-  ];
+  const formatDate = (datetime: string): string => {
+    const date = new Date(datetime);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const hh = String(date.getHours()).padStart(2, "0");
+    const min = String(date.getMinutes()).padStart(2, "0");
+    return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+  };
 
   return (
     <View style={styles.container}>
@@ -99,15 +99,28 @@ const NoseScreen: React.FC = () => {
         <View style={styles.headerSection}>
           <Text style={styles.title}>반려견 찾기</Text>
         </View>
-        {noseData.map((item) => (
-          <NoseCard
-            key={item.id}
-            date={item.date}
-            location={item.location}
-            percentage={item.percentage}
-            image={item.image}
-          />
-        ))}
+
+        {isLoadingNoseData ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>
+              비문 탐색 결과 불러오는 중...
+            </Text>
+          </View>
+        ) : noseData.length > 0 ? (
+          noseData.map((item) => (
+            <NoseCard
+              key={item.searchId}
+              date={formatDate(item.searchDatetime)}
+              location={item.searchLocation}
+              percentage={`${item.highestScore}`}
+              image={{ uri: item.nosePrintImg }}
+            />
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>탐색 결과가 없습니다</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* 하단 플로팅 버튼들 */}
@@ -144,9 +157,6 @@ const NoseScreen: React.FC = () => {
                         >
                           <View style={styles.dogItemContent}>
                             <Text style={styles.dogItemText}>{pet.dogNm}</Text>
-                            <Text style={styles.dogItemSubText}>
-                              {pet.kindNm} • {pet.sexNm} • {pet.dogAge}세
-                            </Text>
                           </View>
                         </TouchableOpacity>
                       ))
@@ -177,7 +187,7 @@ const NoseScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
   },
   headerSection: {
     flexDirection: "row",
@@ -192,20 +202,6 @@ const styles = StyleSheet.create({
     fontWeight: "semibold",
     color: "#000",
   },
-  sortContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sortText: {
-    fontSize: 16,
-    color: "#000",
-    marginRight: 8,
-  },
-  sortArrow: {
-    marginLeft: 10,
-    fontSize: 12,
-    color: "#FFFFFF",
-  },
   content: {
     flex: 1,
     paddingTop: 16,
@@ -218,24 +214,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-  },
-  floatingButton: {
-    width: 75,
-    height: 75,
-    borderRadius: 75,
-    backgroundColor: "#4262FF",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  buttonIcon: {
-    width: 50,
-    height: 50,
-    tintColor: "white",
   },
   expandedButtonContent: {
     flexDirection: "row",
@@ -251,6 +229,11 @@ const styles = StyleSheet.create({
   expandedButtonText: {
     color: "white",
     fontSize: 14,
+  },
+  sortArrow: {
+    marginLeft: 10,
+    fontSize: 12,
+    color: "#FFFFFF",
   },
   dogListContainer: {
     backgroundColor: "#809fff",
@@ -290,11 +273,6 @@ const styles = StyleSheet.create({
   },
   dogItemContent: {
     flex: 1,
-  },
-  dogItemSubText: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 2,
   },
 });
 

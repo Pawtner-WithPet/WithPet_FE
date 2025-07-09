@@ -9,6 +9,7 @@ export type PetsStackParamList = {
   NoseCamera: {
     fromScreen?: "PetDetail" | "NoseList";
     petId?: number;
+    hasNoseprint?: boolean;
   };
 };
 
