@@ -16,35 +16,30 @@ const PetCard: React.FC<PetCardProps> = ({
   gender,
   image,
 }) => (
-  <View style={styles.container}>
-    {/* 가짜 그림자 */}
-    <View style={styles.fakeShadow} />
-
-    <View style={styles.card}>
-      <View style={styles.markerContainer}>
-        <View style={styles.marker}>
-          <Image source={image} style={styles.avatar} />
-        </View>
+  <View style={styles.card}>
+    <View style={styles.markerContainer}>
+      <View style={styles.marker}>
+        <Image source={image} style={styles.avatar} />
       </View>
+    </View>
 
-      <View style={styles.info}>
-        <Text style={styles.line}>
-          <Text style={styles.label}>이름: </Text>
-          {name}
-        </Text>
-        <Text style={styles.line}>
-          <Text style={styles.label}>나이: </Text>
-          {age}
-        </Text>
-        <Text style={styles.line}>
-          <Text style={styles.label}>견종: </Text>
-          {breed}
-        </Text>
-        <Text style={styles.line}>
-          <Text style={styles.label}>성별: </Text>
-          {gender}
-        </Text>
-      </View>
+    <View style={styles.info}>
+      <Text style={styles.line}>
+        <Text style={styles.label}>이름: </Text>
+        {name}
+      </Text>
+      <Text style={styles.line}>
+        <Text style={styles.label}>나이: </Text>
+        {age}
+      </Text>
+      <Text style={styles.line}>
+        <Text style={styles.label}>견종: </Text>
+        {breed}
+      </Text>
+      <Text style={styles.line}>
+        <Text style={styles.label}>성별: </Text>
+        {gender}
+      </Text>
     </View>
   </View>
 );
@@ -52,68 +47,51 @@ const PetCard: React.FC<PetCardProps> = ({
 export default PetCard;
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 18,
-    marginHorizontal: 16,
-    marginVertical: 8,
-    marginBottom: 16,
-    position: "relative",
-  },
-
-  fakeShadow: {
-    position: "absolute",
-    top: 3,
-    left: 2,
-    right: -2,
-    bottom: -3,
-    backgroundColor: "rgba(0, 0, 0, 0.08)",
-    borderRadius: 12,
-    zIndex: 0,
-  },
-
   card: {
     flexDirection: "row",
     backgroundColor: "#D9D9D940",
     borderColor: "#B9B9B9",
     borderWidth: 2,
-    borderRadius: 12,
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginVertical: 8,
     padding: 16,
     alignItems: "center",
-    zIndex: 1,
   },
-
   markerContainer: {
     width: 110,
     alignItems: "center",
     justifyContent: "center",
   },
-
   marker: {
     width: 108,
     height: 108,
     borderRadius: 100,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 108,
-    height: 108,
     borderColor: "white",
     borderWidth: 3,
-    borderRadius: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+  },
+  avatar: {
+    width: 97,
+    height: 97,
+    borderRadius: 97,
   },
   info: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 20,
     justifyContent: "center",
   },
   line: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Roboto-Medium",
     marginBottom: 4,
+    color: "#333",
   },
   label: {
-    fontSize: 18,
-    fontFamily: "Roboto-Medium",
+    fontSize: 16,
+    fontFamily: "Roboto-Bold",
+    color: "#000",
   },
 });

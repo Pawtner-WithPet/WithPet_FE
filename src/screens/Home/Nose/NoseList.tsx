@@ -125,56 +125,59 @@ const NoseScreen: React.FC = () => {
 
       {/* 하단 플로팅 버튼들 */}
       <View style={styles.floatingButtonsContainer}>
-        {/* 왼쪽 버튼들 */}
+        {/* 왼쪽 버튼 그룹 */}
         <View style={styles.leftButtonGroup}>
-          <FloatingBtn icon={dogIcon} onPress={handleDogButtonPress} />
-
-          {isExpanded && (
-            <View>
-              <TouchableOpacity
-                style={styles.expandedButton}
-                onPress={handleLoadNoseDataToggle}
-              >
-                <View style={styles.expandedButtonContent}>
-                  <Text style={styles.expandedButtonText}>비문 불러오기</Text>
-                  <Text style={styles.sortArrow}>▼</Text>
-                </View>
-              </TouchableOpacity>
-
-              {isDogListVisible && (
-                <View style={styles.dogListContainer}>
-                  <ScrollView>
-                    {isLoading ? (
-                      <View style={styles.loadingContainer}>
-                        <Text style={styles.loadingText}>로딩 중...</Text>
+          {/* 강아지 목록 드롭다운 */}
+          {isDogListVisible && (
+            <View style={styles.dogListContainer}>
+              <ScrollView>
+                {isLoading ? (
+                  <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>로딩 중...</Text>
+                  </View>
+                ) : dogList.length > 0 ? (
+                  dogList.map((pet, index) => (
+                    <TouchableOpacity
+                      key={pet.id || index}
+                      style={styles.dogItem}
+                      onPress={() => handleDogSelect(pet)}
+                    >
+                      <View style={styles.dogItemContent}>
+                        <Text style={styles.dogItemText}>{pet.dogNm}</Text>
                       </View>
-                    ) : dogList.length > 0 ? (
-                      dogList.map((pet, index) => (
-                        <TouchableOpacity
-                          key={pet.id || index}
-                          style={styles.dogItem}
-                          onPress={() => handleDogSelect(pet)}
-                        >
-                          <View style={styles.dogItemContent}>
-                            <Text style={styles.dogItemText}>{pet.dogNm}</Text>
-                          </View>
-                        </TouchableOpacity>
-                      ))
-                    ) : (
-                      <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>
-                          등록된 반려견이 없습니다
-                        </Text>
-                      </View>
-                    )}
-                  </ScrollView>
-                </View>
-              )}
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>
+                      등록된 반려견이 없습니다
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
             </View>
           )}
-        </View>
 
-        {/* 오른쪽 카메라 버튼 */}
+          {/* 비문 불러오기 버튼 */}
+          {isExpanded && (
+            <TouchableOpacity
+              style={styles.expandedButton}
+              onPress={handleLoadNoseDataToggle}
+            >
+              <View style={styles.expandedButtonContent}>
+                <Text style={styles.expandedButtonText}>비문 불러오기</Text>
+                <Text style={styles.sortArrow}>▲</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* 강아지 버튼 */}
+          <FloatingBtn icon={dogIcon} onPress={handleDogButtonPress} />
+        </View>
+      </View>
+
+      {/* 카메라 버튼 - 독립적으로 고정 */}
+      <View style={styles.cameraButtonContainer}>
         <FloatingBtn
           icon={cameraIcon}
           onPress={() => navigation.navigate("NoseCamera")}
@@ -199,7 +202,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 19,
-    fontWeight: "semibold",
+    fontWeight: "bold",
     color: "#000",
   },
   content: {
@@ -209,51 +212,61 @@ const styles = StyleSheet.create({
   floatingButtonsContainer: {
     position: "absolute",
     bottom: 20,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
+    left: 20,
+  },
+  leftButtonGroup: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    position: "relative",
+  },
+  cameraButtonContainer: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+  },
+  expandedButton: {
+    backgroundColor: "#4262FF",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    width: 151,
+    borderRadius: 8,
+    marginBottom: 8,
+    zIndex: 2,
   },
   expandedButtonContent: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  expandedButton: {
-    backgroundColor: "#3D5AFE",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginLeft: 10,
-    width: 130,
+    justifyContent: "space-between",
   },
   expandedButtonText: {
     color: "white",
-    fontSize: 14,
+    fontSize: 17,
   },
   sortArrow: {
     marginLeft: 10,
-    fontSize: 12,
+    fontSize: 17,
     color: "#FFFFFF",
   },
   dogListContainer: {
-    backgroundColor: "#809fff",
-    overflow: "hidden",
-    marginLeft: 10,
-    width: 130,
+    backgroundColor: "#A1B4FF",
+    width: 151,
+    borderRadius: 8,
+    maxHeight: 200,
+    zIndex: 1,
   },
   dogItem: {
     paddingVertical: 8,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#fff",
+    borderBottomColor: "#A1B4FF",
   },
   dogItemText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 17,
     textAlign: "center",
   },
-  leftButtonGroup: {
-    flexDirection: "row",
-    alignItems: "center",
+  dogItemContent: {
+    flex: 1,
   },
   loadingContainer: {
     padding: 20,
@@ -270,9 +283,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: "#666",
-  },
-  dogItemContent: {
-    flex: 1,
   },
 });
 

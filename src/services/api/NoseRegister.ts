@@ -97,10 +97,9 @@ export const updateNoseprintImage = async (
       type: "image/jpeg",
     } as any);
 
-    formData.append("petId", String(petId));
     formData.append("ownerId", String(ownerId));
 
-    const res = await api.put(`/api/noseprint/image`, formData, {
+    const res = await api.put(`/api/noseprint/image/${petId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

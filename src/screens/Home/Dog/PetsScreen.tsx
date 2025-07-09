@@ -126,7 +126,9 @@ const PetsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Header />
-      <Text style={styles.modalTitle}>반려견 정보</Text>
+      <View style={styles.headerSection}>
+        <Text style={styles.title}>반려견 정보</Text>
+      </View>
       <FlatList
         data={dogs}
         keyExtractor={(item) => `${item.id}`}
@@ -259,6 +261,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  headerSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 30,
+  },
+  title: {
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#000",
   },
   loadingContainer: {
     flex: 1,
