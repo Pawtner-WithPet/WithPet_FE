@@ -15,51 +15,41 @@ import type { RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-
-const mockMatchedInfo = {
-  date: '2025.03.01',
-  time: '14:25',
-  location: '서울시 도봉구',
-  matchRate: '99%',
-  dogNose: require('../../../assets/images/nose.png'),
-  myNose: require('../../../assets/images/nose.png'),
-};
-
-const mockList = [
-  { id: '1', match: '40%', image: require('../../../assets/images/nose.png') },
-  { id: '2', match: '50%', image: require('../../../assets/images/nose.png') },
-];
-
-
+import { fetchNoseResult, NoseResultResponse } from "../../../services/api/NoseResult";
 
 const NoseResultScreen = () => {
 
   const route = useRoute<RouteProp<RootStackParamList, 'NoseResult'>>();
-  const dogId = route.params?.dogId;
+  const searchId  = route.params?.dogId ?? 1;
   const type = route.params?.type ?? 'found';
 
-  useEffect(() => {
-    if (dogId === undefined || dogId === null) {
-      console.warn('dogId가 전달되지 않았습니다.');
-      return;
-    }
-    console.log('넘어온 dogId:', dogId);
-  }, []);
+  const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  //팝업
+  const [showPopup, setShowPopup] = useState(false);
+  const [foundLocation, setFoundLocation] = useState('');
+
+ useEffect(() => {
+  if (!searchId) return;
+
+  fetchNoseResult(searchId)
+    .then(setMatchedInfo)
+    .catch(() => {
+      setError("비문 결과를 가져오는 중 오류가 발생했습니다.");
+    });
+}, [searchId]);
 
   const titleText =
     type === 'found' ? '실종된 내 반려동물과의' : '촬영한 발견동물과의';
   const listTitleText =
     type === 'found' ? '등록된 실종동물 일치율 목록' : '등록된 발견동물 일치율 목록';
 
-  const parsedMatch = parseInt(mockMatchedInfo.matchRate);
   const circleRadius = 70;
   const strokeWidth = 6;
   const circumference = 2 * Math.PI * circleRadius;
+  const parsedMatch = matchedInfo?.result?.[0]?.matchRate ?? 0;
   const strokeDashoffset = (1 - parsedMatch / 100) * circumference;
 
-   // 팝업
-  const [showPopup, setShowPopup] = useState(false);
-  const [foundLocation, setFoundLocation] = useState('');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,8 +66,12 @@ const NoseResultScreen = () => {
 
         <View style={styles.imageRow}>
           <View style={styles.myNoseCard}>
-            <Image source={mockMatchedInfo.myNose} style={styles.noseImage} />
-            <Text style={styles.metaText}>{mockMatchedInfo.date}{'\n'}{mockMatchedInfo.time}{'\n'}{mockMatchedInfo.location}</Text>
+            <Image source={{ uri: matchedInfo?.nosePrintImg }} style={styles.noseImage} />
+            <Text style={styles.metaText}>
+              {matchedInfo?.searchDatetime?.slice(0, 10)}{"\n"}
+              {matchedInfo?.searchDatetime?.slice(11, 16)}{"\n"}
+              {matchedInfo?.searchLocation}
+            </Text>
           </View>
           <View style={styles.noseImageWrapper}>
             <Svg width={160} height={160}>
@@ -108,69 +102,41 @@ const NoseResultScreen = () => {
                 origin="80,70"
               />
             </Svg>
-            <Image source={mockMatchedInfo.dogNose} style={styles.noseImageSmall} />
+            <Image source={{ uri: matchedInfo?.nosePrintImg }} style={styles.noseImageSmall} />
             <View style={styles.matchOverlay}>
-              <Text style={styles.matchText}>{mockMatchedInfo.matchRate}</Text>
+              <Text style={styles.matchText}>{parsedMatch}%</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.divider} />
 
+
+        {/* 일치율 목록 */}
         <Text style={styles.listTitle}>{listTitleText}</Text>
+
+
+        
 
         <FlatList
           horizontal
-          showsHorizontalScrollIndicator={false}
-          data={mockList}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContainer}
+          data={matchedInfo?.result || []}
+          keyExtractor={(item) => item.resultId.toString()}
           renderItem={({ item }) => {
-            const percent = parseInt(item.match);
-            const radius = 64;
-            const strokeDash = (1 - percent / 100) * 2 * Math.PI * radius;
-
+            const percent = Math.round(item.matchRate);
             return (
               <View style={styles.listItem}>
                 <View style={styles.noseItemWrapper}>
-                  <Svg width={140} height={140}>
-                    <Defs>
-                      <LinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <Stop offset="0%" stopColor="#4361ee" />
-                        <Stop offset="100%" stopColor="#a0c4ff" />
-                      </LinearGradient>
-                    </Defs>
-                    <Circle
-                      cx={70}
-                      cy={70}
-                      r={radius}
-                      stroke="#e0e0e0"
-                      strokeWidth={6}
-                      fill="none"
-                    />
-                    <Circle
-                      cx={70}
-                      cy={70}
-                      r={radius}
-                      stroke="url(#grad)"
-                      strokeWidth={6}
-                      fill="none"
-                      strokeDasharray={2 * Math.PI * radius}
-                      strokeDashoffset={strokeDash}
-                      strokeLinecap="round"
-                      rotation="-90"
-                      origin="70,70"
-                    />
-                  </Svg>
-                  <Image source={item.image} style={styles.listImage} />
+                  <Image source={{ uri: item.nosePrintImg }} style={styles.listImage} />
                   <View style={styles.overlayCircle}>
-                    <Text style={styles.overlayText}>{item.match}</Text>
+                    <Text style={styles.overlayText}>{percent}%</Text>
                   </View>
                 </View>
               </View>
             );
           }}
         />
+
       </ScrollView>
 
       {showPopup && (
