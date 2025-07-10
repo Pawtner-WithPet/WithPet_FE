@@ -145,15 +145,21 @@ const NoseCamera = () => {
   const handleLostPet = () => {
     console.log("실종 동물 신고");
     setShowNoseImagePickModal(false);
-    // 실종 동물 신고 화면으로 네비게이션
-    // navigation.navigate("LostPetReport", { imageUri: capturedImageUri });
+    // 실종 동물 신고 - 내 반려동물을 찾는 경우이므로 type을 'found'로 설정
+    navigation.navigate("NoseResult", {
+      dogId: 1, // 실제 검색 결과 ID로 교체 필요
+      type: "found", // 실종된 내 반려동물을 찾는 경우
+    });
   };
 
   const handleFoundPet = () => {
     console.log("발견 동물 신고");
     setShowNoseImagePickModal(false);
-    // 발견 동물 신고 화면으로 네비게이션
-    // navigation.navigate("FoundPetReport", { imageUri: capturedImageUri });
+    // 발견 동물 신고 - 다른 사람의 반려동물을 발견한 경우이므로 type을 'lost'로 설정
+    navigation.navigate("NoseResult", {
+      dogId: 1, // 실제 검색 결과 ID로 교체 필요
+      type: "lost", // 발견한 동물과 실종 동물을 매칭하는 경우
+    });
   };
 
   const handleRegister = async () => {

@@ -1,4 +1,4 @@
-import React, {useState,useEffect} from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,40 +10,47 @@ import {
   SafeAreaView,
   ScrollView,
   TextInput,
-} from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import type { RouteProp } from '@react-navigation/native';
+} from "react-native";
+import { useRoute } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
-import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { fetchNoseResult, NoseResultResponse, saveNoseprintResult } from "../../../services/api/NoseResult";
+import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
+import {
+  fetchNoseResult,
+  NoseResultResponse,
+  saveNoseprintResult,
+} from "../../../services/api/NoseResult";
 
 const NoseResultScreen = () => {
+  const route = useRoute<RouteProp<RootStackParamList, "NoseResult">>();
+  const searchId = route.params?.dogId ?? 1;
+  const type = route.params?.type ?? "found";
 
-  const route = useRoute<RouteProp<RootStackParamList, 'NoseResult'>>();
-  const searchId  = route.params?.dogId ?? 1;
-  const type = route.params?.type ?? 'found';
-
-  const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(null);
+  const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   //팝업
   const [showPopup, setShowPopup] = useState(false);
-  const [foundLocation, setFoundLocation] = useState('');
+  const [foundLocation, setFoundLocation] = useState("");
 
- useEffect(() => {
-  if (!searchId) return;
+  useEffect(() => {
+    if (!searchId) return;
 
-  fetchNoseResult(searchId)
-    .then(setMatchedInfo)
-    .catch(() => {
-      setError("비문 결과를 가져오는 중 오류가 발생했습니다.");
-    });
-}, [searchId]);
+    fetchNoseResult(searchId)
+      .then(setMatchedInfo)
+      .catch(() => {
+        setError("비문 결과를 가져오는 중 오류가 발생했습니다.");
+      });
+  }, [searchId]);
 
   const titleText =
-    type === 'found' ? '실종된 내 반려동물과의' : '촬영한 발견동물과의';
+    type === "found" ? "실종된 내 반려동물과의" : "촬영한 발견동물과의";
   const listTitleText =
-    type === 'found' ? '등록된 실종동물 일치율 목록' : '등록된 발견동물 일치율 목록';
+    type === "found"
+      ? "등록된 실종동물 일치율 목록"
+      : "등록된 발견동물 일치율 목록";
 
   const circleRadius = 70;
   const strokeWidth = 6;
@@ -51,26 +58,28 @@ const NoseResultScreen = () => {
   const parsedMatch = matchedInfo?.result?.[0]?.matchRate ?? 0;
   const strokeDashoffset = (1 - parsedMatch / 100) * circumference;
 
-
   return (
     <SafeAreaView style={styles.container}>
       <Header />
 
       <ScrollView contentContainerStyle={styles.scroll}>
-
-          <Text style={styles.title}>
-            {titleText}
-            {'\n'}
-            <Text style={styles.highlight}>비문 인식률</Text>
-          </Text>
-
+        <Text style={styles.title}>
+          {titleText}
+          {"\n"}
+          <Text style={styles.highlight}>비문 인식률</Text>
+        </Text>
 
         <View style={styles.imageRow}>
           <View style={styles.myNoseCard}>
-            <Image source={{ uri: matchedInfo?.nosePrintImg }} style={styles.noseImage} />
+            <Image
+              source={{ uri: matchedInfo?.nosePrintImg }}
+              style={styles.noseImage}
+            />
             <Text style={styles.metaText}>
-              {matchedInfo?.searchDatetime?.slice(0, 10)}{"\n"}
-              {matchedInfo?.searchDatetime?.slice(11, 16)}{"\n"}
+              {matchedInfo?.searchDatetime?.slice(0, 10)}
+              {"\n"}
+              {matchedInfo?.searchDatetime?.slice(11, 16)}
+              {"\n"}
               {matchedInfo?.searchLocation}
             </Text>
           </View>
@@ -103,7 +112,10 @@ const NoseResultScreen = () => {
                 origin="80,70"
               />
             </Svg>
-            <Image source={{ uri: matchedInfo?.nosePrintImg }} style={styles.noseImageSmall} />
+            <Image
+              source={{ uri: matchedInfo?.nosePrintImg }}
+              style={styles.noseImageSmall}
+            />
             <View style={styles.matchOverlay}>
               <Text style={styles.matchText}>{parsedMatch}%</Text>
             </View>
@@ -112,12 +124,8 @@ const NoseResultScreen = () => {
 
         <View style={styles.divider} />
 
-
         {/* 일치율 목록 */}
         <Text style={styles.listTitle}>{listTitleText}</Text>
-
-
-        
 
         <FlatList
           horizontal
@@ -134,7 +142,13 @@ const NoseResultScreen = () => {
                 <View style={styles.noseItemWrapper}>
                   <Svg width={140} height={140}>
                     <Defs>
-                      <LinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <LinearGradient
+                        id="grad"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="0%"
+                      >
                         <Stop offset="0%" stopColor="#4361ee" />
                         <Stop offset="100%" stopColor="#a0c4ff" />
                       </LinearGradient>
@@ -162,7 +176,10 @@ const NoseResultScreen = () => {
                     />
                   </Svg>
 
-                  <Image source={{ uri: item.nosePrintImg }} style={styles.listImage} />
+                  <Image
+                    source={{ uri: item.nosePrintImg }}
+                    style={styles.listImage}
+                  />
                   <View style={styles.overlayCircle}>
                     <Text style={styles.overlayText}>{percent}%</Text>
                   </View>
@@ -171,61 +188,70 @@ const NoseResultScreen = () => {
             );
           }}
         />
-
       </ScrollView>
 
       {showPopup && (
-      <View style={styles.popupOverlay}>
-        <View style={styles.popupBox}>
-          <TouchableOpacity onPress={() => setShowPopup(false)} style={styles.popupClose}>
-            <Text style={{ fontSize: 24 }}>✕</Text>
-          </TouchableOpacity>
+        <View style={styles.popupOverlay}>
+          <View style={styles.popupBox}>
+            <TouchableOpacity
+              onPress={() => setShowPopup(false)}
+              style={styles.popupClose}
+            >
+              <Text style={{ fontSize: 24 }}>✕</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.popupText}>
-            비문 인식을 진행한 동물의 {'\n'}<Text style={{ color: '#5b6eff' }}>발견 장소</Text>를 입력해주세요.
-          </Text>
+            <Text style={styles.popupText}>
+              비문 인식을 진행한 동물의 {"\n"}
+              <Text style={{ color: "#5b6eff" }}>발견 장소</Text>를
+              입력해주세요.
+            </Text>
 
-          <TextInput
-            style={styles.popupInput}
-            placeholder="예: 서울시 도봉구"
-            multiline
-            value={foundLocation}
-            onChangeText={setFoundLocation}
-          />
+            <TextInput
+              style={styles.popupInput}
+              placeholder="예: 서울시 도봉구"
+              multiline
+              value={foundLocation}
+              onChangeText={setFoundLocation}
+            />
 
-         <TouchableOpacity style={styles.popupButton} onPress={async () => {  
-          console.log('저장된 위치:', foundLocation);
-          setShowPopup(false);
+            <TouchableOpacity
+              style={styles.popupButton}
+              onPress={async () => {
+                console.log("저장된 위치:", foundLocation);
+                setShowPopup(false);
 
-          const payload = {
-            searchId: 1,          
-            ownerId: 1,           
-            nosePrintId: 1,        
-            matchRate: 93.4,       
-            isMyMissingPet: true  
-          };
+                const payload = {
+                  searchId: 1,
+                  ownerId: 1,
+                  nosePrintId: 1,
+                  matchRate: 93.4,
+                  isMyMissingPet: true,
+                };
 
-          try { 
-            const response = await saveNoseprintResult(payload);
-            console.log('저장 성공:', response);
-            Alert.alert('저장 완료!');
-          } catch (error: any) {
-            console.error('❌ 저장 실패:', {
-              message: error.message,
-              url: error.config?.url,
-              data: error.response?.data,
-              status: error.response?.status,
-            });
-          }
-        }}>
-          <Text style={styles.popupButtonText}>결과 저장하기</Text>
-        </TouchableOpacity>
-
+                try {
+                  const response = await saveNoseprintResult(payload);
+                  console.log("저장 성공:", response);
+                  Alert.alert("저장 완료!");
+                } catch (error: any) {
+                  console.error("❌ 저장 실패:", {
+                    message: error.message,
+                    url: error.config?.url,
+                    data: error.response?.data,
+                    status: error.response?.status,
+                  });
+                }
+              }}
+            >
+              <Text style={styles.popupButtonText}>결과 저장하기</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    )}
+      )}
 
-      <TouchableOpacity style={styles.saveButton} onPress={() => setShowPopup(true)}>
+      <TouchableOpacity
+        style={styles.saveButton}
+        onPress={() => setShowPopup(true)}
+      >
         <Text style={styles.saveButtonText}>결과 저장하기</Text>
       </TouchableOpacity>
     </SafeAreaView>
@@ -235,7 +261,7 @@ const NoseResultScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: "#f2f2f2",
   },
   scroll: {
     padding: 16,
@@ -243,33 +269,33 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'left',
+    fontWeight: "600",
+    textAlign: "left",
   },
   highlight: {
     fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'left',
+    fontWeight: "600",
+    textAlign: "left",
     marginBottom: 20,
-    color: '#5b6eff',
+    color: "#5b6eff",
   },
   imageRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
     marginBottom: 20,
   },
   myNoseCard: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#eaf0ff',
+    backgroundColor: "#eaf0ff",
     borderRadius: 20,
     width: 150,
   },
   noseImageWrapper: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
     width: 160,
     height: 160,
   },
@@ -282,161 +308,154 @@ const styles = StyleSheet.create({
     width: 130,
     height: 130,
     borderRadius: 65,
-    position: 'absolute',
+    position: "absolute",
   },
   matchOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: -5,
     right: 15,
-    backgroundColor: '#4f75ff',
-    width: 50,               
-    height: 50,               
-    borderRadius: 25,         
-    alignItems: 'center',      
-    justifyContent: 'center', 
+    backgroundColor: "#4f75ff",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 10,
     elevation: 3,
-    borderWidth: 2, 
-    borderColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: "#ffffff",
   },
   matchText: {
-    color: 'white',
+    color: "white",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   metaText: {
     marginTop: 12,
     fontSize: 14,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
     lineHeight: 20,
   },
   divider: {
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
     marginVertical: 24,
-    width: '100%',
+    width: "100%",
   },
-
-
-
-
-
-
-
   listTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'left',
+    fontWeight: "600",
+    textAlign: "left",
     marginBottom: 12,
   },
   listContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 10,
     marginBottom: 24,
     flexGrow: 1,
   },
   listItem: {
     marginRight: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   noseItemWrapper: {
     width: 180,
     height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
   },
   listImage: {
     width: 115,
     height: 115,
     borderRadius: 100,
-    position: 'absolute',
+    position: "absolute",
   },
   saveButton: {
-    backgroundColor: '#3c4fff',
+    backgroundColor: "#3c4fff",
     paddingVertical: 14,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     margin: 16,
-    position: 'absolute',
+    position: "absolute",
     bottom: 16,
     left: 16,
     right: 16,
   },
   saveButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
   overlayCircle: {
-    position: 'absolute',
+    position: "absolute",
     width: 115,
     height: 115,
     borderRadius: 100,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', 
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   overlayText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 25,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   //팝업
   popupOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 99,
   },
   popupBox: {
-    width: '85%',
-    backgroundColor: '#f2f2f2',
+    width: "85%",
+    backgroundColor: "#f2f2f2",
     borderRadius: 16,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 5,
   },
   popupClose: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 14,
   },
   popupText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   popupInput: {
-    width: '100%',
+    width: "100%",
     minHeight: 80,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 10,
     fontSize: 14,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     marginBottom: 20,
   },
   popupButton: {
-    backgroundColor: '#1e1e2f',
+    backgroundColor: "#1e1e2f",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 10,
   },
   popupButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
