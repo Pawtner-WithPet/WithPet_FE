@@ -155,9 +155,6 @@ const NoseScreen: React.FC = () => {
                     >
                       <View style={styles.dogItemContent}>
                         <Text style={styles.dogItemText}>{pet.dogNm}</Text>
-                        <Text style={styles.dogItemText}>
-                          {pet.kindNm} • {pet.sexNm} • {pet.dogAge}세
-                        </Text>
                       </View>
                     </TouchableOpacity>
                   ))
