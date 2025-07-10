@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Image, TouchableOpacity, StyleSheet, StatusBar, Platform } from "react-native";
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  StatusBar,
+  Platform,
+} from "react-native";
 import { Colors } from "../constants/colors";
 
 const ICONS = {
@@ -10,16 +17,18 @@ const ICONS = {
 
 const Header: React.FC = () => (
   <View style={styles.container}>
-    <StatusBar backgroundColor={Colors.primaryLight} barStyle="light-content" />
+    {/* 왼쪽: 유저 아이콘 */}
+    <TouchableOpacity>
+      <Image source={ICONS.user} style={styles.icon} />
+    </TouchableOpacity>
+
+    {/* 중앙: 로고 */}
     <Image source={ICONS.logo} style={styles.logo} />
-    <View style={styles.actions}>
-      <TouchableOpacity>
-        <Image source={ICONS.bell} style={styles.icon} />
-      </TouchableOpacity>
-      <TouchableOpacity>
-        <Image source={ICONS.user} style={styles.icon} />
-      </TouchableOpacity>
-    </View>
+
+    {/* 오른쪽: 알림 아이콘 */}
+    <TouchableOpacity>
+      <Image source={ICONS.bell} style={styles.icon} />
+    </TouchableOpacity>
   </View>
 );
 
@@ -28,26 +37,24 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 24,
     height:
       56 + (Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0),
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.background,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
     justifyContent: "space-between",
+    paddingLeft: 20,
+    paddingRight: 20,
+    elevation: 4,
   },
-
   logo: {
-    width: 100,
-    height: 24,
+    width: 46,
+    height: 23,
     resizeMode: "contain",
-  },
-  actions: {
-    flexDirection: "row",
   },
   icon: {
     width: 24,
     height: 24,
-    marginLeft: 20,
-    tintColor: "#fff",
+    tintColor: "black",
   },
 });
 

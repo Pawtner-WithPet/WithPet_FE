@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Roboto-SemiBold",
     color: "#000000",
     marginBottom: 8,
   },

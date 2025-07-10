@@ -25,10 +25,7 @@ export const SelectButton: React.FC<SelectButtonProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>
-        {label}
-        {required && <Text style={styles.required}>*</Text>}
-      </Text>
+      <Text style={styles.label}>{label}</Text>
 
       <View style={styles.buttonContainer}>
         {options.map((option) => {
@@ -36,11 +33,7 @@ export const SelectButton: React.FC<SelectButtonProps> = ({
           return (
             <TouchableOpacity
               key={option.value}
-              style={[
-                styles.button,
-                isSelected && styles.buttonActive,
-                disabled && styles.button,
-              ]}
+              style={[styles.button, isSelected && styles.buttonActive]}
               onPress={() => {
                 if (!disabled) onSelect(option.value);
               }}
@@ -51,7 +44,6 @@ export const SelectButton: React.FC<SelectButtonProps> = ({
                 style={[
                   styles.buttonText,
                   isSelected && styles.buttonTextActive,
-                  disabled && styles.buttonText,
                 ]}
               >
                 {option.label}
