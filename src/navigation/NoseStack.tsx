@@ -2,6 +2,7 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import NoseListScreen from "../screens/Home/Nose/NoseList";
 import NoseCamera from "../screens/Home/Nose/NoseCamera";
+import NoseResult from "../screens/Home/Nose/NoseResult";
 import NoseImagePick from "../screens/Home/Nose/NoseImagePickModal";
 import NoseImageR from "../screens/Home/Nose/NoseImageRModal";
 
@@ -12,14 +13,11 @@ export type NoseCameraRouteParams = {
 
 export type NoseStackParamList = {
   NoseCamera: NoseCameraRouteParams;
-  NoseImagePick: {
-    imageUri: string;
-  };
-  NoseImageR: {
-    imageUri: string;
-  };
+  NoseImagePick: { imageUri: string; };
+  NoseImageR: { imageUri: string; };
   NoseListScreen: undefined;
   NoseDetailScreen: { petId: string };
+  NoseResult: { dogId: number; type?: "found" | "lost" };
 };
 
 const Stack = createNativeStackNavigator<NoseStackParamList>();
@@ -29,6 +27,7 @@ const NoseStack: React.FC = () => {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="NoseListScreen" component={NoseListScreen} />
       <Stack.Screen name="NoseCamera" component={NoseCamera} />
+      <Stack.Screen name="NoseResult" component={NoseResult} />
     </Stack.Navigator>
   );
 };

@@ -5,7 +5,6 @@ import {
   NavigatorScreenParams,
 } from "@react-navigation/native";
 import LostScreen from "../screens/Home/LostScreen";
-import NoseResult from "../screens/Home/Nose/NoseResult";
 import PetsScreen from "../screens/Home/Dog/PetsScreen";
 import CustomTabBar from "../components/CustomTabBar";
 import PetsStack from "./PetsStack";
@@ -16,7 +15,7 @@ export type TabParamList = {
   Walk: undefined;
   Lost: undefined;
   Pets: undefined;
-  Nose: undefined;
+  Nose: NavigatorScreenParams<NoseStackParamList>; 
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -37,7 +36,7 @@ const TabNavigator: React.FC = () => {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Walk" component={WalkScreen} />
-      <Tab.Screen name="Lost" component={NoseResult} />
+      <Tab.Screen name="Lost" component={LostScreen} />
       <Tab.Screen name="Pets" component={PetsStack} />
       <Tab.Screen name="Nose" component={NoseStack} />
     </Tab.Navigator>

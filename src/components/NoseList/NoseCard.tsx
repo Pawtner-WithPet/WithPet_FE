@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, ImageBackground } from "react-native";
+import { View, Text, Image, StyleSheet, ImageBackground, TouchableOpacity, } from "react-native";
 import { Colors } from "../../constants/colors";
 import locationIcon from "../../assets/icons/location.png";
 
@@ -8,6 +8,7 @@ type NoseCardProps = {
   location: string;
   percentage: string;
   image: any;
+  onPress?: () => void;
 };
 
 const NoseCard: React.FC<NoseCardProps> = ({
@@ -15,8 +16,9 @@ const NoseCard: React.FC<NoseCardProps> = ({
   location,
   percentage,
   image,
+  onPress,
 }) => (
-  <View style={styles.card}>
+  <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={styles.card}>
     <View style={styles.markerContainer}>
       <View style={styles.marker}>
         <Image source={image} style={styles.avatar} />
@@ -35,7 +37,7 @@ const NoseCard: React.FC<NoseCardProps> = ({
         <Text style={styles.locationText}>{location}</Text>
       </View>
     </View>
-  </View>
+  </TouchableOpacity>
 );
 
 export default NoseCard;

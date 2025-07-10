@@ -19,13 +19,21 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import GalleryButton from "../../../assets/Camera/gallery_button.png";
 import CameraButton from "../../../assets/Camera/camera_button.png";
 import ListButton from "../../../assets/Camera/list_button.png";
+import focus from "../../../assets/Camera/focus.png";
+import back from "../../../assets/Camera/back.png";
 import { useRoute } from "@react-navigation/native";
 import NoseImagePickModal from "./NoseImagePickModal";
 import NoseImageRModal from "./NoseImageRModal";
+import { uploadNoseprintImage } from "../../../services/api/NoseRegister";
+import { RootStackParamList } from '../../../types/NoseCamera';
+import { useNavigation as useTabNavigation } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { TabParamList } from "../../../navigation/TabNavigator";
 import {
   updateNoseprintImage,
   uploadNoseprintImage,
 } from "../../../services/api/NoseRegister";
+
 
 type NoseCameraRouteParams = {
   fromScreen?: "PetDetail" | "NoseList";
@@ -35,15 +43,15 @@ type NoseCameraRouteParams = {
 
 type NoseStackParamList = {
   NoseCamera: NoseCameraRouteParams;
+  NoseList: undefined;
 };
 
-type NoseCameraNavigationProp = NativeStackNavigationProp<
-  NoseStackParamList,
-  "NoseCamera"
->;
+
+type NoseCameraRouteProp = RouteProp<RootStackParamList, 'NoseCamera'>;
 
 const NoseCamera = () => {
-  const navigation = useNavigation<NoseCameraNavigationProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const tabNavigation = useTabNavigation<BottomTabNavigationProp<TabParamList>>();
   const route = useRoute<RouteProp<NoseStackParamList, "NoseCamera">>();
   const { fromScreen, petId, hasNoseprint } = route.params || {};
 
@@ -232,29 +240,43 @@ const NoseCamera = () => {
         photo={true}
       />
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity onPress={openGallery} style={styles.sideButton}>
-          <Image source={GalleryButton} style={styles.sideIcon} />
+      <View style={styles.topOverlay}>
+        <TouchableOpacity onPress={navigation.goBack} style={styles.backButton}>
+          <Image source={back} style={styles.backIcon} />
         </TouchableOpacity>
 
-        {/* 카메라 버튼 */}
-        <TouchableOpacity
-          onPress={takePhoto}
-          style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]}
-          disabled={isTakingPhoto}
-        >
-          <Image source={CameraButton} style={styles.cameraIcon} />
-          {isTakingPhoto && (
-            <View style={styles.loadingOverlay}>
-              <Text style={styles.loadingText}>촬영 중...</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={styles.guideTextContainer}>
+          <Text style={styles.guideText}>코가 잘 보이도록{"\n"}촬영해주세요</Text>
+        </View>
+      </View>
 
-        {/* 리스트 버튼 */}
-        <TouchableOpacity onPress={navigation.goBack} style={styles.sideButton}>
-          <Image source={ListButton} style={styles.sideIcon} />
-        </TouchableOpacity>
+      <Image source={focus} style={styles.focus} />
+
+      <View style={styles.bottomOverlay}>
+        <View style={styles.buttonContainer}>
+          {/* 갤러리 버튼 */}
+          <TouchableOpacity onPress={openGallery} style={styles.sideButton}>
+            <Image source={GalleryButton} style={styles.sideIcon} />
+          </TouchableOpacity>
+
+          {/* 카메라 버튼 */}
+          <TouchableOpacity onPress={takePhoto} style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]} disabled={isTakingPhoto}>
+            <Image source={CameraButton} style={styles.cameraIcon} />
+            {isTakingPhoto && (
+              <View style={styles.loadingOverlay}>
+                <Text style={styles.loadingText}>촬영 중...</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* 리스트 버튼 */}
+          <TouchableOpacity
+  onPress={() => tabNavigation.navigate("Nose", { screen: "NoseListScreen" })}
+  style={styles.sideButton}
+>
+  <Image source={ListButton} style={styles.sideIcon} />
+</TouchableOpacity>
+        </View>
       </View>
 
       {/* 모달들 */}
@@ -356,6 +378,66 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+
+  topOverlay: {
+    position: "absolute",
+    top: 0,
+    width: "100%",
+    height: 120,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+
+  bottomOverlay: {
+    position: "absolute",
+    bottom: 0,
+    width: "100%",
+    height: 200,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    justifyContent: "flex-end",
+    paddingBottom: 20,
+    zIndex: 2,
+  },
+
+  guideText: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+    fontWeight: "500",
+    lineHeight: 22,
+  },
+
+  focus: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    width: 400,   
+    height: 400, 
+    transform: [{ translateX: -200 }, { translateY: -240 }, ],
+    zIndex: 10,
+    resizeMode: "contain",
+  },
+
+  backIcon: {
+    width: 40,
+    height: 40,
+    marginLeft: 8,
+    marginTop: 10,
+  },
+  guideTextContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  backButton: {
+    position: "absolute",
+    top: 20, 
+    left: 16,
+    padding: 8,
+    zIndex: 3,
+  },
+
 });
 
 export default NoseCamera;

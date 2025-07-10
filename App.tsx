@@ -6,6 +6,10 @@ import TabNavigator from "./src/navigation/TabNavigator";
 import { Colors } from "./src/constants/colors";
 import NoseCamera from "./src/screens/Home/Nose/NoseCamera";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import NoseImageR from "./src/screens/Home/Nose/NoseImageRModal";
+import NoseList from "./src/screens/Home/Nose/NoseList";
+import NoseResult from "./src/screens/Home/Nose/NoseResult";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +25,8 @@ const App: React.FC = () => (
         <Stack.Screen name="MainTabs" component={TabNavigator} />
         {/* ✅ NoseCamera도 Stack에 등록 */}
         <Stack.Screen name="NoseCamera" component={NoseCamera} />
+        <Stack.Screen name="NoseList" component={NoseList} />
+        <Stack.Screen name="NoseResult" component={NoseResult} />
       </Stack.Navigator>
     </SafeAreaView>
   </NavigationContainer>
