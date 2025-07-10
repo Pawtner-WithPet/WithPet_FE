@@ -174,17 +174,13 @@ const NoseCamera = () => {
 
       if (hasNoseprint) {
         // ✅ 이미 등록된 경우 → 비문 수정 API 호출
-        result = await updateNoseprintImage(
-          capturedImageUri,
-          parseInt(petId),
-          1, // ownerId
-        );
+        result = await updateNoseprintImage(parseInt(petId), capturedImageUri);
       } else {
         // ✅ 등록되지 않은 경우 → 신규 등록 API 호출
         result = await uploadNoseprintImage(
           capturedImageUri,
           parseInt(petId),
-          1, // ownerId
+          1,
         );
       }
 
@@ -202,6 +198,12 @@ const NoseCamera = () => {
       } else {
         Alert.alert("실패", "비문 등록에 실패했습니다. 다시 시도해주세요.");
       }
+    } catch (error) {
+      console.error("비문 등록 중 오류 발생:", error);
+      Alert.alert(
+        "오류",
+        "비문 등록 중 오류가 발생했습니다. 다시 시도해주세요.",
+      );
     } finally {
       setIsUploading(false);
     }

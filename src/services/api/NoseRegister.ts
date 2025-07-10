@@ -84,31 +84,45 @@ export const uploadNoseprintImage = async (
 };
 
 export const updateNoseprintImage = async (
-  imageUri: string,
   petId: number,
-  ownerId: number = 1,
-): Promise<NoseprintDetail | null> => {
+  imageUri: string,
+): Promise<boolean> => {
   try {
-    const formData = new FormData();
+    // 인자 타입 검증
+    console.log("📋 전달받은 인자들:", {
+      petId: petId,
+      petIdType: typeof petId,
+      imageUri: imageUri,
+      imageUriType: typeof imageUri,
+    });
 
+    // FormData 생성
+    const formData = new FormData();
+    formData.append("userId", "1"); // 임시로 userId 1 추가
+
+    // React Native에서 이미지 URI를 FormData에 추가
     formData.append("nosePrintImg", {
       uri: imageUri,
+      type: "image/jpeg", // 기본값으로 jpeg 설정
       name: "noseprint.jpg",
-      type: "image/jpeg",
     } as any);
 
-    formData.append("ownerId", String(ownerId));
+    console.log("📸 이미지 URI 정보:", {
+      uri: imageUri,
+      type: "image/jpeg",
+      name: "noseprint.jpg",
+    });
 
-    const res = await api.put(`/api/noseprint/image/${petId}`, formData, {
+    const response = await api.put(`/api/noseprint/image/${petId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
 
-    console.log("✏️ 비문 이미지 업데이트 성공:", res.data);
-    return res.data.data;
+    console.log("✅ 비문 이미지 업데이트 성공:", response.data);
+    return true;
   } catch (error: any) {
-    console.error("❌ 비문 이미지 업데이트 실패:", error.message);
+    console.error("🐾 Failed to update noseprint image:", error.message);
     if (error.response) {
       console.error("📦 서버 응답 상태:", error.response.status);
       console.error("📦 서버 응답 데이터:", error.response.data);
@@ -117,6 +131,6 @@ export const updateNoseprintImage = async (
     } else {
       console.error("❗ 알 수 없는 에러:", error.message);
     }
-    return null;
+    return false;
   }
 };
