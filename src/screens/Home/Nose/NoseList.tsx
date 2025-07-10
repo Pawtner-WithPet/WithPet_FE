@@ -17,6 +17,8 @@ import cameraIcon from "../../../assets/icons/camera.png";
 import {
   fetchNoseprintPets,
   NoseprintPet,
+  fetchNoseprintSearchList,
+  NoseprintSearchResult,
 } from "../../../services/api/NoseList";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { NoseStackParamList } from "../../../navigation/NoseStack";
@@ -26,11 +28,15 @@ const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
   const [dogList, setDogList] = useState<NoseprintPet[]>([]);
+  const [noseData, setNoseData] = useState<NoseprintSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation<NativeStackNavigationProp<NoseStackParamList>>();
+  const [isLoadingNoseData, setIsLoadingNoseData] = useState(false);
+
 
   useEffect(() => {
     loadDogList();
+    loadNoseprintList();
   }, []);
 
   const loadDogList = async () => {
@@ -43,6 +49,20 @@ const NoseScreen: React.FC = () => {
       console.error("강아지 목록 불러오기 실패:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadNoseprintList = async () => {
+    setIsLoadingNoseData(true);
+    try {
+      const ownerId = 1; // 임시로 프론트에서 넘김.
+      const data = await fetchNoseprintSearchList(ownerId);
+      console.log("🎯 비문 탐색 결과 불러오기 성공:", data);
+      setNoseData(data);
+    } catch (error) {
+      console.error("❌ 비문 탐색 결과 불러오기 실패:", error);
+    } finally {
+      setIsLoadingNoseData(false);
     }
   };
 
@@ -65,35 +85,15 @@ const NoseScreen: React.FC = () => {
     navigation.push("NoseResult", { dogId: pet.id, type: 'found' }); //
   };
 
-  const noseData = [
-    {
-      id: 1,
-      date: "2025.03.01 11:25",
-      location: "서울특별시 도봉구",
-      percentage: "99%",
-      image: {
-        uri: "https://via.placeholder.com/100x100/FFB6C1/000000?text=👃",
-      },
-    },
-    {
-      id: 2,
-      date: "2025.03.01 11:25",
-      location: "서울특별시 도봉구",
-      percentage: "95%",
-      image: {
-        uri: "https://via.placeholder.com/100x100/87CEEB/000000?text=👃",
-      },
-    },
-    {
-      id: 3,
-      date: "2025.03.01 11:25",
-      location: "서울특별시 도봉구",
-      percentage: "94%",
-      image: {
-        uri: "https://via.placeholder.com/100x100/98FB98/000000?text=👃",
-      },
-    },
-  ];
+  const formatDate = (datetime: string): string => {
+    const date = new Date(datetime);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    const hh = String(date.getHours()).padStart(2, "0");
+    const min = String(date.getMinutes()).padStart(2, "0");
+    return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+  };
 
   return (
     <View style={styles.container}>
@@ -113,32 +113,50 @@ const NoseScreen: React.FC = () => {
             onPress={() => navigation.navigate("NoseResult", { dogId: item.id, type: 'found' })}
           />
         ))}
+        {isLoadingNoseData ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>
+              비문 탐색 결과 불러오는 중...
+            </Text>
+          </View>
+        ) : noseData.length > 0 ? (
+          noseData.map((item) => (
+            <NoseCard
+              key={item.searchId}
+              date={formatDate(item.searchDatetime)}
+              location={item.searchLocation}
+              percentage={`${item.highestScore}`}
+              image={{ uri: item.nosePrintImg }}
+            />
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>탐색 결과가 없습니다</Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* 하단 플로팅 버튼들 */}
       <View style={styles.floatingButtonsContainer}>
-        {/* 왼쪽 버튼들 */}
+        {/* 왼쪽 버튼 그룹 */}
         <View style={styles.leftButtonGroup}>
-          <FloatingBtn icon={dogIcon} onPress={handleDogButtonPress} />
-
-          {isExpanded && (
-            <View>
-              <TouchableOpacity
-                style={styles.expandedButton}
-                onPress={handleLoadNoseDataToggle}
-              >
-                <View style={styles.expandedButtonContent}>
-                  <Text style={styles.expandedButtonText}>비문 불러오기</Text>
-                  <Text style={styles.sortArrow}>▼</Text>
-                </View>
-              </TouchableOpacity>
-
-              {isDogListVisible && (
-                <View style={styles.dogListContainer}>
-                  <ScrollView>
-                    {isLoading ? (
-                      <View style={styles.loadingContainer}>
-                        <Text style={styles.loadingText}>로딩 중...</Text>
+          {/* 강아지 목록 드롭다운 */}
+          {isDogListVisible && (
+            <View style={styles.dogListContainer}>
+              <ScrollView>
+                {isLoading ? (
+                  <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>로딩 중...</Text>
+                  </View>
+                ) : dogList.length > 0 ? (
+                  dogList.map((pet, index) => (
+                    <TouchableOpacity
+                      key={pet.id || index}
+                      style={styles.dogItem}
+                      onPress={() => handleDogSelect(pet)}
+                    >
+                      <View style={styles.dogItemContent}>
+                        <Text style={styles.dogItemText}>{pet.dogNm}</Text>
                       </View>
                     ) : dogList.length > 0 ? (
                       dogList.map((pet, index) => (
@@ -167,9 +185,27 @@ const NoseScreen: React.FC = () => {
               )}
             </View>
           )}
-        </View>
 
-        {/* 오른쪽 카메라 버튼 */}
+          {/* 비문 불러오기 버튼 */}
+          {isExpanded && (
+            <TouchableOpacity
+              style={styles.expandedButton}
+              onPress={handleLoadNoseDataToggle}
+            >
+              <View style={styles.expandedButtonContent}>
+                <Text style={styles.expandedButtonText}>비문 불러오기</Text>
+                <Text style={styles.sortArrow}>▲</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* 강아지 버튼 */}
+          <FloatingBtn icon={dogIcon} onPress={handleDogButtonPress} />
+        </View>
+      </View>
+
+      {/* 카메라 버튼 - 독립적으로 고정 */}
+      <View style={styles.cameraButtonContainer}>
         <FloatingBtn
           icon={cameraIcon}
           onPress={() => navigation.navigate("NoseCamera",{})}
@@ -182,7 +218,7 @@ const NoseScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.background,
   },
   headerSection: {
     flexDirection: "row",
@@ -194,22 +230,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 19,
-    fontWeight: "semibold",
+    fontWeight: "bold",
     color: "#000",
-  },
-  sortContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sortText: {
-    fontSize: 16,
-    color: "#000",
-    marginRight: 8,
-  },
-  sortArrow: {
-    marginLeft: 10,
-    fontSize: 12,
-    color: "#FFFFFF",
   },
   content: {
     flex: 1,
@@ -218,64 +240,61 @@ const styles = StyleSheet.create({
   floatingButtonsContainer: {
     position: "absolute",
     bottom: 20,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
+    left: 20,
   },
-  floatingButton: {
-    width: 75,
-    height: 75,
-    borderRadius: 75,
+  leftButtonGroup: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+    position: "relative",
+  },
+  cameraButtonContainer: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+  },
+  expandedButton: {
     backgroundColor: "#4262FF",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-  },
-  buttonIcon: {
-    width: 50,
-    height: 50,
-    tintColor: "white",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    width: 151,
+    borderRadius: 8,
+    marginBottom: 8,
+    zIndex: 2,
   },
   expandedButtonContent: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  expandedButton: {
-    backgroundColor: "#3D5AFE",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    marginLeft: 10,
-    width: 130,
+    justifyContent: "space-between",
   },
   expandedButtonText: {
     color: "white",
-    fontSize: 14,
+    fontSize: 17,
+  },
+  sortArrow: {
+    marginLeft: 10,
+    fontSize: 17,
+    color: "#FFFFFF",
   },
   dogListContainer: {
-    backgroundColor: "#809fff",
-    overflow: "hidden",
-    marginLeft: 10,
-    width: 130,
+    backgroundColor: "#A1B4FF",
+    width: 151,
+    borderRadius: 8,
+    maxHeight: 200,
+    zIndex: 1,
   },
   dogItem: {
     paddingVertical: 8,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#fff",
+    borderBottomColor: "#A1B4FF",
   },
   dogItemText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 17,
     textAlign: "center",
   },
-  leftButtonGroup: {
-    flexDirection: "row",
-    alignItems: "center",
+  dogItemContent: {
+    flex: 1,
   },
   loadingContainer: {
     padding: 20,
@@ -292,14 +311,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: "#666",
-  },
-  dogItemContent: {
-    flex: 1,
-  },
-  dogItemSubText: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 2,
   },
 });
 

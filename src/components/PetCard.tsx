@@ -1,6 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, ImageBackground } from "react-native";
-import { Colors } from "../constants/colors";
+import { View, Text, Image, StyleSheet } from "react-native";
 
 type PetCardProps = {
   name: string;
@@ -50,57 +49,49 @@ export default PetCard;
 const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
-    backgroundColor: Colors.card,
-    borderRadius: 12,
+    backgroundColor: "#D9D9D940",
+    borderColor: "#B9B9B9",
+    borderWidth: 2,
+    borderRadius: 16,
     marginHorizontal: 16,
     marginVertical: 8,
     padding: 16,
-    elevation: 3,
-    alignItems: "center", // 세로 중앙 정렬
+    alignItems: "center",
   },
   markerContainer: {
     width: 110,
     alignItems: "center",
-    justifyContent: "center", // 세로 중앙 정렬
+    justifyContent: "center",
   },
   marker: {
     width: 108,
     height: 108,
     borderRadius: 100,
-    backgroundColor: Colors.primaryLight,
+    borderColor: "white",
+    borderWidth: 3,
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
   },
   avatar: {
-    width: 108,
-    height: 108,
-    borderRadius: 50,
-  },
-  pointer: {
-    position: "absolute",
-    bottom: -6,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 8,
-    borderRightWidth: 8,
-    borderTopWidth: 12,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-    borderTopColor: Colors.primaryLight,
+    width: 97,
+    height: 97,
+    borderRadius: 97,
   },
   info: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: 20,
     justifyContent: "center",
   },
   line: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.text,
+    fontSize: 16,
+    fontFamily: "Roboto-Medium",
     marginBottom: 4,
+    color: "#333",
   },
   label: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontFamily: "Roboto-Bold",
+    color: "#000",
   },
 });

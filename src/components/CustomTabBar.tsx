@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.card,
     backgroundColor: "#FFFFFF",
+    elevation: 12,
   },
   tab: {
     flex: 1,

@@ -170,22 +170,57 @@ const PetDetailScreen: React.FC = () => {
     }
   };
 
-  const handleBiometricRegister = () => {
-    Alert.alert("비문 등록", "비문을 등록하시겠습니까?", [
-      {
-        text: "아니요",
-        style: "cancel",
-      },
-      {
-        text: "네",
-        onPress: () => {
-          navigation.navigate("NoseCamera", {
-            fromScreen: "PetDetail",
-            petId,
-          });
-        },
-      },
-    ]);
+  const handleBiometricRegister = async () => {
+    try {
+      setIsLoading(true);
+
+      const noseprintData = await fetchNoseprintByPetId(petId);
+
+      if (noseprintData?.nosePrintImg) {
+        // 이미 등록된 비문이 있을 경우
+        Alert.alert(
+          "비문 등록",
+          "이미 등록된 비문 이미지가 존재합니다.\n수정하시겠습니까?",
+          [
+            {
+              text: "아니요",
+              style: "cancel",
+            },
+            {
+              text: "네",
+              onPress: () => {
+                navigation.navigate("NoseCamera", {
+                  fromScreen: "PetDetail",
+                  petId,
+                  hasNoseprint: true, // ✅ 비문이 등록되어 있는 상태
+                });
+              },
+            },
+          ],
+        );
+      } else {
+        // 등록된 비문이 없을 경우
+        Alert.alert("비문 등록", "비문을 등록하시겠습니까?", [
+          {
+            text: "아니요",
+            style: "cancel",
+          },
+          {
+            text: "네",
+            onPress: () => {
+              navigation.navigate("NoseCamera", {
+                fromScreen: "PetDetail",
+                petId,
+              });
+            },
+          },
+        ]);
+      }
+    } catch (err) {
+      Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBiometricVerify = async () => {
@@ -340,7 +375,6 @@ const PetDetailScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* ✅ 비문 확인 모달 */}
       <Modal
         visible={noseprintModalVisible}
         transparent
@@ -349,16 +383,13 @@ const PetDetailScreen: React.FC = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>📷 비문 정보</Text>
+            <Text style={styles.modalTitle}>📷 등록 된 비문</Text>
             {noseprintImage && (
               <Image
                 source={{ uri: noseprintImage }}
-                style={{ width: 200, height: 200, marginBottom: 16 }}
+                style={{ width: 300, height: 300, marginBottom: 16 }}
                 resizeMode="contain"
               />
-            )}
-            {noseprintDate && (
-              <Text style={{ fontSize: 14 }}>등록일: {noseprintDate}</Text>
             )}
             <TouchableOpacity
               onPress={() => setNoseprintModalVisible(false)}
@@ -386,8 +417,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 19,
+    fontFamily: "Roboto-SemiBold",
     color: "#101828",
   },
   scrollView: {
@@ -446,14 +477,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalButton: {
-    marginTop: 20,
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#4262FF",
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 6,
   },
   modalButtonText: {
     color: "#fff",
+    fontFamily: "Roboto-Medium",
     fontSize: 16,
   },
 });

@@ -126,6 +126,9 @@ const PetsScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Header />
+      <View style={styles.headerSection}>
+        <Text style={styles.title}>반려견 정보</Text>
+      </View>
       <FlatList
         data={dogs}
         keyExtractor={(item) => `${item.id}`}
@@ -259,6 +262,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  headerSection: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 30,
+  },
+  title: {
+    fontSize: 19,
+    fontWeight: "bold",
+    color: "#000",
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -289,7 +305,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#4285F4",
+    backgroundColor: "#4262FF",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
@@ -367,9 +383,9 @@ const styles = StyleSheet.create({
   },
   resultTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Roboto-SemiBold",
     marginBottom: 10,
-    color: "#333",
+    color: "#101828",
   },
   resultText: {
     fontSize: 14,
@@ -380,6 +396,8 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     marginTop: 10,
+    borderColor: "white",
+    borderWidth: 2,
     borderRadius: 8,
   },
 });
