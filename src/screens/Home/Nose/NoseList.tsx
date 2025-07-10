@@ -23,16 +23,15 @@ import {
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { NoseStackParamList } from "../../../navigation/NoseStack";
 
-
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
   const [dogList, setDogList] = useState<NoseprintPet[]>([]);
   const [noseData, setNoseData] = useState<NoseprintSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigation = useNavigation<NativeStackNavigationProp<NoseStackParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<NoseStackParamList>>();
   const [isLoadingNoseData, setIsLoadingNoseData] = useState(false);
-
 
   useEffect(() => {
     loadDogList();
@@ -82,7 +81,7 @@ const NoseScreen: React.FC = () => {
     console.log("선택된 강아지:", pet.dogNm, "ID:", pet.id);
     setIsDogListVisible(false);
     setIsExpanded(false);
-    navigation.push("NoseResult", { dogId: pet.id, type: 'found' }); //
+    navigation.push("NoseResult", { dogId: pet.id, type: "found" }); //
   };
 
   const formatDate = (datetime: string): string => {
@@ -103,16 +102,7 @@ const NoseScreen: React.FC = () => {
         <View style={styles.headerSection}>
           <Text style={styles.title}>반려견 찾기</Text>
         </View>
-        {noseData.map((item) => (
-          <NoseCard
-            key={item.id}
-            date={item.date}
-            location={item.location}
-            percentage={item.percentage}
-            image={item.image}
-            onPress={() => navigation.navigate("NoseResult", { dogId: item.id, type: 'found' })}
-          />
-        ))}
+
         {isLoadingNoseData ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>
@@ -127,6 +117,12 @@ const NoseScreen: React.FC = () => {
               location={item.searchLocation}
               percentage={`${item.highestScore}`}
               image={{ uri: item.nosePrintImg }}
+              onPress={() =>
+                navigation.navigate("NoseResult", {
+                  dogId: item.searchId,
+                  type: "found",
+                })
+              }
             />
           ))
         ) : (
@@ -138,7 +134,6 @@ const NoseScreen: React.FC = () => {
 
       {/* 하단 플로팅 버튼들 */}
       <View style={styles.floatingButtonsContainer}>
-        {/* 왼쪽 버튼 그룹 */}
         <View style={styles.leftButtonGroup}>
           {/* 강아지 목록 드롭다운 */}
           {isDogListVisible && (
@@ -153,36 +148,27 @@ const NoseScreen: React.FC = () => {
                     <TouchableOpacity
                       key={pet.id || index}
                       style={styles.dogItem}
-                      onPress={() => handleDogSelect(pet)}
+                      onPress={() => {
+                        console.log("눌림!", pet);
+                        handleDogSelect(pet);
+                      }}
                     >
                       <View style={styles.dogItemContent}>
                         <Text style={styles.dogItemText}>{pet.dogNm}</Text>
-                      </View>
-                    ) : dogList.length > 0 ? (
-                      dogList.map((pet, index) => (
-                        <TouchableOpacity
-                          key={pet.id || index}
-                          style={styles.dogItem}
-                          onPress={() => {console.log("눌림!", pet); handleDogSelect(pet)}}
-                        >
-                          <View style={styles.dogItemContent}>
-                            <Text style={styles.dogItemText}>{pet.dogNm}</Text>
-                            <Text style={styles.dogItemSubText}>
-                              {pet.kindNm} • {pet.sexNm} • {pet.dogAge}세
-                            </Text>
-                          </View>
-                        </TouchableOpacity>
-                      ))
-                    ) : (
-                      <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>
-                          등록된 반려견이 없습니다
+                        <Text style={styles.dogItemText}>
+                          {pet.kindNm} • {pet.sexNm} • {pet.dogAge}세
                         </Text>
                       </View>
-                    )}
-                  </ScrollView>
-                </View>
-              )}
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>
+                      등록된 반려견이 없습니다
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
             </View>
           )}
 
@@ -208,7 +194,7 @@ const NoseScreen: React.FC = () => {
       <View style={styles.cameraButtonContainer}>
         <FloatingBtn
           icon={cameraIcon}
-          onPress={() => navigation.navigate("NoseCamera",{})}
+          onPress={() => navigation.navigate("NoseCamera", {})}
         />
       </View>
     </View>

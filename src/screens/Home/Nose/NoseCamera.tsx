@@ -24,8 +24,7 @@ import back from "../../../assets/Camera/back.png";
 import { useRoute } from "@react-navigation/native";
 import NoseImagePickModal from "./NoseImagePickModal";
 import NoseImageRModal from "./NoseImageRModal";
-import { uploadNoseprintImage } from "../../../services/api/NoseRegister";
-import { RootStackParamList } from '../../../types/NoseCamera';
+import { RootStackParamList } from "../../../types/NoseCamera";
 import { useNavigation as useTabNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { TabParamList } from "../../../navigation/TabNavigator";
@@ -33,7 +32,6 @@ import {
   updateNoseprintImage,
   uploadNoseprintImage,
 } from "../../../services/api/NoseRegister";
-
 
 type NoseCameraRouteParams = {
   fromScreen?: "PetDetail" | "NoseList";
@@ -46,12 +44,13 @@ type NoseStackParamList = {
   NoseList: undefined;
 };
 
-
-type NoseCameraRouteProp = RouteProp<RootStackParamList, 'NoseCamera'>;
+type NoseCameraRouteProp = RouteProp<RootStackParamList, "NoseCamera">;
 
 const NoseCamera = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const tabNavigation = useTabNavigation<BottomTabNavigationProp<TabParamList>>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const tabNavigation =
+    useTabNavigation<BottomTabNavigationProp<TabParamList>>();
   const route = useRoute<RouteProp<NoseStackParamList, "NoseCamera">>();
   const { fromScreen, petId, hasNoseprint } = route.params || {};
 
@@ -246,7 +245,9 @@ const NoseCamera = () => {
         </TouchableOpacity>
 
         <View style={styles.guideTextContainer}>
-          <Text style={styles.guideText}>코가 잘 보이도록{"\n"}촬영해주세요</Text>
+          <Text style={styles.guideText}>
+            코가 잘 보이도록{"\n"}촬영해주세요
+          </Text>
         </View>
       </View>
 
@@ -260,7 +261,11 @@ const NoseCamera = () => {
           </TouchableOpacity>
 
           {/* 카메라 버튼 */}
-          <TouchableOpacity onPress={takePhoto} style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]} disabled={isTakingPhoto}>
+          <TouchableOpacity
+            onPress={takePhoto}
+            style={[styles.cameraButton, isTakingPhoto && styles.takingPhoto]}
+            disabled={isTakingPhoto}
+          >
             <Image source={CameraButton} style={styles.cameraIcon} />
             {isTakingPhoto && (
               <View style={styles.loadingOverlay}>
@@ -271,11 +276,13 @@ const NoseCamera = () => {
 
           {/* 리스트 버튼 */}
           <TouchableOpacity
-  onPress={() => tabNavigation.navigate("Nose", { screen: "NoseListScreen" })}
-  style={styles.sideButton}
->
-  <Image source={ListButton} style={styles.sideIcon} />
-</TouchableOpacity>
+            onPress={() =>
+              tabNavigation.navigate("Nose", { screen: "NoseListScreen" })
+            }
+            style={styles.sideButton}
+          >
+            <Image source={ListButton} style={styles.sideIcon} />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -412,9 +419,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "50%",
     left: "50%",
-    width: 400,   
-    height: 400, 
-    transform: [{ translateX: -200 }, { translateY: -240 }, ],
+    width: 400,
+    height: 400,
+    transform: [{ translateX: -200 }, { translateY: -240 }],
     zIndex: 10,
     resizeMode: "contain",
   },
@@ -432,12 +439,11 @@ const styles = StyleSheet.create({
 
   backButton: {
     position: "absolute",
-    top: 20, 
+    top: 20,
     left: 16,
     padding: 8,
     zIndex: 3,
   },
-
 });
 
 export default NoseCamera;
