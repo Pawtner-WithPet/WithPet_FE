@@ -11,7 +11,7 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation  } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
@@ -21,11 +21,15 @@ import {
   NoseResultResponse,
   saveNoseprintResult,
 } from "../../../services/api/NoseResult";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import type { TabParamList } from "../../../navigation/TabNavigator";
+
 
 const NoseResultScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, "NoseResult">>();
   const searchId = route.params?.dogId ?? 1;
   const type = route.params?.type ?? "found";
+  const tabNavigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(
     null,
@@ -63,11 +67,18 @@ const NoseResultScreen = () => {
       <Header />
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>
-          {titleText}
-          {"\n"}
-          <Text style={styles.highlight}>비문 인식률</Text>
-        </Text>
+        <View style={styles.titleRow}>
+          <TouchableOpacity onPress={() => tabNavigation.navigate("Nose", { screen: "NoseListScreen" })}>
+            <Image source={require('../../../assets/Camera/back_b.png')} style={styles.titleIcon} />
+          </TouchableOpacity>
+          <View style={{ marginLeft: 8 }}>
+            <Text style={styles.title}>
+              {titleText}
+              {"\n"}
+              <Text style={styles.highlight}>비문 인식률</Text>
+            </Text>
+          </View>
+        </View>
 
         <View style={styles.imageRow}>
           <View style={styles.myNoseCard}>
@@ -76,11 +87,12 @@ const NoseResultScreen = () => {
               style={styles.noseImage}
             />
             <Text style={styles.metaText}>
+              {matchedInfo?.searchLocation}
+              {"\n"}
+              {"\n"}
               {matchedInfo?.searchDatetime?.slice(0, 10)}
               {"\n"}
               {matchedInfo?.searchDatetime?.slice(11, 16)}
-              {"\n"}
-              {matchedInfo?.searchLocation}
             </Text>
           </View>
           <View style={styles.noseImageWrapper}>
@@ -227,18 +239,13 @@ const NoseResultScreen = () => {
                   matchRate: 93.4,
                   isMyMissingPet: true,
                 };
+                const success = await saveNoseprintResult(payload);
 
-                try {
-                  const response = await saveNoseprintResult(payload);
-                  console.log("저장 성공:", response);
+                if (success) {
                   Alert.alert("저장 완료!");
-                } catch (error: any) {
-                  console.error("❌ 저장 실패:", {
-                    message: error.message,
-                    url: error.config?.url,
-                    data: error.response?.data,
-                    status: error.response?.status,
-                  });
+                  tabNavigation.navigate("Nose", { screen: "NoseListScreen" });
+                } else {
+                  Alert.alert("저장 실패", "다시 시도해주세요.");
                 }
               }}
             >
@@ -247,13 +254,14 @@ const NoseResultScreen = () => {
           </View>
         </View>
       )}
-
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={() => setShowPopup(true)}
-      >
-        <Text style={styles.saveButtonText}>결과 저장하기</Text>
-      </TouchableOpacity>
+      {type !== 'found' && (
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={() => setShowPopup(true)}
+        >
+          <Text style={styles.saveButtonText}>결과 저장하기</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -269,9 +277,20 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: "600",
-    textAlign: "left",
+    fontWeight: '600',
+    textAlign: 'left',
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+  },
+  
   highlight: {
     fontSize: 18,
     fontWeight: "600",
@@ -327,7 +346,7 @@ const styles = StyleSheet.create({
   },
   matchText: {
     color: "white",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
   },
   metaText: {
@@ -336,6 +355,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
     lineHeight: 20,
+    fontWeight:"bold",
   },
   divider: {
     height: 1,

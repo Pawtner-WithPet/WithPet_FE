@@ -34,7 +34,7 @@ export const fetchNoseResult = async (
     const response = await api.get<{ data: NoseResultResponse }>(
       `/api/noseprint/list/${searchId}`,
     );
-    console.log("🔍 비문 결과 응답 데이터:", response.data);
+    console.log("✅ 비문 결과 응답 데이터:", response.data);
     return response.data.data;
   } catch (error: any) {
     console.error("🐾 Failed to fetch noseprint result:", error.message);
