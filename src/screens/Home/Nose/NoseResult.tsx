@@ -21,6 +21,7 @@ import {
   NoseResultResponse,
   saveNoseprintResult,
 } from "../../../services/api/NoseResult";
+import { Colors } from "../../../constants/colors";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { TabParamList } from "../../../navigation/TabNavigator";
 
@@ -139,18 +140,14 @@ const NoseResultScreen = () => {
         {/* 일치율 목록 */}
         <Text style={styles.listTitle}>{listTitleText}</Text>
 
-        <FlatList
-          horizontal
-          data={matchedInfo?.result || []}
-          keyExtractor={(item) => item.resultId.toString()}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => {
+        <View style={styles.gridWrapper}>
+          {(matchedInfo?.result || []).map((item) => {
             const percent = Math.round(item.matchRate);
             const radius = 64;
             const strokeDash = (1 - percent / 100) * 2 * Math.PI * radius;
 
             return (
-              <View style={styles.listItem}>
+              <View key={item.resultId} style={styles.gridItem}>
                 <View style={styles.noseItemWrapper}>
                   <Svg width={140} height={140}>
                     <Defs>
@@ -198,8 +195,8 @@ const NoseResultScreen = () => {
                 </View>
               </View>
             );
-          }}
-        />
+          })}
+        </View>
       </ScrollView>
 
       {showPopup && (
@@ -269,7 +266,7 @@ const NoseResultScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: Colors.background,
   },
   scroll: {
     padding: 16,
@@ -369,18 +366,18 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginBottom: 12,
   },
-  listContainer: {
-    justifyContent: "center",
-    alignItems: "center",
+  gridWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     paddingHorizontal: 10,
-    marginBottom: 24,
-    flexGrow: 1,
   },
-  listItem: {
-    marginRight: 16,
+  gridItem: {
+    width: "48%", // 2열
+    marginBottom: 20,
     alignItems: "center",
-    justifyContent: "center",
   },
+
   noseItemWrapper: {
     width: 180,
     height: 180,
