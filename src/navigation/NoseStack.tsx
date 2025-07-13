@@ -17,7 +17,7 @@ export type NoseStackParamList = {
   NoseImageR: { imageUri: string; };
   NoseListScreen: undefined;
   NoseDetailScreen: { petId: string };
-  NoseResult: { dogId: number; type?: "found" | "lost" };
+  NoseResult: { dogId: number; type?: "found" | "lost"; from?: 'list' | 'capture'; };
 };
 
 const Stack = createNativeStackNavigator<NoseStackParamList>();

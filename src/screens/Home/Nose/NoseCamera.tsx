@@ -149,6 +149,7 @@ const NoseCamera = () => {
     navigation.navigate("NoseResult", {
       dogId: 1, // 실제 검색 결과 ID로 교체 필요
       type: "found", // 실종된 내 반려동물을 찾는 경우
+      from: "capture",
     });
   };
 
@@ -159,6 +160,7 @@ const NoseCamera = () => {
     navigation.navigate("NoseResult", {
       dogId: 1, // 실제 검색 결과 ID로 교체 필요
       type: "lost", // 발견한 동물과 실종 동물을 매칭하는 경우
+      from: "capture",
     });
   };
 

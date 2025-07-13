@@ -29,7 +29,7 @@ import type { TabParamList } from "../../../navigation/TabNavigator";
 const NoseResultScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, "NoseResult">>();
   const searchId = route.params?.dogId ?? 1;
-  const type = route.params?.type ?? "found";
+  const { type = "unknown", from = "list" } = route.params || {};
   const tabNavigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(
@@ -251,7 +251,7 @@ const NoseResultScreen = () => {
           </View>
         </View>
       )}
-      {type !== 'found' && (
+      {from === 'capture' && (
         <TouchableOpacity
           style={styles.saveButton}
           onPress={() => setShowPopup(true)}

@@ -121,6 +121,8 @@ const NoseScreen: React.FC = () => {
                 navigation.navigate("NoseResult", {
                   dogId: item.searchId,
                   type: "found",
+                  from: "list",
+
                 })
               }
             />
