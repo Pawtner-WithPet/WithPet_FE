@@ -122,7 +122,6 @@ const NoseScreen: React.FC = () => {
                   dogId: item.searchId,
                   type: "found",
                   from: "list",
-
                 })
               }
             />

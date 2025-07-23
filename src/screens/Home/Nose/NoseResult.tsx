@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  Alert,
-  TouchableOpacity,
-  FlatList,
-  SafeAreaView,
-  ScrollView,
-  TextInput,
+  View,Text,StyleSheet,Image,Alert,TouchableOpacity,FlatList,SafeAreaView,ScrollView,TextInput,
 } from "react-native";
 import { useRoute, useNavigation  } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
@@ -17,9 +8,7 @@ import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
 import {
-  fetchNoseResult,
-  NoseResultResponse,
-  saveNoseprintResult,
+  fetchNoseResult,NoseResultResponse,saveNoseprintResult,
 } from "../../../services/api/NoseResult";
 import { Colors } from "../../../constants/colors";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -84,7 +73,8 @@ const NoseResultScreen = () => {
         <View style={styles.imageRow}>
           <View style={styles.myNoseCard}>
             <Image
-              source={{ uri: matchedInfo?.nosePrintImg }}
+              source={require('../../../assets/images/nose.png')}
+              //source={{ uri: matchedInfo?.nosePrintImg }}
               style={styles.noseImage}
             />
             <Text style={styles.metaText}>
@@ -126,7 +116,8 @@ const NoseResultScreen = () => {
               />
             </Svg>
             <Image
-              source={{ uri: matchedInfo?.nosePrintImg }}
+              source={require('../../../assets/images/nose.png')}
+              //source={{ uri: matchedInfo?.nosePrintImg }}
               style={styles.noseImageSmall}
             />
             <View style={styles.matchOverlay}>
@@ -186,7 +177,8 @@ const NoseResultScreen = () => {
                   </Svg>
 
                   <Image
-                    source={{ uri: item.nosePrintImg }}
+                    source={require('../../../assets/images/nose.png')}
+                    //source={{ uri: item.nosePrintImg }}
                     style={styles.listImage}
                   />
                   <View style={styles.overlayCircle}>
