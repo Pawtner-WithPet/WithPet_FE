@@ -4,7 +4,7 @@ import {
   getFocusedRouteNameFromRoute,
   NavigatorScreenParams,
 } from "@react-navigation/native";
-import LostScreen from "../screens/Home/LostScreen";
+import LostScreen from "../screens/Home/Lost/LostScreen";
 import PetsScreen from "../screens/Home/Dog/PetsScreen";
 import CustomTabBar from "../components/CustomTabBar";
 import PetsStack from "./PetsStack";
