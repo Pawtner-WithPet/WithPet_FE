@@ -17,7 +17,6 @@ export type DogListResponse = {
   data: Dog[];
 };
 
-
 export const fetchDogs = async (userId: number): Promise<Dog[]> => {
   try {
     const response = await api.get<DogListResponse>("/api/pet/list", {
