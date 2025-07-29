@@ -8,6 +8,7 @@ export type Dog = {
   kindNm: string;
   sexNm: string;
   dogImg: string | null;
+  nosePrintImg: string | null;
 };
 
 export type DogListResponse = {

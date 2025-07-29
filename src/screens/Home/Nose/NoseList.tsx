@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
@@ -100,11 +101,65 @@ const NoseScreen: React.FC = () => {
     }
   };
 
+  // Dog 타입의 nosePrintImg를 활용한 비문 등록 로직
+  const handleBiometricRegister = async (dog: Dog) => {
+    try {
+      setIsLoading(true);
+
+      if (dog.nosePrintImg) {
+        // 이미 등록된 비문이 있을 경우
+        Alert.alert(
+          "비문 등록",
+          `${dog.dogNm}에게 이미 등록된 비문 이미지가 존재합니다.\n수정하시겠습니까?`,
+          [
+            {
+              text: "아니요",
+              style: "cancel",
+            },
+            {
+              text: "네",
+              onPress: () => {
+                navigation.navigate("NoseCamera", {
+                  fromScreen: "NoseScreen",
+                  petId: String(dog.id),
+                  hasNoseprint: true, // ✅ 비문이 등록되어 있는 상태
+                });
+              },
+            },
+          ],
+        );
+      } else {
+        // 등록된 비문이 없을 경우
+        Alert.alert("비문 등록", `${dog.dogNm}의 비문을 등록하시겠습니까?`, [
+          {
+            text: "아니요",
+            style: "cancel",
+          },
+          {
+            text: "네",
+            onPress: () => {
+              navigation.navigate("NoseCamera", {
+                fromScreen: "NoseScreen",
+                petId: String(dog.id),
+              });
+            },
+          },
+        ]);
+      }
+    } catch (err) {
+      Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleRegisterDogSelect = (dog: Dog) => {
     console.log("등록용 선택된 강아지:", dog.dogNm, "ID:", dog.id);
     setIsRegisterDogListVisible(false);
     setIsExpanded(false);
-    // 비문 등록/수정 로직 추가
+
+    // 비문 등록/수정 로직 실행 - Dog 객체 전체를 전달
+    handleBiometricRegister(dog);
   };
 
   const handleDogSelect = (pet: NoseprintPet) => {
@@ -156,7 +211,6 @@ const NoseScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* 하단 플로팅 버튼들 */}
       <View style={styles.floatingButtonsContainer}>
         {/* 왼쪽 버튼 그룹 */}
         <View style={styles.leftButtonGroup}>
@@ -176,6 +230,7 @@ const NoseScreen: React.FC = () => {
                       onPress={() => handleRegisterDogSelect(dog)}
                     >
                       <View style={styles.dogItemContent}>
+                        {/* 비문 상태 아이콘을 제거하고 강아지 이름만 표시 */}
                         <Text style={styles.dogItemText}>{dog.dogNm}</Text>
                       </View>
                     </TouchableOpacity>

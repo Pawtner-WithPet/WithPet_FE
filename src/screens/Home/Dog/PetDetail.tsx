@@ -170,59 +170,6 @@ const PetDetailScreen: React.FC = () => {
     }
   };
 
-  const handleBiometricRegister = async () => {
-    try {
-      setIsLoading(true);
-
-      const noseprintData = await fetchNoseprintByPetId(petId);
-
-      if (noseprintData?.nosePrintImg) {
-        // 이미 등록된 비문이 있을 경우
-        Alert.alert(
-          "비문 등록",
-          "이미 등록된 비문 이미지가 존재합니다.\n수정하시겠습니까?",
-          [
-            {
-              text: "아니요",
-              style: "cancel",
-            },
-            {
-              text: "네",
-              onPress: () => {
-                navigation.navigate("NoseCamera", {
-                  fromScreen: "PetDetail",
-                  petId,
-                  hasNoseprint: true, // ✅ 비문이 등록되어 있는 상태
-                });
-              },
-            },
-          ],
-        );
-      } else {
-        // 등록된 비문이 없을 경우
-        Alert.alert("비문 등록", "비문을 등록하시겠습니까?", [
-          {
-            text: "아니요",
-            style: "cancel",
-          },
-          {
-            text: "네",
-            onPress: () => {
-              navigation.navigate("NoseCamera", {
-                fromScreen: "PetDetail",
-                petId,
-              });
-            },
-          },
-        ]);
-      }
-    } catch (err) {
-      Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleBiometricVerify = async () => {
     try {
       setIsLoading(true);
@@ -230,16 +177,13 @@ const PetDetailScreen: React.FC = () => {
       const noseprintData = await fetchNoseprintByPetId(petId);
 
       if (noseprintData) {
-        setNoseprintImage(noseprintData.nosePrintImg); // ✅ 필드명 수정
+        setNoseprintImage(noseprintData.nosePrintImg);
         setNoseprintDate(
           new Date(noseprintData.registerDatetime).toLocaleDateString("ko-KR"),
         );
         setNoseprintModalVisible(true);
       } else {
-        Alert.alert(
-          "비문 정보 없음",
-          "등록된 비문 정보가 없습니다.\n비문 등록을 먼저 진행해주세요.",
-        );
+        Alert.alert("비문 정보 없음", "등록된 비문 정보가 없습니다.");
       }
     } catch (err) {
       Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
@@ -362,10 +306,7 @@ const PetDetailScreen: React.FC = () => {
             required
             disabled
           />
-          <NoseSelect
-            onRegister={handleBiometricRegister}
-            onVerify={handleBiometricVerify}
-          />
+          <NoseSelect onVerify={handleBiometricVerify} />
         </View>
 
         <View style={styles.bottomButton}>

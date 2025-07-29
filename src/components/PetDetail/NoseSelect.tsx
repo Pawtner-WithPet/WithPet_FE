@@ -8,28 +8,19 @@ import {
 } from "react-native";
 
 interface NoseSelectProps {
-  onRegister: () => void;
   onVerify: () => void;
   isLoadingVerify?: boolean;
 }
 
 export const NoseSelect: React.FC<NoseSelectProps> = ({
-  onRegister,
   onVerify,
   isLoadingVerify = false,
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>비문 관리</Text>
+      <Text style={styles.label}>비문 정보</Text>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.registerButton]}
-          onPress={onRegister}
-        >
-          <Text style={styles.registerButtonText}>비문 등록하기</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.button, styles.verifyButton]}
           onPress={onVerify}
@@ -58,8 +49,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
   },
   button: {
     flex: 1,
@@ -70,18 +59,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 48,
   },
-  registerButton: {
-    backgroundColor: "#161F40",
-  },
   verifyButton: {
     backgroundColor: "#4262FF",
     borderWidth: 1,
     borderColor: "#007AFF",
-  },
-  registerButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
   },
   verifyButtonText: {
     color: "white",
