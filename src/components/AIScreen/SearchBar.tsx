@@ -1,6 +1,11 @@
 import React from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+} from "react-native";
 
 type SearchBarProps = {
   value: string;
@@ -19,7 +24,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => (
         placeholderTextColor="#CCCCCC"
       />
       <TouchableOpacity onPress={onSearch} style={styles.searchButton}>
-        <Icon name="search" size={24} color="#000000" />
+        <Image
+          source={require("../../assets/icons/search.png")}
+          style={styles.searchIcon}
+          resizeMode="contain"
+        />
       </TouchableOpacity>
     </View>
   </View>
@@ -46,6 +55,12 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     padding: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  searchIcon: {
+    width: 24,
+    height: 24,
   },
 });
 

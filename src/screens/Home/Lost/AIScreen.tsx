@@ -50,7 +50,7 @@ const AIScreen: React.FC = () => {
   };
 
   const handleRealTimeSearch = () => {
-    console.log("실시간 AI 탐색 켜둥기");
+    console.log("실시간 AI 탐색 켜놓기");
   };
 
   return (
@@ -69,6 +69,7 @@ const AIScreen: React.FC = () => {
         <ScrollView
           style={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
         >
           {isLoading ? (
             <View style={styles.loadingContainer}>
@@ -94,9 +95,12 @@ const AIScreen: React.FC = () => {
               <Text style={styles.emptyText}>탐색 결과가 없습니다</Text>
             </View>
           )}
-
-          <AISearchBtn onPress={handleRealTimeSearch} />
         </ScrollView>
+      </View>
+
+      {/* 하단 고정 버튼 */}
+      <View style={styles.fixedButtonContainer}>
+        <AISearchBtn onPress={handleRealTimeSearch} />
       </View>
     </View>
   );
@@ -112,6 +116,9 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flex: 1,
+  },
+  scrollContentContainer: {
+    paddingBottom: 100, // 버튼 높이만큼 하단 여백 추가
   },
   resultsContainer: {
     paddingVertical: 8,
@@ -135,6 +142,15 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: "#666666",
+  },
+  fixedButtonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
 });
 

@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-import Icon from "react-native-vector-icons/MaterialIcons";
 
 type AISearchCardProps = {
   date: string;
@@ -28,7 +27,11 @@ const AISearchCard: React.FC<AISearchCardProps> = ({
       <Text style={styles.statusText}>{status}</Text>
     </View>
 
-    <Icon name="chevron-right" size={24} color="#CCCCCC" />
+    <Image
+      source={require("../../assets/icons/Vector.png")}
+      style={styles.chevronIcon}
+      resizeMode="contain"
+    />
   </TouchableOpacity>
 );
 
@@ -71,6 +74,11 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 14,
     color: "#666666",
+  },
+  chevronIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#000000",
   },
 });
 
