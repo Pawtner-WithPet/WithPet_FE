@@ -13,7 +13,7 @@ import { Colors } from "../../../constants/colors";
 import icon_search from '../../../assets/icons/icon_search.png';
 import icon_detail_page from '../../../assets/icons/icon_detail_page.png';
 import happy1 from '../../../assets/images/happy1.png'
-
+import { useNavigation } from '@react-navigation/native';
 
 
 const DATA = [
@@ -45,12 +45,22 @@ const DATA = [
 
 const LostPetListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("전체");
+  const [isExpanded, setIsExpanded] = useState(false); // 등록
+
+  const [selectedPet, setSelectedPet] = useState(); //탐색
+  const [isPetToggleVisible, setPetToggleVisible] = useState(false); //탐색
+  const [isDropdownVisible, setDropdownVisible] = useState(false); //탐색
+
+  const filteredData = activeTab === '전체' ? DATA : DATA.filter(item => item.status === (activeTab === '실종동물' ? '실종' : '발견'));
+
+  const navigation = useNavigation<any>();
+
 
   // petcard
   const renderItem = ({ item }: { item: typeof DATA[0] }) => {
     const isLost = item.status === '실종';
     return (
-      <View style={[styles.card, item.id === '1' && styles.selectedCard]}> {/* 첫 번째 항목만 선택 효과 */}
+      <View style={[styles.card]}> 
         <View style={[styles.badge, isLost ? styles.badgeLost : styles.badgeFound]}>
           <Text style={styles.badgeText}>{item.status}</Text>
         </View>
@@ -65,9 +75,6 @@ const LostPetListScreen: React.FC = () => {
     );
   };
 
-  // 드롭아웃
-  const [selectedPet, setSelectedPet] = useState<string>("쫑이");
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   
 
@@ -103,17 +110,59 @@ const LostPetListScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={DATA}
+        data={filteredData}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
+        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 20 }}>등록된 정보가 없습니다.</Text>}
         contentContainerStyle={{ padding: 16 }}
       />
 
       <View style={styles.floatingWrapper}>
-        <TouchableOpacity style={styles.fab}>
+        {isPetToggleVisible && (
+          <View style={styles.petDropdownWrapper}>
+            <TouchableOpacity
+              style={styles.petToggleBtn}
+              onPress={() => setDropdownVisible(prev => !prev)}
+            >
+              <Text style={styles.petToggleText}>
+                탐색할 반려견   ▲
+              </Text>
+            </TouchableOpacity>
+
+            {isDropdownVisible && (
+              <View style={styles.dropdown}>
+                {["쫑이", "하양이"].map((pet) => (
+                  <TouchableOpacity
+                    key={pet}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setDropdownVisible(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownText}>{pet}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+        <TouchableOpacity style={styles.fab} onPress={() => setPetToggleVisible(prev => !prev)}>
           <Image source={icon_search} style={styles.fabIcon} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.fab}>
+
+        
+        {isExpanded && (
+          <View style={styles.dropdownButtons}>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#F64C4C' }]} onPress={() => navigation.navigate("LostPetRegister")}>
+              <Text style={styles.actionButtonText}>실종동물 등록</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#4262FF' }]} onPress={() => navigation.navigate("FoundPetRegister")}>
+              <Text style={styles.actionButtonText}>발견동물 등록</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <TouchableOpacity style={styles.fab} onPress={() => setIsExpanded(prev => !prev)}>
           <Text style={styles.fabPlus}>+</Text>
         </TouchableOpacity>
       </View>
@@ -132,7 +181,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   tabWrapper: {
-    marginTop:5,
     flexDirection: 'row',
     justifyContent: 'space-around',
     borderBottomWidth: 1,
@@ -147,7 +195,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#aaa',
     fontWeight: 'bold',
-    paddingBottom: 6,
   },
   tabTextActive: {
     color: '#1A1A1A',
@@ -167,11 +214,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 17,
     color: '#333',
   },
   searchIcon: {
@@ -189,10 +235,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     position: 'relative',
   },
-  selectedCard: {
-    borderWidth: 2,
-    borderColor: '#007AFF',
-  },
   badge: {
     position: 'absolute',
     top: -6,
@@ -201,22 +243,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 12,
     zIndex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   badgeLost: {
-    backgroundColor: '#FF4D4D',
+    backgroundColor: '#F64C4C',
+    width: 60,
+    height: 30,
+    top: 5,
+    left: 10,
   },
   badgeFound: {
-    backgroundColor: '#3399FF',
+    width: 60,
+    height: 30,
+    top: 5,
+    left: 10,
+    backgroundColor: '#0086FF',
   },
   badgeText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
+    fontSize: 18,
+     
   },
   image: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 90,
+    height: 90,
+    borderRadius: 100,
     marginRight: 12,
   },
   cardInfo: {
@@ -224,20 +276,20 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 18,
   },
   locationText: {
-    fontSize: 13,
-    color: '#555',
+    fontSize: 17,
+    color: '#999',
   },
   breedText: {
-    fontSize: 13,
+    fontSize: 17,
     color: '#999',
   },
   arrowIcon: {
-    width: 20,
-    height: 20,
-    tintColor: '#999',
+    width: 40,
+    height: 40,
+    tintColor: '#000',
     marginLeft: 8,
   },
     floatingWrapper: {
@@ -264,16 +316,80 @@ const styles = StyleSheet.create({
   },
 
   fabIcon: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 40,
     tintColor: '#fff',
   },
 
   fabPlus: {
-    fontSize: 36,
+    fontSize: 50,
     color: '#fff',
     fontWeight: 'bold',
     marginTop: -4,
+  },
+
+  dropdownButtons: {
+    position: 'absolute',
+    bottom: 80,
+    right: 0,
+    alignItems: 'flex-end',
+  },
+
+  petDropdownWrapper: {
+    position: 'absolute',
+    bottom: 80, 
+    right: 230,  
+    alignItems: 'flex-end',
+    zIndex: 10, 
+  },
+  petToggleBtn: {
+    backgroundColor: '#3366FF',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    left:10,
+  },
+  petToggleText: {
+    color: '#fff',
+    fontSize:18,
+    fontWeight: 'bold',
+  },
+  dropdown: {
+    position: 'absolute',
+    bottom: 44, 
+    right: -8,
+    backgroundColor: '#A5BFFF',
+    borderRadius: 10,
+    overflow: 'hidden',
+    zIndex: 20,
+    minWidth: 150,
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dropdownText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize:18,
+  },
+
+
+  actionButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginBottom: 1,
+  },
+
+  actionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
 
 });
