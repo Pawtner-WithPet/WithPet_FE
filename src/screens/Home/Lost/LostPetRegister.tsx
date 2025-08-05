@@ -12,31 +12,41 @@ import {
 import { Colors } from '../../../constants/colors';
 import icon_camera from '../../../assets/icons/camera.png';
 import icon_close from '../../../assets/icons/icon_close.png';
+import icon_detail_page from '../../../assets/icons/icon_detail_page.png';
+import enter_image from '../../../assets/icons/enter_image.png';
+import icon_calendar from '../../../assets/icons/icon_calendar.png';
 import Header from '../../../components/Header';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { LostStackParamList } from '../../../navigation/LostStack';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { Picker } from '@react-native-picker/picker';
+import { launchImageLibrary } from 'react-native-image-picker';
+
+
+
 
 const LostPetRegister: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<LostStackParamList>>();
 
-  const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');
-  const [feature, setFeature] = useState('');
-  const [location, setLocation] = useState('');
-  const [familiar, setFamiliar] = useState('');
-  const [description, setDescription] = useState('');
+  const [profileUri, setProfileUri] = useState<string | null>(null);
 
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const [age, setAge] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
+  const [breed, setBreed] = useState('');
+  const [noseUri, setNoseUri] = useState<string | null>(null);
+  const [feature, setFeature] = useState('');
 
   const [date, setDate] = useState<Date | null>(null);
   const [hour, setHour] = useState('');
   const [minute, setMinute] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [location, setLocation] = useState('');
+  const [familiar, setFamiliar] = useState('');
+  const [description, setDescription] = useState('');
 
   const renderClear = (value: string, clearFn: () => void) => (
     value.length > 0 ? (
@@ -46,18 +56,46 @@ const LostPetRegister: React.FC = () => {
     ) : null
   );
 
+
+
+
+
   return (
     <View style={styles.container}>
       <Header />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>실종동물 등록</Text>
+        <View style={styles.headerWrapper}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Image source={icon_detail_page} style={styles.backIcon} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>실종동물 등록</Text>
+        </View>
+
+
 
         {/* 프로필 */}
-        <View style={styles.profileSection}>
-          <View style={styles.profileCircle} />
-          <TouchableOpacity style={styles.cameraOverlay}>
-            <Image source={icon_camera} style={styles.cameraIcon} />
-          </TouchableOpacity>
+        <View style={styles.profileContainer}>
+          <View style={styles.profileImageWrapper}>
+            <View style={styles.petImage}>
+              {profileUri ? (
+                <Image source={{ uri: profileUri }} style={styles.petImageIcon} />
+              ) : (
+                <Image source={enter_image} style={styles.enterImageIcon} />
+              )}
+            </View>
+            <TouchableOpacity
+              style={styles.cameraButton}
+              onPress={() => {
+                launchImageLibrary({ mediaType: 'photo' }, (response) => {
+                  if (response.assets && response.assets.length > 0) {
+                    setProfileUri(response.assets[0].uri || null);
+                  }
+                });
+              }}
+            >
+              <Image source={icon_camera} style={styles.cameraIcon} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* 이름 */}
@@ -65,34 +103,85 @@ const LostPetRegister: React.FC = () => {
 
         {/* 성별 */}
         <Text style={styles.label}>성별</Text>
-        <View style={styles.row}>
-          <TouchableOpacity style={styles.selectBox}><Text>수컷</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.selectBox}><Text>암컷</Text></TouchableOpacity>
-        </View>
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={[
+                styles.selectBox,
+                gender === 'male' && styles.selectedBox, // 선택 시 스타일
+              ]}
+              onPress={() => setGender('male')}
+            >
+              <Text style={[styles.selectText, gender === 'male' && styles.selectedText]}>
+                수컷
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.selectBox,
+                gender === 'female' && styles.selectedBox,
+              ]}
+              onPress={() => setGender('female')}
+            >
+              <Text style={[styles.selectText, gender === 'female' && styles.selectedText]}>
+                암컷
+              </Text>
+            </TouchableOpacity>
+          </View>
+
 
         {/* 나이/신장/체중 */}
-        <Text style={styles.label}>나이 / 신장 / 체중</Text>
         <View style={styles.row}>
-          <InputWithClear value={age} setValue={setAge} placeholder="0 세" />
-          <InputWithClear value={height} setValue={setHeight} placeholder="0 cm" />
-          <InputWithClear value={weight} setValue={setWeight} placeholder="0 kg" />
+          <View style={styles.field}>
+            <Text style={styles.label}>나이</Text>
+            <InputWithClear value={age} setValue={setAge} placeholder="0 세" />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>신장</Text>
+            <InputWithClear value={height} setValue={setHeight} placeholder="0 cm" />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>체중</Text>
+            <InputWithClear value={weight} setValue={setWeight} placeholder="0 kg" />
+          </View>
         </View>
 
         <LabelInput label="견종" value={breed} onChangeText={setBreed} />
 
         {/* 비문 */}
         <Text style={styles.label}>비문</Text>
-        <View style={styles.row}>
-          <TouchableOpacity style={styles.noseBtn}>
-            <Text>비문 등록하기</Text>
-            <Image source={icon_camera} style={styles.iconSm} />
-          </TouchableOpacity>
-          <View style={styles.noseBtnDisabled}>
-            <Text style={{ color: '#fff' }}>등록완료</Text>
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={styles.noseBtn}
+              onPress={() => {
+                launchImageLibrary({ mediaType: 'photo' }, (response) => {
+                  if (response.assets && response.assets.length > 0) {
+                    setNoseUri(response.assets[0].uri || null);
+                  }
+                });
+              }}
+            >
+              <Text style={styles.noseBtnText}>비문 등록하기</Text>
+              <Image source={icon_camera} style={styles.iconSm} />
+            </TouchableOpacity>
+
+            {noseUri && (
+              <View style={[styles.noseBtnDisabled, noseUri && styles.noseBtnActive]}>
+                <Text style={[styles.noseDoneText, noseUri && styles.noseDoneTextActive]}>등록완료</Text>
+              </View>
+            )}
+
+            {renderClear(noseUri ?? '', () => setNoseUri(null))}
           </View>
-        </View>
+
 
         <LabelInput label="특징" value={feature} onChangeText={setFeature} />
+
+
+
+
+
+
 
         {/* 구분선 */}
         <View style={styles.divider} />
@@ -100,21 +189,48 @@ const LostPetRegister: React.FC = () => {
         {/* 실종 정보 */}
         <Text style={styles.sectionHeader}>실종 정보</Text>
         <Text style={styles.label}>실종 일시</Text>
-        <View style={styles.row}>
-          <TouchableOpacity style={styles.datePicker} onPress={() => setShowDatePicker(true)}>
-            <Text>{date ? date.toLocaleDateString() : '실종 날짜'}</Text>
-          </TouchableOpacity>
-          <Picker style={styles.picker} selectedValue={hour} onValueChange={setHour}>
-            {[...Array(24).keys()].map(h => (
-              <Picker.Item key={h} label={`${h} 시`} value={String(h)} />
-            ))}
-          </Picker>
-          <Picker style={styles.picker} selectedValue={minute} onValueChange={setMinute}>
-            {[...Array(60).keys()].map(m => (
-              <Picker.Item key={m} label={`${m} 분`} value={String(m)} />
-            ))}
-          </Picker>
-        </View>
+<View style={styles.datetimeRow}>
+  {/* 날짜 선택 */}
+  <TouchableOpacity style={styles.dateBox} onPress={() => setShowDatePicker(true)}>
+    <Text style={styles.dateText}>
+      {date ? `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.` : '날짜 선택'}
+    </Text>
+    <Image source={icon_calendar} style={styles.calendarIcon} />
+  </TouchableOpacity>
+
+  {/* 시 선택 */}
+  <View style={styles.timeBox}>
+    <Picker
+      selectedValue={hour}
+      onValueChange={(value) => setHour(value)}
+      mode="dropdown"
+      style={styles.picker}
+      dropdownIconColor="#333" 
+    >
+      <Picker.Item label="선택" value="" />
+      {[...Array(24).keys()].map(h => (
+        <Picker.Item key={h} label={`${h}`} value={`${h}`} />
+      ))}
+    </Picker>
+  </View>
+  <Text style={styles.timeLabel}>시</Text>
+
+  {/* 분 선택 */}
+  <View style={styles.timeBox}>
+    <Picker
+      selectedValue={minute}
+      onValueChange={(value) => setMinute(value)}
+      mode="dropdown"
+      style={styles.picker}
+    >
+      {[...Array(60).keys()].map(m => (
+        <Picker.Item key={m} label={`${m}`} value={`${m}`} />
+      ))}
+    </Picker>
+  </View>
+  <Text style={styles.timeLabel}>분</Text>
+</View>
+
 
         <LabelInput label="실종 장소" value={location} onChangeText={setLocation} />
         <LabelInput label="익숙한 장소" value={familiar} onChangeText={setFamiliar} />
@@ -187,43 +303,143 @@ const InputWithClear = ({
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scrollContainer: { padding: 20 },
-  title: { fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginBottom: 16 },
-  profileSection: { alignItems: 'center', marginBottom: 20 },
-  profileCircle: { width: 100, height: 100, backgroundColor: '#EEE', borderRadius: 50 },
-  cameraOverlay: {
-    position: 'absolute',
-    bottom: 4,
-    right: 4,
-    backgroundColor: '#fff',
-    padding: 6,
-    borderRadius: 20,
+  container: { 
+    flex: 1, 
+    backgroundColor: 
+    Colors.background
   },
-  cameraIcon: { width: 16, height: 16, tintColor: '#333' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  label: { fontSize: 14, marginBottom: 6, color: '#333' },
+  scrollContainer: { 
+    padding: 20 
+  },
+  headerWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 12,
+    marginBottom: 20,
+  },
+
+  backButton: {
+    marginRight: 90,
+  },
+
+  backIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    transform: [{ scaleX: -1 }], 
+  },
+
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1A1A1A',
+  },
+  profileContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  profileImageWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 120,
+    height: 120,
+    backgroundColor: '#EEE',
+    borderRadius: 100,
+  },
+  petImage: {
+    width: 120,
+    height: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 100,
+  },
+  petImageIcon: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: 100,
+  },
+  enterImageIcon:{
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 70,
+    height: 70,
+    resizeMode: 'contain',
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#000',
+    borderRadius: 20,
+    padding: 6,
+  },
+  cameraIcon: {
+    width: 28,
+    height: 28,
+  },
+  row: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    marginBottom: 10 
+  },
+  label: { 
+    fontSize: 18, 
+    marginBottom: 6, 
+    fontWeight: 'bold',
+    color: '#333' 
+  },
+  field: {
+    flex: 1,
+    marginHorizontal: 4,
+  },
+
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 6,
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F3F4F6',
     borderRadius: 10,
     paddingHorizontal: 12,
   },
-  input: { flex: 1, padding: 12, fontSize: 14 },
-  clearIcon: { width: 16, height: 16, tintColor: '#999', marginLeft: 8 },
+  input: { 
+    flex: 1, 
+    padding: 12, 
+    fontSize: 14 
+  },
+  clearIcon: { 
+    width: 16, 
+    height: 16, 
+    marginLeft: 8 
+  },
   selectBox: {
     flex: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#F3F4F6',
     padding: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginHorizontal: 4,
   },
+  selectText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  selectedBox: {
+    backgroundColor: '#4262FF',
+  },
+  selectedText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   noseBtn: {
     flex: 1,
-    backgroundColor: '#ccc',
-    padding: 12,
+    backgroundColor: '#F3F4F6',
     borderRadius: 10,
     flexDirection: 'row',
     justifyContent: 'center',
@@ -232,40 +448,122 @@ const styles = StyleSheet.create({
   },
   noseBtnDisabled: {
     flex: 1,
-    backgroundColor: '#aaa',
+    backgroundColor: '#979696',
     padding: 12,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconSm: { width: 16, height: 16, tintColor: '#333', marginLeft: 6 },
-  datePicker: {
-    flex: 1,
-    backgroundColor: '#eee',
-    padding: 12,
-    borderRadius: 10,
+  noseBtnActive: {
+    backgroundColor: '#4262FF',
+  },
+
+  noseDoneTextActive: {
+    color: '#fff', 
+    fontWeight: 'bold',
+  },
+  iconSm: { 
+    width: 30, 
+    height: 30, 
+    tintColor: '#979696', 
+  },
+  noseBtnText: {
+    padding:12,
+    color: '#979696',
+    fontSize: 14,
+  },
+
+  noseDoneText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
+  noseCancelBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#979696',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 6,
+    marginLeft: 6,
   },
-  picker: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    marginHorizontal: 4,
-    borderRadius: 10,
+
+  noseCancelText: {
+    fontSize: 16,
+    color: '#979696',
+    fontWeight: 'bold',
   },
+  
+
+
+
+
   sectionHeader: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 6,
   },
+
+datetimeRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 10,
+},
+
+dateBox: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#F5F5F5',
+  borderRadius: 12,
+  paddingHorizontal: 12,
+  paddingVertical: 10,
+  marginRight: 8,
+},
+
+dateText: {
+  fontSize: 14,
+  color: '#333',
+  marginRight: 6,
+},
+
+calendarIcon: {
+  width: 16,
+  height: 16,
+  tintColor: '#999',
+},
+
+timeBox: {
+  width: 60,
+  backgroundColor: '#F5F5F5',
+  borderRadius: 12,
+  marginHorizontal: 4,
+  justifyContent: 'center',
+},
+
+picker: {
+  width: '100%',
+  height: 40,
+  color: '#333',
+},
+
+timeLabel: {
+  fontSize: 14,
+  color: '#333',
+  marginHorizontal: 4,
+},
+
+
+
   divider: {
     borderBottomColor: '#ccc',
     borderBottomWidth: 1,
     marginVertical: 20,
   },
   submitBtn: {
-    backgroundColor: '#3366FF',
+    backgroundColor: '#4262FF',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
