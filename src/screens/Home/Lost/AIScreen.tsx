@@ -4,38 +4,23 @@ import Header from "../../../components/Header";
 import TabNavigation from "../../../components/AIScreen/TabNavigation";
 import SearchBar from "../../../components/AIScreen/SearchBar";
 import KeywordTags from "../../../components/AIScreen/KeywordTags";
-import AISearchCard from "../../../components/AIScreen/AISearchCard";
+import FindCard from "../../../components/AIScreen/FindCard";
+import SNSCard from "../../../components/AIScreen/SNSCard";
+import ShelterCard from "../../../components/AIScreen/ShelterCard";
 import AISearchBtn from "../../../components/AIScreen/AISearchBtn";
-
-// 더미 데이터
-const searchResults = [
-  {
-    id: 1,
-    date: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    status: "건중 / 특징",
-    image: { uri: "https://via.placeholder.com/60x60/FFB366/FFFFFF?text=DOG" },
-  },
-  {
-    id: 2,
-    date: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    status: "건중 / 특징",
-    image: { uri: "https://via.placeholder.com/60x60/87CEEB/FFFFFF?text=DOG" },
-  },
-  {
-    id: 3,
-    date: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    status: "건중 / 특징",
-    image: { uri: "https://via.placeholder.com/60x60/98FB98/FFFFFF?text=DOG" },
-  },
-];
+import AIKeyWordPopup from "../../../components/AIScreen/AIKeyWordPopup";
+import {
+  searchResults,
+  snsResults,
+  shelterResults,
+} from "../../../mocks/dummyData";
 
 const AIScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("discovered");
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [isRealTimeSearchActive, setIsRealTimeSearchActive] = useState(false); // 실시간 탐색 상태 추가
 
   const handleSearch = () => {
     console.log("검색:", searchText);
@@ -49,8 +34,110 @@ const AIScreen: React.FC = () => {
     console.log("카드 클릭:", id);
   };
 
-  const handleRealTimeSearch = () => {
-    console.log("실시간 AI 탐색 켜놓기");
+  const handleSNSCardPress = (id: number) => {
+    console.log("SNS 카드 클릭:", id);
+  };
+
+  const handleShelterCardPress = (id: number) => {
+    console.log("보호소 카드 클릭:", id);
+  };
+
+  const handleRealTimeSearchToggle = () => {
+    if (isRealTimeSearchActive) {
+      // 실시간 탐색 끄기
+      console.log("실시간 AI 탐색 끄기");
+      setIsRealTimeSearchActive(false);
+    } else {
+      // 실시간 탐색 켜기 (팝업 열기)
+      console.log("실시간 AI 탐색 켜놓기");
+      setShowPopup(true);
+    }
+  };
+
+  const handlePopupStart = (keywords: string[]) => {
+    console.log("실시간 AI 탐색 시작:", keywords);
+    setIsRealTimeSearchActive(true); // 실시간 탐색 활성화
+    // 여기서 실제 탐색 로직 구현
+    // API 호출이나 다른 처리 로직 추가
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>AI 탐색 결과 불러오는 중...</Text>
+        </View>
+      );
+    }
+
+    if (activeTab === "discovered") {
+      return searchResults.length > 0 ? (
+        <View style={styles.resultsContainer}>
+          {searchResults.map((item) => (
+            <FindCard
+              key={item.id}
+              date={item.date}
+              location={item.location}
+              status={item.status}
+              image={item.image}
+              onPress={() => handleCardPress(item.id)}
+            />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>탐색 결과가 없습니다</Text>
+        </View>
+      );
+    }
+
+    if (activeTab === "sns") {
+      return snsResults.length > 0 ? (
+        <View style={styles.resultsContainer}>
+          {snsResults.map((item) => (
+            <SNSCard
+              key={item.id}
+              keywords={item.keywords}
+              platform={item.platform}
+              image={item.image}
+              onPress={() => handleSNSCardPress(item.id)}
+            />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>SNS 탐색 결과가 없습니다</Text>
+        </View>
+      );
+    }
+
+    // 보호소 탭
+    if (activeTab === "report") {
+      return shelterResults.length > 0 ? (
+        <View style={styles.resultsContainer}>
+          {shelterResults.map((item) => (
+            <ShelterCard
+              key={item.id}
+              name={item.name}
+              location={item.location}
+              contact={item.contact}
+              image={item.image}
+              onPress={() => handleShelterCardPress(item.id)}
+            />
+          ))}
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>보호소 탐색 결과가 없습니다</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>준비 중입니다</Text>
+      </View>
+    );
   };
 
   return (
@@ -71,37 +158,24 @@ const AIScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContentContainer}
         >
-          {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>
-                AI 탐색 결과 불러오는 중...
-              </Text>
-            </View>
-          ) : searchResults.length > 0 ? (
-            <View style={styles.resultsContainer}>
-              {searchResults.map((item) => (
-                <AISearchCard
-                  key={item.id}
-                  date={item.date}
-                  location={item.location}
-                  status={item.status}
-                  image={item.image}
-                  onPress={() => handleCardPress(item.id)}
-                />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>탐색 결과가 없습니다</Text>
-            </View>
-          )}
+          {renderContent()}
         </ScrollView>
       </View>
 
       {/* 하단 고정 버튼 */}
       <View style={styles.fixedButtonContainer}>
-        <AISearchBtn onPress={handleRealTimeSearch} />
+        <AISearchBtn
+          onPress={handleRealTimeSearchToggle}
+          isActive={isRealTimeSearchActive}
+        />
       </View>
+
+      {/* AIKeyWordPopup 추가 */}
+      <AIKeyWordPopup
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+        onStart={handlePopupStart}
+      />
     </View>
   );
 };

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 
-type AISearchCardProps = {
+type FindCardProps = {
   date: string;
   location: string;
   status: string;
@@ -9,7 +9,7 @@ type AISearchCardProps = {
   onPress?: () => void;
 };
 
-const AISearchCard: React.FC<AISearchCardProps> = ({
+const FindCard: React.FC<FindCardProps> = ({
   date,
   location,
   status,
@@ -82,4 +82,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AISearchCard;
+export default FindCard;

@@ -1,34 +1,57 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
 
-type AISearchBtnProps = {
+interface AISearchBtnProps {
   onPress: () => void;
+  isActive?: boolean;
+}
+
+const AISearchBtn: React.FC<AISearchBtnProps> = ({
+  onPress,
+  isActive = false,
+}) => {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        isActive ? styles.activeButton : styles.inactiveButton,
+      ]}
+      onPress={onPress}
+    >
+      <Text
+        style={[
+          styles.buttonText,
+          isActive ? styles.activeButtonText : styles.inactiveButtonText,
+        ]}
+      >
+        {isActive ? "실시간 AI 탐색 끄기" : "실시간 AI 탐색 켜놓기"}
+      </Text>
+    </TouchableOpacity>
+  );
 };
 
-const AISearchBtn: React.FC<AISearchBtnProps> = ({ onPress }) => (
-  <View style={styles.container}>
-    <TouchableOpacity onPress={onPress} style={styles.button}>
-      <Text style={styles.buttonText}> AI 탐색 켜놓기</Text>
-    </TouchableOpacity>
-  </View>
-);
-
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    backgroundColor: "#FFFFFF",
-  },
   button: {
-    backgroundColor: "#4262FF",
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 8,
+    paddingVertical: 14,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  inactiveButton: {
+    backgroundColor: "#2196F3",
+  },
+  activeButton: {
+    backgroundColor: "#161F40",
   },
   buttonText: {
-    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  inactiveButtonText: {
+    color: "#FFFFFF",
+  },
+  activeButtonText: {
+    color: "#FFFFFF",
   },
 });
 
