@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   inactiveButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#4262FF",
   },
   activeButton: {
     backgroundColor: "#161F40",

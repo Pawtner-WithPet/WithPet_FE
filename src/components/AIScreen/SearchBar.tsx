@@ -4,31 +4,31 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
+  Text,
 } from "react-native";
 
 type SearchBarProps = {
   value: string;
   onChange: (text: string) => void;
-  onSearch: () => void;
+  onAddKeyword: () => void;
 };
 
-const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => (
+const SearchBar: React.FC<SearchBarProps> = ({
+  value,
+  onChange,
+  onAddKeyword,
+}) => (
   <View style={styles.container}>
     <View style={styles.searchContainer}>
       <TextInput
         style={styles.input}
         value={value}
         onChangeText={onChange}
-        placeholder="키워드로 검색"
+        placeholder="견종,발견장소,성별 등을 키워드로 검색"
         placeholderTextColor="#CCCCCC"
       />
-      <TouchableOpacity onPress={onSearch} style={styles.searchButton}>
-        <Image
-          source={require("../../assets/icons/search.png")}
-          style={styles.searchIcon}
-          resizeMode="contain"
-        />
+      <TouchableOpacity onPress={onAddKeyword} style={styles.addButton}>
+        <Text style={styles.addButtonText}>+</Text>
       </TouchableOpacity>
     </View>
   </View>
@@ -53,14 +53,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333333",
   },
-  searchButton: {
+  addButton: {
     padding: 4,
     justifyContent: "center",
     alignItems: "center",
+    width: 32,
+    height: 32,
   },
-  searchIcon: {
-    width: 24,
-    height: 24,
+  addButtonText: {
+    fontSize: 20,
+    color: "#666666",
+    fontWeight: "500",
   },
 });
 

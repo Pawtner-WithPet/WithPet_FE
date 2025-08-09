@@ -9,6 +9,13 @@ import SNSCard from "../../../components/AIScreen/SNSCard";
 import ShelterCard from "../../../components/AIScreen/ShelterCard";
 import AISearchBtn from "../../../components/AIScreen/AISearchBtn";
 import AIKeyWordPopup from "../../../components/AIScreen/AIKeyWordPopup";
+import AIStopPopup from "../../../components/AIScreen/AIStopPopup";
+import {
+  fetchFoundPetResults,
+  FindResult,
+  getSexInKorean,
+  formatDate,
+} from "../../../services/api/AIScreen";
 import {
   searchResults,
   snsResults,
@@ -18,20 +25,83 @@ import {
 const AIScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("discovered");
   const [searchText, setSearchText] = useState("");
+  const [keywords, setKeywords] = useState<string[]>([]); // 키워드 상태 추가
+  const [searchResults, setSearchResults] = useState<FindResult[]>([]); // API 결과 상태 추가
   const [isLoading, setIsLoading] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [isRealTimeSearchActive, setIsRealTimeSearchActive] = useState(false); // 실시간 탐색 상태 추가
+  const [showKeywordPopup, setShowKeywordPopup] = useState(false);
+  const [showStopPopup, setShowStopPopup] = useState(false);
+  const [isRealTimeSearchActive, setIsRealTimeSearchActive] = useState(false);
 
-  const handleSearch = () => {
-    console.log("검색:", searchText);
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+  // 키워드 추가 함수
+  const handleAddKeyword = () => {
+    if (searchText.trim() && !keywords.includes(searchText.trim())) {
+      setKeywords([...keywords, searchText.trim()]);
+      setSearchText(""); // 입력창 비우기
+    }
   };
 
-  const handleCardPress = (id: number) => {
-    console.log("카드 클릭:", id);
+  // 키워드 제거 함수
+  const handleRemoveKeyword = (index: number) => {
+    const newKeywords = keywords.filter((_, i) => i !== index);
+    setKeywords(newKeywords);
+  };
+
+  // 키워드로 검색하는 함수
+  const handleKeywordSearch = async () => {
+    if (keywords.length > 0) {
+      console.log("키워드 검색:", keywords);
+      setIsLoading(true);
+
+      try {
+        // 키워드들을 쉼표로 구분하여 문자열로 변환
+        const keywordsString = keywords.join(",");
+        const results = await fetchFoundPetResults({
+          petId: 1,
+          keywords: keywordsString,
+        });
+        setSearchResults(results);
+        console.log("검색 결과:", results);
+      } catch (error) {
+        console.error("검색 중 오류:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleSearch = async () => {
+    // 현재 입력된 텍스트도 키워드로 추가하고 검색
+    const updatedKeywords = [...keywords];
+    if (searchText.trim() && !keywords.includes(searchText.trim())) {
+      updatedKeywords.push(searchText.trim());
+      setKeywords(updatedKeywords);
+      setSearchText("");
+    }
+
+    if (updatedKeywords.length > 0) {
+      console.log("검색 키워드:", updatedKeywords);
+      setIsLoading(true);
+
+      try {
+        const keywordsString = updatedKeywords.join(",");
+        const results = await fetchFoundPetResults({
+          petId: 1,
+          keywords: keywordsString,
+        });
+        setSearchResults(results);
+        console.log("검색 결과:", results);
+      } catch (error) {
+        console.error("검색 중 오류:", error);
+        setSearchResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleCardPress = (postId: number) => {
+    console.log("카드 클릭:", postId);
   };
 
   const handleSNSCardPress = (id: number) => {
@@ -44,21 +114,24 @@ const AIScreen: React.FC = () => {
 
   const handleRealTimeSearchToggle = () => {
     if (isRealTimeSearchActive) {
-      // 실시간 탐색 끄기
-      console.log("실시간 AI 탐색 끄기");
-      setIsRealTimeSearchActive(false);
+      console.log("실시간 AI 탐색 끄기 팝업 열기");
+      setShowStopPopup(true);
     } else {
-      // 실시간 탐색 켜기 (팝업 열기)
       console.log("실시간 AI 탐색 켜놓기");
-      setShowPopup(true);
+      setShowKeywordPopup(true);
     }
   };
 
-  const handlePopupStart = (keywords: string[]) => {
-    console.log("실시간 AI 탐색 시작:", keywords);
-    setIsRealTimeSearchActive(true); // 실시간 탐색 활성화
-    // 여기서 실제 탐색 로직 구현
-    // API 호출이나 다른 처리 로직 추가
+  const handleKeywordPopupStart = (popupKeywords: string[]) => {
+    console.log("실시간 AI 탐색 시작:", popupKeywords);
+    setIsRealTimeSearchActive(true);
+    setShowKeywordPopup(false);
+  };
+
+  const handleStopPopupConfirm = () => {
+    console.log("실시간 AI 탐색 종료");
+    setIsRealTimeSearchActive(false);
+    setShowStopPopup(false);
   };
 
   const renderContent = () => {
@@ -75,12 +148,12 @@ const AIScreen: React.FC = () => {
         <View style={styles.resultsContainer}>
           {searchResults.map((item) => (
             <FindCard
-              key={item.id}
-              date={item.date}
-              location={item.location}
-              status={item.status}
-              image={item.image}
-              onPress={() => handleCardPress(item.id)}
+              key={item.postId}
+              date={formatDate(item.foundDate)}
+              location={item.foundLocation}
+              status={`${item.kindNm} / ${getSexInKorean(item.sex)}`}
+              image={item.imgUrl}
+              onPress={() => handleCardPress(item.postId)}
             />
           ))}
         </View>
@@ -111,7 +184,6 @@ const AIScreen: React.FC = () => {
       );
     }
 
-    // 보호소 탭
     if (activeTab === "report") {
       return shelterResults.length > 0 ? (
         <View style={styles.resultsContainer}>
@@ -149,9 +221,13 @@ const AIScreen: React.FC = () => {
         <SearchBar
           value={searchText}
           onChange={setSearchText}
-          onSearch={handleSearch}
+          onAddKeyword={handleAddKeyword}
         />
-        <KeywordTags />
+        <KeywordTags
+          keywords={keywords}
+          onRemoveKeyword={handleRemoveKeyword}
+          onSearch={handleKeywordSearch}
+        />
 
         <ScrollView
           style={styles.scrollContent}
@@ -162,7 +238,6 @@ const AIScreen: React.FC = () => {
         </ScrollView>
       </View>
 
-      {/* 하단 고정 버튼 */}
       <View style={styles.fixedButtonContainer}>
         <AISearchBtn
           onPress={handleRealTimeSearchToggle}
@@ -170,11 +245,16 @@ const AIScreen: React.FC = () => {
         />
       </View>
 
-      {/* AIKeyWordPopup 추가 */}
       <AIKeyWordPopup
-        visible={showPopup}
-        onClose={() => setShowPopup(false)}
-        onStart={handlePopupStart}
+        visible={showKeywordPopup}
+        onClose={() => setShowKeywordPopup(false)}
+        onStart={handleKeywordPopupStart}
+      />
+
+      <AIStopPopup
+        visible={showStopPopup}
+        onClose={() => setShowStopPopup(false)}
+        onConfirm={handleStopPopupConfirm}
       />
     </View>
   );
@@ -192,7 +272,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContentContainer: {
-    paddingBottom: 100, // 버튼 높이만큼 하단 여백 추가
+    paddingBottom: 100,
   },
   resultsContainer: {
     paddingVertical: 8,

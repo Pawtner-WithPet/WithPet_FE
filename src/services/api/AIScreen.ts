@@ -1,12 +1,36 @@
 import api from "./api";
 
+// 성별을 한국어로 변환하는 함수
+export const getSexInKorean = (sex: string) => {
+  switch (sex) {
+    case "MALE":
+      return "수컷";
+    case "FEMALE":
+      return "암컷";
+    default:
+      return sex;
+  }
+};
+
+// 날짜를 원하는 형식으로 변환하는 함수
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}.${month}.${day} ${hours}:${minutes}`;
+};
+
 export type FindResult = {
-  id: number;
-  date: string;
-  location: string;
-  status: string;
-  image: string | null;
-  score?: number;
+  postId: number;
+  foundDate: string;
+  foundLocation: string;
+  kindNm: string;
+  sex: string;
+  imgUrl: string | null;
 };
 
 export type FindResultsResponse = {
@@ -17,8 +41,8 @@ export type FindResultsResponse = {
 };
 
 export const fetchFoundPetResults = async (searchParams?: {
-  location?: string;
-  searchText?: string;
+  petId?: number;
+  keywords?: string;
   userId?: number;
 }): Promise<FindResult[]> => {
   try {
