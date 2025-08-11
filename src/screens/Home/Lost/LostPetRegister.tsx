@@ -225,7 +225,7 @@ const LostPetRegister: React.FC = () => {
 
 
         <LabelInput label="실종 장소" value={location} onChangeText={setLocation} />
-        <LabelInput label="익숙한 장소1, 장소2, 장소3" value={familiar} onChangeText={setFamiliar} />
+        <LabelInput label="익숙한 장소" value={familiar} onChangeText={setFamiliar} />
         <LabelInput label="추가 설명" value={description} onChangeText={setDescription} />
 
         <TouchableOpacity style={styles.submitBtn}>

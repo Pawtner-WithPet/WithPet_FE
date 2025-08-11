@@ -14,6 +14,7 @@ import icon_search from '../../../assets/icons/icon_search.png';
 import icon_detail_page from '../../../assets/icons/icon_detail_page.png';
 import happy1 from '../../../assets/images/happy1.png'
 import { useNavigation } from '@react-navigation/native';
+import LostPostDetail from "./LostPostDetail";
 
 
 const DATA = [
@@ -59,19 +60,39 @@ const LostPetListScreen: React.FC = () => {
   // petcard
   const renderItem = ({ item }: { item: typeof DATA[0] }) => {
     const isLost = item.status === '실종';
+
+    const post = {
+      id: item.id,
+      status: item.status as "실종" | "발견",
+      name: "포포",
+      age: "1살",
+      breed: "포메라니안",
+      height: "미측정",
+      weight: "미측정",
+      location: "서울 강북구 수유역 부근",
+      lostDateTime: "2025.03.01 오후 3시경",
+      feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
+      extra: "사례금 100만원\n찾으시면 채팅보다는 연락처로 전화주세요.",
+      image: item.image ?? happy1,
+    };
     return (
-      <View style={[styles.card]}> 
-        <View style={[styles.badge, isLost ? styles.badgeLost : styles.badgeFound]}>
-          <Text style={styles.badgeText}>{item.status}</Text>
-        </View>
-        <Image source={item.image} style={styles.image} />
-        <View style={styles.cardInfo}>
-          <Text style={styles.dateText}>{item.dateTime}</Text>
-          <Text style={styles.locationText}>{item.location}</Text>
-          <Text style={styles.breedText}>{item.breed}</Text>
-        </View>
-        <Image source={icon_detail_page} style={styles.arrowIcon} />
+      <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={() => navigation.navigate("LostPostDetail", { post })}
+      style={styles.card}
+    >
+      <View style={[styles.badge, isLost ? styles.badgeLost : styles.badgeFound]}>
+        <Text style={styles.badgeText}>{item.status}</Text>
       </View>
+
+      <Image source={item.image} style={styles.image} />
+      <View style={styles.cardInfo}>
+        <Text style={styles.dateText}>{item.dateTime}</Text>
+        <Text style={styles.locationText}>{item.location}</Text>
+        <Text style={styles.breedText}>{item.breed}</Text>
+      </View>
+      <Image source={icon_detail_page} style={styles.arrowIcon} />
+    </TouchableOpacity>
     );
   };
 
