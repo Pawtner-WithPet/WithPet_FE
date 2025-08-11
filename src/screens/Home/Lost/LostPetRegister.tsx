@@ -62,7 +62,6 @@ const LostPetRegister: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Header />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.headerWrapper}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
