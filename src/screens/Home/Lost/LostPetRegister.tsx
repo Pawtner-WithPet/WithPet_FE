@@ -41,8 +41,8 @@ const LostPetRegister: React.FC = () => {
   const [feature, setFeature] = useState('');
 
   const [date, setDate] = useState<Date | null>(null);
-  const [hour, setHour] = useState('');
-  const [minute, setMinute] = useState('');
+  const [hour, setHour] = useState('0');
+  const [minute, setMinute] = useState('0');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [location, setLocation] = useState('');
   const [familiar, setFamiliar] = useState('');
@@ -189,51 +189,43 @@ const LostPetRegister: React.FC = () => {
         {/* 실종 정보 */}
         <Text style={styles.sectionHeader}>실종 정보</Text>
         <Text style={styles.label}>실종 일시</Text>
-<View style={styles.datetimeRow}>
-  {/* 날짜 선택 */}
-  <TouchableOpacity style={styles.dateBox} onPress={() => setShowDatePicker(true)}>
-    <Text style={styles.dateText}>
-      {date ? `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.` : '날짜 선택'}
-    </Text>
-    <Image source={icon_calendar} style={styles.calendarIcon} />
-  </TouchableOpacity>
+        <View style={styles.datetimeRow}>
+          {/* 날짜 선택 */}
+          <TouchableOpacity style={styles.dateBox} onPress={() => setShowDatePicker(true)}>
+            <Text style={styles.dateText}>
+              {date ? `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.` : '날짜 선택'}
+            </Text>
+            <Image source={icon_calendar} style={styles.calendarIcon} />
+          </TouchableOpacity>
 
-  {/* 시 선택 */}
-  <View style={styles.timeBox}>
-    <Picker
-      selectedValue={hour}
-      onValueChange={(value) => setHour(value)}
-      mode="dropdown"
-      style={styles.picker}
-      dropdownIconColor="#333" 
-    >
-      <Picker.Item label="선택" value="" />
-      {[...Array(24).keys()].map(h => (
-        <Picker.Item key={h} label={`${h}`} value={`${h}`} />
-      ))}
-    </Picker>
-  </View>
-  <Text style={styles.timeLabel}>시</Text>
+          {/* 시 선택 */}
+          <View style={styles.pickerBox}>
+            <Picker
+              selectedValue={hour}
+              onValueChange={(val) => setHour(val)}
+              dropdownIconColor="#000"
+            >
+              {[...Array(24).keys()].map(h => (
+                <Picker.Item key={h} label={`${h}`} value={`${h}`} />
+              ))}
+            </Picker>
+          </View>
+          <Text style={styles.timeLabel}>시</Text>
 
-  {/* 분 선택 */}
-  <View style={styles.timeBox}>
-    <Picker
-      selectedValue={minute}
-      onValueChange={(value) => setMinute(value)}
-      mode="dropdown"
-      style={styles.picker}
-    >
-      {[...Array(60).keys()].map(m => (
-        <Picker.Item key={m} label={`${m}`} value={`${m}`} />
-      ))}
-    </Picker>
-  </View>
-  <Text style={styles.timeLabel}>분</Text>
-</View>
+          {/* 분 선택 */}
+          <View style={styles.pickerBox}>
+            <Picker selectedValue={minute} onValueChange={(val) => setMinute(val)}>
+              {[...Array(60).keys()].map(m => (
+                <Picker.Item key={m} label={`${m}`} value={`${m}`} />
+              ))}
+            </Picker>
+          </View>
+          <Text style={styles.timeLabel}>분</Text>
+        </View>
 
 
         <LabelInput label="실종 장소" value={location} onChangeText={setLocation} />
-        <LabelInput label="익숙한 장소" value={familiar} onChangeText={setFamiliar} />
+        <LabelInput label="익숙한 장소1, 장소2, 장소3" value={familiar} onChangeText={setFamiliar} />
         <LabelInput label="추가 설명" value={description} onChangeText={setDescription} />
 
         <TouchableOpacity style={styles.submitBtn}>
@@ -535,13 +527,16 @@ calendarIcon: {
   tintColor: '#999',
 },
 
-timeBox: {
-  width: 60,
-  backgroundColor: '#F5F5F5',
-  borderRadius: 12,
-  marginHorizontal: 4,
-  justifyContent: 'center',
-},
+pickerBox: {
+    width: 100,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
 
 picker: {
   width: '100%',
