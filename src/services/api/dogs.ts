@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./api";
 
 export type Dog = {
   id: number;
@@ -8,6 +8,7 @@ export type Dog = {
   kindNm: string;
   sexNm: string;
   dogImg: string | null;
+  nosePrintImg: string | null;
 };
 
 export type DogListResponse = {
@@ -17,11 +18,9 @@ export type DogListResponse = {
   data: Dog[];
 };
 
-const API_URL = "http://10.0.2.2:8080/api/pet/list";
-
 export const fetchDogs = async (userId: number): Promise<Dog[]> => {
   try {
-    const response = await axios.get<DogListResponse>(API_URL, {
+    const response = await api.get<DogListResponse>("/api/pet/list", {
       params: { userId },
     });
     console.log("서버 응답 데이터:", response.data);

@@ -15,15 +15,19 @@ interface CustomInputProps extends TextInputProps {
 
 export const CustomInput: React.FC<CustomInputProps> = ({
   label,
+  required = false,
   error,
   style,
   ...props
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label}>
+        {label}
+        {required && <Text style={styles.required}> *</Text>}
+      </Text>
       <TextInput
-        style={[styles.input, style, error && styles.inputError]}
+        style={[styles.input, error ? styles.inputError : null, style]}
         {...props}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}

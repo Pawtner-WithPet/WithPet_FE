@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Modal,
 } from "react-native";
 import { CustomInput } from "../../../components/PetDetail/InputField";
 import { DisabledInput } from "../../../components/PetDetail/DisableInput";
@@ -21,14 +22,10 @@ import {
   updatePetDetail,
   uploadPetImage,
 } from "../../../services/api/PetDetail";
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { PetsStackParamList } from "../../../navigation/PetsStack";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { fetchNoseprintByPetId } from "../../../services/api/NoseRegister";
 
 type PetDetailRouteProp = RouteProp<PetsStackParamList, "PetDetailScreen">;
 type PetDetailScreenNavigationProp = NativeStackNavigationProp<
@@ -55,6 +52,10 @@ const PetDetailScreen: React.FC = () => {
   const navigation = useNavigation<PetDetailScreenNavigationProp>();
   const route = useRoute<PetDetailRouteProp>();
   const { id: petId } = route.params;
+
+  const [noseprintModalVisible, setNoseprintModalVisible] = useState(false);
+  const [noseprintImage, setNoseprintImage] = useState<string | null>(null);
+  const [noseprintDate, setNoseprintDate] = useState<string | null>(null);
 
   const [petInfo, setPetInfo] = useState<PetInfo>({
     name: "",
@@ -169,12 +170,26 @@ const PetDetailScreen: React.FC = () => {
     }
   };
 
-  const handleBiometricRegister = () => {
-    Alert.alert("비문 등록", "비문 등록 기능이 실행됩니다.");
-  };
+  const handleBiometricVerify = async () => {
+    try {
+      setIsLoading(true);
 
-  const handleBiometricVerify = () => {
-    Alert.alert("비문 확인", "비문 확인 기능이 실행됩니다.");
+      const noseprintData = await fetchNoseprintByPetId(petId);
+
+      if (noseprintData) {
+        setNoseprintImage(noseprintData.nosePrintImg);
+        setNoseprintDate(
+          new Date(noseprintData.registerDatetime).toLocaleDateString("ko-KR"),
+        );
+        setNoseprintModalVisible(true);
+      } else {
+        Alert.alert("비문 정보 없음", "등록된 비문 정보가 없습니다.");
+      }
+    } catch (err) {
+      Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const genderOptions = [
@@ -291,10 +306,7 @@ const PetDetailScreen: React.FC = () => {
             required
             disabled
           />
-          <NoseSelect
-            onRegister={handleBiometricRegister}
-            onVerify={handleBiometricVerify}
-          />
+          <NoseSelect onVerify={handleBiometricVerify} />
         </View>
 
         <View style={styles.bottomButton}>
@@ -303,6 +315,32 @@ const PetDetailScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={noseprintModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setNoseprintModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>📷 등록 된 비문</Text>
+            {noseprintImage && (
+              <Image
+                source={{ uri: noseprintImage }}
+                style={{ width: 300, height: 300, marginBottom: 16 }}
+                resizeMode="contain"
+              />
+            )}
+            <TouchableOpacity
+              onPress={() => setNoseprintModalVisible(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>확인</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -320,8 +358,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 19,
+    fontFamily: "Roboto-SemiBold",
     color: "#101828",
   },
   scrollView: {
@@ -360,6 +398,35 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    width: 280,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  modalButton: {
+    backgroundColor: "#4262FF",
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontFamily: "Roboto-Medium",
+    fontSize: 16,
   },
 });
 

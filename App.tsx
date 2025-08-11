@@ -1,17 +1,30 @@
-
-
 // App.tsx
-import React from 'react';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import TabNavigator from './src/navigation/TabNavigator';
-import { Colors } from './src/constants/colors';
+import React from "react";
+import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import TabNavigator from "./src/navigation/TabNavigator";
+import { Colors } from "./src/constants/colors";
+import NoseCamera from "./src/screens/Home/Nose/NoseCamera";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import NoseImageR from "./src/screens/Home/Nose/NoseImageRModal";
+import NoseList from "./src/screens/Home/Nose/NoseList";
+import NoseResult from "./src/screens/Home/Nose/NoseResult";
+
+const Stack = createNativeStackNavigator();
 
 const App: React.FC = () => (
   <NavigationContainer>
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.primaryLight} />
-      <TabNavigator />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={Colors.primaryLight}
+      />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen name="NoseCamera" component={NoseCamera} />
+        <Stack.Screen name="NoseList" component={NoseList} />
+        <Stack.Screen name="NoseResult" component={NoseResult} />
+      </Stack.Navigator>
     </SafeAreaView>
   </NavigationContainer>
 );
