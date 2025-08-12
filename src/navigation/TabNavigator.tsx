@@ -4,11 +4,11 @@ import {
   getFocusedRouteNameFromRoute,
   NavigatorScreenParams,
 } from "@react-navigation/native";
-import AIScreen from "../screens/Home/Lost/AIScreen";
-//import LostScreen from "../screens/Home/LostScreen";
+import LostScreen from "../screens/Home/Lost/LostScreen";
 import PetsScreen from "../screens/Home/Dog/PetsScreen";
 import CustomTabBar from "../components/CustomTabBar";
 import PetsStack from "./PetsStack";
+import LostStack from "./LostStack";
 import NoseStack, { NoseStackParamList } from "./NoseStack";
 import WalkScreen from "../screens/Home/WalkScreen";
 
@@ -37,7 +37,7 @@ const TabNavigator: React.FC = () => {
       tabBar={(props) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Walk" component={WalkScreen} />
-      <Tab.Screen name="Lost" component={AIScreen} />
+      <Tab.Screen name="Lost" component={LostStack} />
       <Tab.Screen name="Pets" component={PetsStack} />
       <Tab.Screen name="Nose" component={NoseStack} />
     </Tab.Navigator>

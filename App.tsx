@@ -9,6 +9,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import NoseImageR from "./src/screens/Home/Nose/NoseImageRModal";
 import NoseList from "./src/screens/Home/Nose/NoseList";
 import NoseResult from "./src/screens/Home/Nose/NoseResult";
+import LostPetRegister from './src/screens/Home/Lost/LostPetRegister';
+import FoundPetRegister from './src/screens/Home/Lost/FoundPetRegister';
 
 const Stack = createNativeStackNavigator();
 
