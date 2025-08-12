@@ -12,7 +12,6 @@ import NoseResult from "./src/screens/Home/Nose/NoseResult";
 import LostPetRegister from './src/screens/Home/Lost/LostPetRegister';
 import FoundPetRegister from './src/screens/Home/Lost/FoundPetRegister';
 
-
 const Stack = createNativeStackNavigator();
 
 const App: React.FC = () => (

@@ -34,7 +34,7 @@ import {
 } from "../../../services/api/NoseRegister";
 
 type NoseCameraRouteParams = {
-  fromScreen?: "PetDetail" | "NoseList";
+  fromScreen?: "PetDetail" | "NoseList" | "NoseScreen";
   petId?: string;
   hasNoseprint?: boolean;
 };
@@ -91,9 +91,12 @@ const NoseCamera = () => {
       const imageUri = `file://${photo.path}`;
       setCapturedImageUri(imageUri);
 
-      if (fromScreen === "PetDetail") {
+      // fromScreen에 따라 다른 모달 열기
+      if (fromScreen === "NoseList" || fromScreen === "NoseScreen") {
+        // 비문 등록/수정 모달 열기
         setShowNoseImageRModal(true);
       } else {
+        // 실종/발견 동물 선택 모달 열기 (기본값)
         setShowNoseImagePickModal(true);
       }
     } catch (error) {
@@ -114,9 +117,12 @@ const NoseCamera = () => {
       if (result.assets?.[0]?.uri) {
         setCapturedImageUri(result.assets[0].uri);
 
-        if (fromScreen === "PetDetail") {
+        // fromScreen에 따라 다른 모달 열기
+        if (fromScreen === "NoseList" || fromScreen === "NoseScreen") {
+          // 비문 등록/수정 모달 열기
           setShowNoseImageRModal(true);
         } else {
+          // 실종/발견 동물 선택 모달 열기 (기본값)
           setShowNoseImagePickModal(true);
         }
       }
@@ -296,7 +302,7 @@ const NoseCamera = () => {
         </View>
       </View>
 
-      {/* 모달들 */}
+      {/* 실종/발견 동물 선택 모달 (기본 카메라 사용시) */}
       <NoseImagePickModal
         visible={showNoseImagePickModal}
         imageUri={capturedImageUri}
@@ -306,6 +312,7 @@ const NoseCamera = () => {
         onFoundPet={handleFoundPet}
       />
 
+      {/* 비문 등록/수정 모달 (NoseScreen이나 PetDetail에서 온 경우) */}
       <NoseImageRModal
         visible={showNoseImageRModal}
         imageUri={capturedImageUri}

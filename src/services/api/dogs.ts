@@ -8,6 +8,7 @@ export type Dog = {
   kindNm: string;
   sexNm: string;
   dogImg: string | null;
+  nosePrintImg: string | null;
 };
 
 export type DogListResponse = {
@@ -16,7 +17,6 @@ export type DogListResponse = {
   message: string;
   data: Dog[];
 };
-
 
 export const fetchDogs = async (userId: number): Promise<Dog[]> => {
   try {

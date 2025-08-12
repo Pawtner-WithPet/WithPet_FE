@@ -16,7 +16,7 @@ export type TabParamList = {
   Walk: undefined;
   Lost: undefined;
   Pets: undefined;
-  Nose: NavigatorScreenParams<NoseStackParamList>; 
+  Nose: NavigatorScreenParams<NoseStackParamList>;
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();

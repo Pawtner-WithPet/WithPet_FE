@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
@@ -20,18 +21,20 @@ import {
   fetchNoseprintSearchList,
   NoseprintSearchResult,
 } from "../../../services/api/NoseList";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { NoseStackParamList } from "../../../navigation/NoseStack";
+import { fetchDogs, Dog } from "../../../services/api/dogs";
 
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
+  const [isRegisterDogListVisible, setIsRegisterDogListVisible] =
+    useState(false);
   const [dogList, setDogList] = useState<NoseprintPet[]>([]);
+  const [registerDogList, setRegisterDogList] = useState<Dog[]>([]);
   const [noseData, setNoseData] = useState<NoseprintSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigation =
-    useNavigation<NativeStackNavigationProp<NoseStackParamList>>();
+  const [isLoadingRegisterDogs, setIsLoadingRegisterDogs] = useState(false);
   const [isLoadingNoseData, setIsLoadingNoseData] = useState(false);
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     loadDogList();
@@ -65,9 +68,23 @@ const NoseScreen: React.FC = () => {
     }
   };
 
+  const loadRegisterDogList = async () => {
+    setIsLoadingRegisterDogs(true);
+    try {
+      const userId = 1; // 실제 사용자 ID로 교체
+      const dogs = await fetchDogs(userId);
+      setRegisterDogList(dogs);
+    } catch (error) {
+      console.error("등록용 강아지 목록 불러오기 실패:", error);
+    } finally {
+      setIsLoadingRegisterDogs(false);
+    }
+  };
+
   const handleDogButtonPress = () => {
     setIsExpanded((prev) => !prev);
     if (isDogListVisible) setIsDogListVisible(false);
+    if (isRegisterDogListVisible) setIsRegisterDogListVisible(false);
   };
 
   const handleLoadNoseDataToggle = () => {
@@ -77,11 +94,79 @@ const NoseScreen: React.FC = () => {
     }
   };
 
+  const handleNoseRegisterPress = () => {
+    setIsRegisterDogListVisible((prev) => !prev);
+    if (!isRegisterDogListVisible) {
+      loadRegisterDogList();
+    }
+  };
+
+  // Dog 타입의 nosePrintImg를 활용한 비문 등록 로직
+  const handleBiometricRegister = async (dog: Dog) => {
+    try {
+      setIsLoading(true);
+
+      if (dog.nosePrintImg) {
+        // 이미 등록된 비문이 있을 경우
+        Alert.alert(
+          "비문 등록",
+          `${dog.dogNm}에게 이미 등록된 비문 이미지가 존재합니다.\n수정하시겠습니까?`,
+          [
+            {
+              text: "아니요",
+              style: "cancel",
+            },
+            {
+              text: "네",
+              onPress: () => {
+                navigation.navigate("NoseCamera", {
+                  fromScreen: "NoseScreen",
+                  petId: String(dog.id),
+                  hasNoseprint: true, // ✅ 비문이 등록되어 있는 상태
+                });
+              },
+            },
+          ],
+        );
+      } else {
+        // 등록된 비문이 없을 경우
+        Alert.alert("비문 등록", `${dog.dogNm}의 비문을 등록하시겠습니까?`, [
+          {
+            text: "아니요",
+            style: "cancel",
+          },
+          {
+            text: "네",
+            onPress: () => {
+              navigation.navigate("NoseCamera", {
+                fromScreen: "NoseScreen",
+                petId: String(dog.id),
+              });
+            },
+          },
+        ]);
+      }
+    } catch (err) {
+      Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegisterDogSelect = (dog: Dog) => {
+    console.log("등록용 선택된 강아지:", dog.dogNm, "ID:", dog.id);
+    setIsRegisterDogListVisible(false);
+    setIsExpanded(false);
+
+    // 비문 등록/수정 로직 실행 - Dog 객체 전체를 전달
+    handleBiometricRegister(dog);
+  };
+
   const handleDogSelect = (pet: NoseprintPet) => {
     console.log("선택된 강아지:", pet.dogNm, "ID:", pet.id);
     setIsDogListVisible(false);
     setIsExpanded(false);
-    navigation.push("NoseResult", { dogId: pet.id, type: "found" }); //
+    // 이 부분에서 특정 강아지로 필터링해서 탐색 결과 다시 불러오려면 로직 추가 가능
   };
 
   const formatDate = (datetime: string): string => {
@@ -117,13 +202,6 @@ const NoseScreen: React.FC = () => {
               location={item.searchLocation}
               percentage={`${item.highestScore}`}
               image={{ uri: item.nosePrintImg }}
-              onPress={() =>
-                navigation.navigate("NoseResult", {
-                  dogId: item.searchId,
-                  type: "found",
-                  from: "list",
-                })
-              }
             />
           ))
         ) : (
@@ -133,10 +211,55 @@ const NoseScreen: React.FC = () => {
         )}
       </ScrollView>
 
-      {/* 하단 플로팅 버튼들 */}
       <View style={styles.floatingButtonsContainer}>
+        {/* 왼쪽 버튼 그룹 */}
         <View style={styles.leftButtonGroup}>
-          {/* 강아지 목록 드롭다운 */}
+          {/* 비문 등록/수정용 강아지 목록 드롭다운 - 비문 등록/수정 버튼 위에 위치 */}
+          {isRegisterDogListVisible && (
+            <View style={styles.dogListContainer}>
+              <ScrollView>
+                {isLoadingRegisterDogs ? (
+                  <View style={styles.loadingContainer}>
+                    <Text style={styles.loadingText}>로딩 중...</Text>
+                  </View>
+                ) : registerDogList.length > 0 ? (
+                  registerDogList.map((dog, index) => (
+                    <TouchableOpacity
+                      key={dog.id || index}
+                      style={styles.dogItem}
+                      onPress={() => handleRegisterDogSelect(dog)}
+                    >
+                      <View style={styles.dogItemContent}>
+                        {/* 비문 상태 아이콘을 제거하고 강아지 이름만 표시 */}
+                        <Text style={styles.dogItemText}>{dog.dogNm}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <View style={styles.emptyContainer}>
+                    <Text style={styles.emptyText}>
+                      등록된 반려견이 없습니다
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* 비문 등록/수정 버튼 */}
+          {isExpanded && (
+            <TouchableOpacity
+              style={styles.expandedButton}
+              onPress={handleNoseRegisterPress}
+            >
+              <View style={styles.expandedButtonContent}>
+                <Text style={styles.expandedButtonText}>비문 등록/수정</Text>
+                <Text style={styles.sortArrow}>▲</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* 비문 불러오기용 강아지 목록 드롭다운 - 비문 등록/수정과 비문 불러오기 사이에 위치 */}
           {isDogListVisible && (
             <View style={styles.dogListContainer}>
               <ScrollView>
@@ -149,10 +272,7 @@ const NoseScreen: React.FC = () => {
                     <TouchableOpacity
                       key={pet.id || index}
                       style={styles.dogItem}
-                      onPress={() => {
-                        console.log("눌림!", pet);
-                        handleDogSelect(pet);
-                      }}
+                      onPress={() => handleDogSelect(pet)}
                     >
                       <View style={styles.dogItemContent}>
                         <Text style={styles.dogItemText}>{pet.dogNm}</Text>
@@ -192,7 +312,7 @@ const NoseScreen: React.FC = () => {
       <View style={styles.cameraButtonContainer}>
         <FloatingBtn
           icon={cameraIcon}
-          onPress={() => navigation.navigate("NoseCamera", {})}
+          onPress={() => navigation.navigate("NoseCamera")}
         />
       </View>
     </View>
@@ -264,7 +384,7 @@ const styles = StyleSheet.create({
     width: 151,
     borderRadius: 8,
     maxHeight: 200,
-    zIndex: 1,
+    zIndex: 3,
   },
   dogItem: {
     paddingVertical: 8,
