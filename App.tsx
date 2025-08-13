@@ -24,6 +24,7 @@ import LostPetRegister from "./src/screens/Home/Lost/LostPetRegister";
 import FoundPetRegister from "./src/screens/Home/Lost/FoundPetRegister";
 import LostPostDetail from "./src/screens/Home/Lost/LostPostDetail";
 
+
 import ChatList from "./src/screens/Home/Mypage/ChatList";
 import MyAnimals from "./src/screens/Home/Mypage/MyAnimals";
 import AddProfile from "./src/screens/Home/Mypage/AddProfile";
@@ -36,6 +37,7 @@ const Stack = createNativeStackNavigator();
 const { width } = Dimensions.get("window");
 const MENU_WIDTH = Math.min(300, Math.round(width * 0.78));
 const enter_image = require('./src/assets/icons/enter_image.png');
+const icon_detail_page = require('./src/assets/icons/icon_detail_page.png');
 const chat = require('./src/assets/icons/chat.png');
 const my_pet = require('./src/assets/icons/my_pet.png');
 const setting = require('./src/assets/icons/setting.png');
@@ -54,11 +56,26 @@ export type RootStackParamList = {
   ProfileEdit: undefined;
 };
 
+interface Props {
+  profileUri?: string | null;
+  nickname: string;
+  onPress?: () => void;
+}
+
 
 const App: React.FC = () => {
   const [isMenuMounted, setMenuMounted] = useState(false); 
   const slideX = useRef(new Animated.Value(-MENU_WIDTH)).current; 
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  const [nickname, setNickname] = useState("닉네임");
+  const [profileUri, setProfileUri] = useState<string | null>(null);
+  const onPress = () => {
+    closeMenu();
+    if (navigationRef.isReady()) {
+      navigationRef.navigate("ProfileEdit");
+    }
+  };
 
   const openMenu = () => {
     if (!isMenuMounted) setMenuMounted(true);
@@ -104,6 +121,7 @@ const App: React.FC = () => {
       if (globalThis.__closeSideMenu) delete globalThis.__closeSideMenu;
     };
   }, []);
+
 
   return (
     <NavigationContainer ref={navigationRef}>
@@ -151,32 +169,53 @@ const App: React.FC = () => {
               </TouchableOpacity>
 
               {/* 프로필 영역 */}
-              <View style={styles.profileWrap}>
-                <View style={styles.avatar} />
-                <Image source={enter_image}  />
-                <TouchableOpacity style={styles.nicknameBtn}>
-                  <Text style={styles.nickname}>닉네임</Text>
-                  <Text style={styles.chevron}>{">"}</Text>
+              <View style={styles.profileContainer}>
+                <View style={styles.profileImageWrapper}>
+                  <View style={styles.petImage}>
+                    {profileUri ? (
+                      <Image source={{ uri: profileUri }} style={styles.petImageIcon} />
+                    ) : (
+                      <Image source={enter_image} style={styles.enterImageIcon} />
+                    )}
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.nicknameBtn} onPress={onPress}>
+                  <Text style={styles.nickname}>{nickname}</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.divider} />
 
               {/* 메뉴 */}
-              <MenuRow label="채팅목록" onPress={() => {
-                closeMenu();
-                if (navigationRef.isReady()) navigationRef.navigate("ChatList");
-              }} />
+              <MenuRow
+                label="채팅목록"
+                icon={chat}
+                tintColor="#000"
+                onPress={() =>
+                   {
+                  closeMenu();
+                  if (navigationRef.isReady()) navigationRef.navigate("ChatList");
+                }}
+              />
               <View style={styles.divider} />
-              <MenuRow label="등록했던 동물 목록" onPress={() => {
-                closeMenu();
-                if (navigationRef.isReady()) navigationRef.navigate("MyAnimals");
-              }} />
+              <MenuRow
+                label="등록했던 동물 목록"
+                icon={my_pet}
+                onPress={() => {
+                  closeMenu();
+                  if (navigationRef.isReady()) navigationRef.navigate("MyAnimals");
+                }}
+              />
               <View style={styles.divider} />
-              <MenuRow label="프로필 수정" onPress={() => {
-                closeMenu();
-                if (navigationRef.isReady()) navigationRef.navigate("ProfileEdit");
-              }} />
+              <MenuRow
+                label="프로필 수정"
+                icon={setting}
+                onPress={() => {
+                  closeMenu();
+                  if (navigationRef.isReady()) navigationRef.navigate("ProfileEdit");
+                }}
+              />
               <View style={styles.divider} />
 
               {/* 로그아웃 */}
@@ -209,16 +248,17 @@ const App: React.FC = () => {
 };
 
 // 사이드 메뉴 아이템
-const MenuRow: React.FC<{ label: string; onPress?: () => void }> = ({ label, onPress }) => (
+const MenuRow: React.FC<{ label: string; icon: any; onPress?: () => void; tintColor?: string }> = ({ label, icon, onPress, tintColor }) => (
   <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.8}>
+    <Image source={icon} style={[styles.rowIcon, tintColor && { tintColor }]} />
     <Text style={styles.rowText}>{label}</Text>
   </TouchableOpacity>
 );
 
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
 
-  // 사이드메뉴
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -240,29 +280,77 @@ const styles = StyleSheet.create({
   },
   closeText: { fontSize: 18, color: "#6B7280" },
 
-  profileWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    borderColor: '#eee',
+    backgroundColor: '#fff',
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#EEE",
+  profileImageWrapper: {
+    width: 80,
+    height: 80,
+    borderRadius: 100,
+    backgroundColor: '#EEE',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
-  nicknameBtn: { flexDirection: "row", alignItems: "center" },
-  nickname: { fontSize: 16, fontWeight: "700", color: "#111" },
-  chevron: { marginLeft: 8, color: "#9CA3AF", fontSize: 16 },
+  petImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  petImageIcon: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: 100,
+  },
+  enterImageIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  nicknameBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  nickname: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginRight: 10,
+  },
+  chevron: {
+    width: 16,
+    height: 16,
+    resizeMode: 'contain',
+  },
 
   divider: {
     height: 1,
     backgroundColor: "#E5E7EB",
     marginVertical: 14,
   },
-  row: { paddingVertical: 10 },
-  rowText: { fontSize: 15, color: "#111" },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  rowIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+    marginRight: 12,
+  },
+  rowText: {
+    fontSize: 17,
+    color: "#111",
+    fontWeight: "500",
+  },
 
   footer: { flex: 1, justifyContent: "flex-end", paddingBottom: 16 },
   logoutBtn: {
