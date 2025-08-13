@@ -11,7 +11,6 @@ export type LostStackParamList = {
   FoundPetRegister: undefined;
   LostPostDetail: { post: any };
 };
-
 const Stack = createNativeStackNavigator<LostStackParamList>();
 
 const LostStack = () => {

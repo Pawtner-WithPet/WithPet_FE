@@ -15,23 +15,34 @@ const ICONS = {
   user: require("../assets/icons/user.png"),
 };
 
+declare global {
+  var __openSideMenu: (() => void) | undefined;
+  var __closeSideMenu: (() => void) | undefined;
+}
+
+
 const Header: React.FC = () => (
-  <View style={styles.container}>
-    {/* 왼쪽: 유저 아이콘 */}
-    <TouchableOpacity>
-      <Image source={ICONS.user} style={styles.icon} />
-    </TouchableOpacity>
+  <>
+    <StatusBar
+      barStyle="dark-content" // 아이콘을 어두운 색으로 설정
+      backgroundColor={Colors.background} // 원하는 배경색으로 설정
+    />
+    <View style={styles.container}>
+      {/* 왼쪽: 유저 아이콘 */}
+      <TouchableOpacity onPress={() => globalThis.__openSideMenu?.()}>
+        <Image source={ICONS.user} style={styles.icon} />
+      </TouchableOpacity>
 
-    {/* 중앙: 로고 */}
-    <Image source={ICONS.logo} style={styles.logo} />
+      {/* 중앙: 로고 */}
+      <Image source={ICONS.logo} style={styles.logo} />
 
-    {/* 오른쪽: 알림 아이콘 */}
-    <TouchableOpacity>
-      <Image source={ICONS.bell} style={styles.icon} />
-    </TouchableOpacity>
-  </View>
+      {/* 오른쪽: 알림 아이콘 */}
+      <TouchableOpacity>
+        <Image source={ICONS.bell} style={styles.icon} />
+      </TouchableOpacity>
+    </View>
+  </>
 );
-
 const styles = StyleSheet.create({
   container: {
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 24,
