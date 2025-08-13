@@ -26,6 +26,7 @@ import LostPostDetail from "./src/screens/Home/Lost/LostPostDetail";
 
 import ChatList from "./src/screens/Home/Mypage/ChatList";
 import MyAnimals from "./src/screens/Home/Mypage/MyAnimals";
+import AddProfile from "./src/screens/Home/Mypage/AddProfile";
 import ProfileEdit from "./src/screens/Home/Mypage/ProfileEdit";
 
 
@@ -195,10 +196,11 @@ const App: React.FC = () => {
           <Stack.Screen name="NoseList" component={NoseList} />
           <Stack.Screen name="NoseResult" component={NoseResult} />
           <Stack.Screen name="LostPetRegister" component={LostPetRegister} />
-          <Stack.Screen name="FoundPetRegister" component={FoundPetRegister} />
+          <Stack.Screen name="FoundPetRegister" component={FoundPetRegister} /> 
           <Stack.Screen name="ChatList" component={ChatList} />
           <Stack.Screen name="MyAnimals" component={MyAnimals} />
           <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+          <Stack.Screen name="AddProfile" component={AddProfile} />
           <Stack.Screen name="LostPostDetail" component={LostPostDetail} />
         </Stack.Navigator>
       </SafeAreaView>
