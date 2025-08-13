@@ -22,6 +22,7 @@ import NoseList from "./src/screens/Home/Nose/NoseList";
 import NoseResult from "./src/screens/Home/Nose/NoseResult";
 import LostPetRegister from "./src/screens/Home/Lost/LostPetRegister";
 import FoundPetRegister from "./src/screens/Home/Lost/FoundPetRegister";
+import LostPostDetail from "./src/screens/Home/Lost/LostPostDetail";
 
 import ChatList from "./src/screens/Home/Mypage/ChatList";
 import MyAnimals from "./src/screens/Home/Mypage/MyAnimals";
@@ -198,6 +199,7 @@ const App: React.FC = () => {
           <Stack.Screen name="ChatList" component={ChatList} />
           <Stack.Screen name="MyAnimals" component={MyAnimals} />
           <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
+          <Stack.Screen name="LostPostDetail" component={LostPostDetail} />
         </Stack.Navigator>
       </SafeAreaView>
     </NavigationContainer>
