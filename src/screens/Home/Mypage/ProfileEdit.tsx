@@ -11,7 +11,8 @@ import { useNavigation } from "@react-navigation/native";
 import iconBack from "../../../assets/icons/icon_detail_page.png";
 import iconCamera from "../../../assets/icons/camera.png";
 import iconEdit from "../../../assets/icons/icon_edit.png"; 
-
+import icon_detail_page from "../../../assets/icons/icon_detail_page.png"; 
+import { launchImageLibrary, type ImageLibraryOptions } from 'react-native-image-picker';
 
 
 
@@ -19,11 +20,34 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { MyPageStackParamList } from "../../../navigation/MyPageStack";
 
 
-const profilePlaceholder = require("../../../assets/images/happy1.png");
+const profilePlaceholder = require("../../../assets/icons/enter_image.png");
+
 
 const ProfileEdit: React.FC = () => {
 
   const [nickname, setNickname] = useState("닉네임");
+  const [profileUri, setProfileUri] = useState<string | null>(null);
+  const pickImageFromGallery = async () => {
+   const options: ImageLibraryOptions = {
+     mediaType: 'photo',
+     selectionLimit: 1,
+     quality: 0.9, 
+   };
+   try {
+     const res = await launchImageLibrary(options);
+     if (res.didCancel) return; 
+     if (res.errorCode) {
+       console.warn('[ImagePicker]', res.errorCode, res.errorMessage);
+       return;
+     }
+     const uri = res.assets?.[0]?.uri;
+     if (uri) setProfileUri(uri);
+   } catch (e) {
+     console.warn('[ImagePicker] unexpected error', e);
+   }
+};
+
+
   const navigation = useNavigation<NativeStackNavigationProp<MyPageStackParamList>>();
 
 
@@ -41,8 +65,14 @@ const ProfileEdit: React.FC = () => {
       <ScrollView contentContainerStyle={styles.content}>
         {/* 프로필 이미지 */}
         <View style={styles.profileImageWrapper}>
-          <Image source={profilePlaceholder} style={styles.profileImage} />
-          <TouchableOpacity style={styles.cameraIconWrapper}>
+          {profileUri ? (
+            <Image source={{ uri: profileUri }} style={styles.profileImage} />
+          ) : (
+            <View style={styles.profileImage}>
+              <Image source={profilePlaceholder} style={styles.placeholderIcon} />
+            </View>
+          )}
+          <TouchableOpacity style={styles.cameraIconWrapper} onPress={pickImageFromGallery}>
             <Image source={iconCamera} style={styles.cameraIcon} />
           </TouchableOpacity>
         </View>
@@ -73,7 +103,7 @@ const ProfileEdit: React.FC = () => {
 const MenuRow = ({ label, onPress }: { label: string; onPress?: () => void }) => (
   <TouchableOpacity style={styles.menuRow} onPress={onPress}>
     <Text style={styles.menuLabel}>{label}</Text>
-    <Text style={styles.menuArrow}>›</Text>
+    <Image source={icon_detail_page} style={styles.menuImage} />
   </TouchableOpacity>
 );
 
@@ -85,6 +115,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 10,
+    marginTop:10,
+    marginBottom:30,
     justifyContent: "space-between",
   },
   backIcon: {
@@ -114,6 +146,13 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     backgroundColor: "#EEE",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  placeholderIcon: {
+    width: 60,  
+    height: 60,
+    resizeMode: "contain",
   },
   cameraIconWrapper: {
     position: "absolute",
@@ -134,7 +173,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    marginBottom: 16,
+    marginBottom: 30,
   },
   nickname: {
     fontSize: 16,
@@ -166,9 +205,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#111",
   },
-  menuArrow: {
-    fontSize: 18,
-    color: "#999",
+  menuImage:{
+    width: 10,
+    height: 10,
+    tintColor:"#686767"
   },
 
   confirmButton: {

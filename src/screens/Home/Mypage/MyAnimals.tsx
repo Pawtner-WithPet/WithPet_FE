@@ -11,7 +11,10 @@ import { useNavigation } from "@react-navigation/native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import happy1 from "../../../assets/images/happy1.png";
-import iconArrow from "../../../assets/icons/icon_detail_page.png";
+import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
+import iconSearch from "../../../assets/icons/icon_search.png";
+
+
 
 const MOCK_DATA = [
   {
@@ -43,6 +46,9 @@ const MOCK_DATA = [
   },
 ];
 
+
+
+
 const MyAnimals: React.FC = () => {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("전체");
@@ -65,7 +71,7 @@ const MyAnimals: React.FC = () => {
 
     return (
       <TouchableOpacity
-        onPress={() => navigation.navigate("LostPostDetail", { post, from: "MyAnimals" })}
+        onPress={() => navigation.navigate("PetDetail", { post, from: "MyAnimals" })}
         activeOpacity={0.85}
         style={styles.card}
       >
@@ -75,15 +81,26 @@ const MyAnimals: React.FC = () => {
           <Text style={styles.location}>{item.location}</Text>
           <Text style={styles.breedFeature}>{item.breed} / {item.feature}</Text>
         </View>
-        <Image source={iconArrow} style={styles.arrowIcon} />
+        <Image source={icon_detail_page} style={styles.arrowIcon} />
       </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <Header />
-      <Text style={styles.title}>내 실종 / 발견 동물</Text>
+      {/* 상단 헤더 */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerBtn}
+          onPress={() => navigation.goBack()}
+        >
+          <Image source={icon_detail_page} style={styles.headerIconBack} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>내 실종 / 발견 동물</Text>
+        <TouchableOpacity style={styles.headerBtn}>
+          <Image source={iconSearch} style={styles.headerIcon} />
+        </TouchableOpacity>
+      </View>
 
       {/* 탭 필터 */}
       <View style={styles.tabs}>
@@ -100,6 +117,8 @@ const MyAnimals: React.FC = () => {
         ))}
       </View>
 
+      <View style={styles.divider} />
+
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -112,13 +131,40 @@ const MyAnimals: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  title: {
+  container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  header: {
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop:10,
+    marginBottom:30,
+    backgroundColor: "#fff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerBtn: {
+    padding: 6,
+  },
+  headerIconBack: {
+    width: 28,
+    height: 28,
+    resizeMode: "contain",
+    transform: [{ scaleX: -1 }], // 뒤집기
+  },
+  headerIcon: {
+    width: 24,
+    height: 24,
+    resizeMode: "contain",
+  },
+  headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginLeft: 20,
-    marginTop: 12,
-    marginBottom: 6,
+    color: "#111",
   },
   tabs: {
     flexDirection: "row",
@@ -129,8 +175,11 @@ const styles = StyleSheet.create({
   tabBtn: {
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#eee",
+    borderRadius: 10,
+    width: 70,
+    height: 32,
+    alignItems: "center",
+    backgroundColor: "#D9D9D9",
   },
   tabBtnActive: {
     backgroundColor: "#4262FF",
@@ -138,10 +187,16 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#999",
+    color: "#686767",
   },
   tabTextActive: {
-    color: "#fff",
+    color: "#FFFFFF",
+  },
+
+  divider: { 
+    height: 5, 
+    backgroundColor: "#E1E1E1", 
+    marginVertical: 12 
   },
   card: {
     flexDirection: "row",

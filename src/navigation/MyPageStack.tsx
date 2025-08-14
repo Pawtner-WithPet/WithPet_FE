@@ -4,13 +4,17 @@ import ChatList from "../screens/Home/Mypage/ChatList";
 import MyAnimals from "../screens/Home/Mypage/MyAnimals";
 import ProfileEdit from "../screens/Home/Mypage/ProfileEdit";
 import AddProfile from "../screens/Home/Mypage/AddProfile";
+import LostPostDetail from "../screens/Home/Lost/LostPostDetail";
 import Header from "../components/Header";
+
 
 export type MyPageStackParamList = {
   ChatList: undefined;
   MyAnimals: undefined;
   ProfileEdit: undefined;
   AddProfile: undefined;
+  PetDetail: { petId: string };
+  LostPostDetail: { post: any; from?: "MyAnimals" | string } | undefined;
 };
 
 const Stack = createNativeStackNavigator<MyPageStackParamList>();
@@ -24,6 +28,7 @@ const MyPageStack = () => {
       <Stack.Screen name="MyAnimals" component={MyAnimals} />
       <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
       <Stack.Screen name="AddProfile" component={AddProfile} />
+      <Stack.Screen name="PetDetail" component={LostPostDetail} />
     </Stack.Navigator>
   );
 };

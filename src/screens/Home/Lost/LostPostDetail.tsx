@@ -4,6 +4,7 @@ import {
   View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, Pressable, ImageSourcePropType,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import type { RouteProp } from "@react-navigation/native";
 import { Colors } from "../../../constants/colors";
 import iconChat from "../../../assets/icons/chat.png";
 import woman from "../../../assets/icons/woman.png";
@@ -30,10 +31,14 @@ type LostPost = {
   familiar?: string;
   image?: ImageSourcePropType | { uri: string };
 };
+type LostPostDetailParams = {
+  post: any; 
+  from?: "MyAnimals" | string;
+};
 
 const LostPostDetail: React.FC = () => {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
+  const route = useRoute<RouteProp<Record<string, LostPostDetailParams>, string>>();
   const { post, from } = route.params;
   const showComplete = from === 'MyAnimals';
 
@@ -43,6 +48,7 @@ const LostPostDetail: React.FC = () => {
   let lastTap = 0;
 
   const isFound = post.status === "발견";
+  const fromMyAnimals = route.params?.from === "MyAnimals";
 
   const coverSource: ImageSourcePropType = useMemo(
     () => (post.image ? (post.image as ImageSourcePropType) : (happy1 as ImageSourcePropType)),
@@ -175,7 +181,7 @@ const LostPostDetail: React.FC = () => {
       </ScrollView>
 
       {/* 완료하기 버튼 */}
-      {showComplete && (
+      {fromMyAnimals && (
       <View style={styles.bottomBar}>
           <TouchableOpacity style={styles.primaryBtn} onPress={() => setConfirmOpen(true)}>
             <Text style={styles.primaryBtnText}>완료하기</Text>

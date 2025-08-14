@@ -50,7 +50,13 @@ const AddProfile: React.FC = () => {
         <Text style={styles.hint}>4~15자의 영어 또는 숫자 조합</Text>
 
         {/* 확인 버튼 */}
-        <TouchableOpacity style={styles.submitBtn}>
+        <TouchableOpacity
+          style={[
+            styles.submitBtn,
+            { backgroundColor: nickname.trim() ? "#4262FF" : "#ccc" },
+          ]}
+          disabled={!nickname.trim()}
+        >
           <Text style={styles.submitText}>확인</Text>
         </TouchableOpacity>
       </View>
@@ -65,7 +71,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 10,
+    paddingBottom: 30,
     justifyContent: "space-between",
   },
   backIcon: {
