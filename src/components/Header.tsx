@@ -12,8 +12,9 @@ import {
   StatusBar,
 } from "react-native";
 import { Colors } from "../constants/colors";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation,  type NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { MyPageStackParamList } from '../navigation/MyPageStack';
 
 const ICONS = {
   logo: require("../assets/icons/logo.png"),
@@ -27,7 +28,7 @@ const ICONS = {
 
 type RootStackParamList = {
   MainTabs: undefined;
-  MyPageStack: { screen: 'ChatList' | 'MyAnimals' | 'ProfileEdit' | 'AddProfile' } | undefined;
+  MyPageStack: NavigatorScreenParams<MyPageStackParamList>;
   NoseCamera: undefined;
   NoseList: undefined;
   NoseResult: { noseId?: string } | undefined;
@@ -69,7 +70,7 @@ const Header: React.FC = () => {
           <Image source={ICONS.user} style={styles.icon} />
         </TouchableOpacity>
         <Image source={ICONS.logo} style={styles.logo} />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("MyPageStack", { screen: "Notifications" })} >
           <Image source={ICONS.bell} style={styles.icon} />
         </TouchableOpacity>
       </View>

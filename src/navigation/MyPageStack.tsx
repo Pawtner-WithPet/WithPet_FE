@@ -1,6 +1,7 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ChatList from "../screens/Home/Mypage/ChatList";
+import Notifications from "../screens/Home/Mypage/Notifications";
 import MyAnimals from "../screens/Home/Mypage/MyAnimals";
 import ProfileEdit from "../screens/Home/Mypage/ProfileEdit";
 import AddProfile from "../screens/Home/Mypage/AddProfile";
@@ -17,6 +18,7 @@ export type MyPageStackParamList = {
   AddProfile: undefined;
   PetDetail: { petId: string };
   LostPostDetail: { post: any; from?: "MyAnimals" | string } | undefined;
+  Notifications: undefined;
 };
 
 const Stack = createNativeStackNavigator<MyPageStackParamList>();
@@ -32,6 +34,7 @@ const MyPageStack = () => {
       <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
       <Stack.Screen name="AddProfile" component={AddProfile} />
       <Stack.Screen name="PetDetail" component={LostPostDetail} />
+      <Stack.Screen name="Notifications" component={Notifications} />
     </Stack.Navigator>
   );
 };
