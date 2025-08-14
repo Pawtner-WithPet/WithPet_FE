@@ -1,5 +1,4 @@
 // src/components/Header.tsx
-
 import React, { useRef, useState } from "react";
 import {
   View,
@@ -13,24 +12,10 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
-import { NavigationContainer, createNavigationContainerRef, NavigatorScreenParams  } from "@react-navigation/native";
 import { Colors } from "../constants/colors";
-import TabNavigator, { TabParamList } from "../navigation/TabNavigator";
 
-
-export const navigationRef = createNavigationContainerRef<RootStackParamList>();
-
-export type RootStackParamList = {
-  MainTabs: NavigatorScreenParams<TabParamList>;
-  NoseCamera: undefined;
-  NoseList: undefined;
-  NoseResult: undefined;
-  LostPetRegister: undefined;
-  FoundPetRegister: undefined;
-  ChatList: undefined;
-  MyAnimals: undefined;
-  ProfileEdit: undefined;
-};
+// ✅ 전역 내비 helper만 사용 (useNavigation/NavigationContainer/Ref 생성 금지)
+import { navigate } from "../navigation/RootNavigation";
 
 const ICONS = {
   logo: require("../assets/icons/logo.png"),
@@ -45,56 +30,26 @@ const ICONS = {
 const { width } = Dimensions.get("window");
 const MENU_WIDTH = Math.min(300, Math.round(width * 0.78));
 
-interface Props {
-  profileUri?: string | null;
-  nickname: string;
-  onPress?: () => void;
-}
-
 const Header: React.FC = () => {
   const [isMenuVisible, setMenuVisible] = useState(false);
   const slideX = useRef(new Animated.Value(-MENU_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
-  const [nickname, setNickname] = useState("닉네임");
-  const [profileUri, setProfileUri] = useState<string | null>(null);
-  const onPress = () => {
-    closeMenu();
-    if (navigationRef.isReady()) {
-      navigationRef.navigate("ProfileEdit");
-    }
-  };
-
-
+  const [nickname] = useState("닉네임");
+  const [profileUri] = useState<string | null>(null);
 
   const openMenu = () => {
     setMenuVisible(true);
     Animated.parallel([
-      Animated.timing(slideX, {
-        toValue: 0,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 1,
-        duration: 180,
-        useNativeDriver: true,
-      }),
+      Animated.timing(slideX, { toValue: 0, duration: 220, useNativeDriver: true }),
+      Animated.timing(backdropOpacity, { toValue: 1, duration: 180, useNativeDriver: true }),
     ]).start();
   };
 
   const closeMenu = () => {
     Animated.parallel([
-      Animated.timing(slideX, {
-        toValue: -MENU_WIDTH,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(backdropOpacity, {
-        toValue: 0,
-        duration: 160,
-        useNativeDriver: true,
-      }),
+      Animated.timing(slideX, { toValue: -MENU_WIDTH, duration: 200, useNativeDriver: true }),
+      Animated.timing(backdropOpacity, { toValue: 0, duration: 160, useNativeDriver: true }),
     ]).start(() => setMenuVisible(false));
   };
 
@@ -124,73 +79,66 @@ const Header: React.FC = () => {
             <Pressable onPress={closeMenu} style={StyleSheet.absoluteFill} />
           </Animated.View>
 
-          <Animated.View
-            style={[
-              styles.sidePanel,
-              { transform: [{ translateX: slideX }], zIndex: 2 },
-            ]}
-          >
+          <Animated.View style={[styles.sidePanel, { transform: [{ translateX: slideX }], zIndex: 2 }]}>
             {/* 상단 닫기 버튼 */}
-            <TouchableOpacity
-              onPress={closeMenu}
-              style={styles.closeBtn}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+            <TouchableOpacity onPress={closeMenu} style={styles.closeBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.closeText}>✕</Text>
             </TouchableOpacity>
 
             {/* 프로필 영역 */}
             <View style={styles.profileContainer}>
-                <View style={styles.profileImageWrapper}>
-                  <View style={styles.petImage}>
-                    {profileUri ? (
-                      <Image source={{ uri: profileUri }} style={styles.petImageIcon} />
-                    ) : (
-                      <Image source={ICONS.enter_image} style={styles.enterImageIcon} />
-                    )}
-                  </View>
+              <View style={styles.profileImageWrapper}>
+                <View style={styles.petImage}>
+                  {profileUri ? (
+                    <Image source={{ uri: profileUri }} style={styles.petImageIcon} />
+                  ) : (
+                    <Image source={ICONS.enter_image} style={styles.enterImageIcon} />
+                  )}
                 </View>
-
-                <TouchableOpacity style={styles.nicknameBtn} onPress={onPress}>
-                  <Text style={styles.nickname}>{nickname}</Text>
-                </TouchableOpacity>
               </View>
 
-            {/* 메뉴 구분선 */}
+              <TouchableOpacity
+                style={styles.nicknameBtn}
+                onPress={() => {
+                  closeMenu();
+                  navigate("ProfileEdit");
+                }}
+              >
+                <Text style={styles.nickname}>{nickname}</Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.divider} />
 
             {/* 메뉴 목록 */}
-             <MenuRow
-                label="채팅목록"
-                icon={ICONS.chat}
-                tintColor="#000"
-                onPress={() =>
-                   {
-                  closeMenu();
-                  if (navigationRef.isReady()) navigationRef.navigate("ChatList");
-                }}
-              />
-              <View style={styles.divider} />
-              <MenuRow
-                label="등록했던 동물 목록"
-                icon={ICONS.my_pet}
-                onPress={() => {
-                  closeMenu();
-                  if (navigationRef.isReady()) navigationRef.navigate("MyAnimals");
-                }}
-              />
-              <View style={styles.divider} />
-              <MenuRow
-                label="프로필 수정"
-                icon={ICONS.setting}
-                onPress={() => {
-                  closeMenu();
-                  if (navigationRef.isReady()) navigationRef.navigate("ProfileEdit");
-                }}
-              />
+            <MenuRow
+              label="채팅목록"
+              icon={ICONS.chat}
+              onPress={() => {
+                closeMenu();
+                navigate("ChatList");
+              }}
+            />
+            <View style={styles.divider} />
+            <MenuRow
+              label="등록했던 동물 목록"
+              icon={ICONS.my_pet}
+              onPress={() => {
+                closeMenu();
+                navigate("MyAnimals");
+              }}
+            />
+            <View style={styles.divider} />
+            <MenuRow
+              label="프로필 수정"
+              icon={ICONS.setting}
+              onPress={() => {
+                closeMenu();
+                navigate("ProfileEdit");
+              }}
+            />
             <View style={styles.divider} />
 
-            {/* 로그아웃 */}
             <View style={styles.logoutWrap}>
               <TouchableOpacity style={styles.logoutBtn}>
                 <Text style={styles.logoutText}>로그아웃</Text>
@@ -203,7 +151,7 @@ const Header: React.FC = () => {
   );
 };
 
-const MenuRow: React.FC<{ icon: any; label: string; onPress: () => void; tintColor?: string  }> = ({ icon, label, onPress }) => (
+const MenuRow: React.FC<{ icon: any; label: string; onPress: () => void }> = ({ icon, label, onPress }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.8}>
     <Image source={icon} style={styles.menuIcon} />
     <Text style={styles.menuLabel}>{label}</Text>
@@ -224,13 +172,12 @@ const styles = StyleSheet.create({
   logo: { width: 46, height: 23, resizeMode: "contain" },
   icon: { width: 24, height: 24, tintColor: "black" },
 
-  // 사이드바
   sidePanel: {
     position: "absolute",
     left: 0,
     top: 0,
     bottom: 0,
-    width: MENU_WIDTH,
+    width: Math.min(300, Math.round(Dimensions.get("window").width * 0.78)),
     backgroundColor: "#fff",
     paddingTop: 16,
     paddingHorizontal: 16,
@@ -238,96 +185,24 @@ const styles = StyleSheet.create({
   closeBtn: { alignSelf: "flex-end", padding: 6 },
   closeText: { fontSize: 18, color: "#6B7280" },
 
-  profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-  },
-  profileImageWrapper: {
-    width: 80,
-    height: 80,
-    borderRadius: 100,
-    backgroundColor: '#EEE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  petImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  petImageIcon: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    borderRadius: 100,
-  },
-  enterImageIcon: {
-    width: 40,
-    height: 40,
-    resizeMode: 'contain',
-  },
-  nicknameBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  nickname: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginRight: 10,
-  },
-  chevron: {
-    width: 16,
-    height: 16,
-    resizeMode: 'contain',
-  },
+  profileContainer: { flexDirection: "row", alignItems: "center", paddingVertical: 20, paddingHorizontal: 16 },
+  profileImageWrapper: { width: 80, height: 80, borderRadius: 100, backgroundColor: "#EEE", alignItems: "center", justifyContent: "center", marginRight: 12 },
+  petImage: { width: 80, height: 80, borderRadius: 100, alignItems: "center", justifyContent: "center" },
+  petImageIcon: { width: "100%", height: "100%", resizeMode: "cover", borderRadius: 100 },
+  enterImageIcon: { width: 40, height: 40, resizeMode: "contain" },
 
-  divider: {
-    height: 1,
-    backgroundColor: "#E5E7EB",
-    marginVertical: 12,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-  },
-  menuIcon: {
-    width: 20,
-    height: 20,
-    resizeMode: "contain",
-    marginRight: 12,
-  },
-  menuLabel: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#111",
-  },
-  logoutWrap: {
-    flex: 1,
-    justifyContent: "flex-end",
-    paddingBottom: 20,
-    paddingLeft: 8,
-  },
-  logoutBtn: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    alignSelf: "flex-start",
-    backgroundColor: "#F5F6F8",
-  },
-  logoutText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#6B7280",
-  },
+  nicknameBtn: { flexDirection: "row", alignItems: "center" },
+  nickname: { fontSize: 22, fontWeight: "bold", marginRight: 10 },
+
+  divider: { height: 1, backgroundColor: "#E5E7EB", marginVertical: 12 },
+
+  menuItem: { flexDirection: "row", alignItems: "center", paddingVertical: 10, paddingHorizontal: 8 },
+  menuIcon: { width: 20, height: 20, resizeMode: "contain", marginRight: 12 },
+  menuLabel: { fontSize: 15, fontWeight: "500", color: "#111" },
+
+  logoutWrap: { flex: 1, justifyContent: "flex-end", paddingBottom: 20, paddingLeft: 8 },
+  logoutBtn: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 16, paddingHorizontal: 10, paddingVertical: 5, alignSelf: "flex-start", backgroundColor: "#F5F6F8" },
+  logoutText: { fontSize: 12, fontWeight: "600", color: "#6B7280" },
 });
 
 export default Header;

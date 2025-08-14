@@ -12,14 +12,11 @@ import LostStack from "./LostStack";
 import NoseStack, { NoseStackParamList } from "./NoseStack";
 import WalkScreen from "../screens/Home/WalkScreen";
 
-import MyPageStack, {MyPageStackParamList} from "./MyPageStack";
-
 export type TabParamList = {
   Walk: undefined;
   Lost: undefined;
   Pets: undefined;
   Nose: NavigatorScreenParams<NoseStackParamList>; 
-  MyPage: NavigatorScreenParams<MyPageStackParamList>; 
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -43,7 +40,6 @@ const TabNavigator: React.FC = () => {
       <Tab.Screen name="Lost" component={LostStack} />
       <Tab.Screen name="Pets" component={PetsStack} />
       <Tab.Screen name="Nose" component={NoseStack} />
-      
     </Tab.Navigator>
   );
 };

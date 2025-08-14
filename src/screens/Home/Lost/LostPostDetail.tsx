@@ -34,8 +34,6 @@ type LostPost = {
 const LostPostDetail: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const from = route.params?.from ?? "";
-  const showCompleteBtn = from === "MyAnimals";
   const post: LostPost = route.params?.post ?? {};
 
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -176,13 +174,11 @@ const LostPostDetail: React.FC = () => {
       </ScrollView>
 
       {/* 완료하기 버튼 */}
-      {showCompleteBtn && (
-        <View style={styles.bottomBar}>
-            <TouchableOpacity style={styles.primaryBtn} onPress={() => setConfirmOpen(true)}>
-              <Text style={styles.primaryBtnText}>완료하기</Text>
-            </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.bottomBar}>
+          <TouchableOpacity style={styles.primaryBtn} onPress={() => setConfirmOpen(true)}>
+            <Text style={styles.primaryBtnText}>완료하기</Text>
+          </TouchableOpacity>
+      </View>
 
       <Modal visible={confirmOpen} transparent animationType="fade" onRequestClose={() => setConfirmOpen(false)} >
         <View style={styles.popupBackdrop}>

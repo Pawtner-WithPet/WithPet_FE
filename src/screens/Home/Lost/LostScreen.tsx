@@ -101,10 +101,10 @@ const LostPetListScreen: React.FC = () => {
     };
     return (
       <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate("LostPostDetail", { post, from: "LostScreen" })}
-        style={styles.card}
-      >
+      activeOpacity={0.85}
+      onPress={() => navigation.navigate("LostPostDetail", { post })}
+      style={styles.card}
+    >
       <View style={[styles.badge, isLost ? styles.badgeLost : styles.badgeFound]}>
         <Text style={styles.badgeText}>{item.status}</Text>
       </View>
