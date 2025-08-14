@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 import React, { useRef, useState } from "react";
 import {
   View,
@@ -13,9 +12,8 @@ import {
   StatusBar,
 } from "react-native";
 import { Colors } from "../constants/colors";
-
-// ✅ 전역 내비 helper만 사용 (useNavigation/NavigationContainer/Ref 생성 금지)
-import { navigate } from "../navigation/RootNavigation";
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const ICONS = {
   logo: require("../assets/icons/logo.png"),
@@ -25,6 +23,14 @@ const ICONS = {
   chat: require("../assets/icons/chat.png"),
   my_pet: require("../assets/icons/my_pet.png"),
   setting: require("../assets/icons/setting.png"),
+};
+
+type RootStackParamList = {
+  MainTabs: undefined;
+  MyPageStack: { screen: 'ChatList' | 'MyAnimals' | 'ProfileEdit' | 'AddProfile' } | undefined;
+  NoseCamera: undefined;
+  NoseList: undefined;
+  NoseResult: { noseId?: string } | undefined;
 };
 
 const { width } = Dimensions.get("window");
@@ -37,6 +43,8 @@ const Header: React.FC = () => {
 
   const [nickname] = useState("닉네임");
   const [profileUri] = useState<string | null>(null);
+
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const openMenu = () => {
     setMenuVisible(true);
@@ -101,7 +109,7 @@ const Header: React.FC = () => {
                 style={styles.nicknameBtn}
                 onPress={() => {
                   closeMenu();
-                  navigate("ProfileEdit");
+                  navigation.navigate("MyPageStack", { screen: "ProfileEdit" });
                 }}
               >
                 <Text style={styles.nickname}>{nickname}</Text>
@@ -116,7 +124,7 @@ const Header: React.FC = () => {
               icon={ICONS.chat}
               onPress={() => {
                 closeMenu();
-                navigate("ChatList");
+                navigation.navigate("MyPageStack", { screen: "ChatList" });
               }}
             />
             <View style={styles.divider} />
@@ -125,7 +133,7 @@ const Header: React.FC = () => {
               icon={ICONS.my_pet}
               onPress={() => {
                 closeMenu();
-                navigate("MyAnimals");
+                navigation.navigate("MyPageStack", { screen: "MyAnimals" });
               }}
             />
             <View style={styles.divider} />
@@ -134,7 +142,7 @@ const Header: React.FC = () => {
               icon={ICONS.setting}
               onPress={() => {
                 closeMenu();
-                navigate("ProfileEdit");
+                navigation.navigate("MyPageStack", { screen: "ProfileEdit" });
               }}
             />
             <View style={styles.divider} />
@@ -153,7 +161,7 @@ const Header: React.FC = () => {
 
 const MenuRow: React.FC<{ icon: any; label: string; onPress: () => void }> = ({ icon, label, onPress }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.8}>
-    <Image source={icon} style={styles.menuIcon} />
+    <Image source={icon} style={[styles.menuIcon, { tintColor: 'black' }]} />
     <Text style={styles.menuLabel}>{label}</Text>
   </TouchableOpacity>
 );

@@ -9,7 +9,7 @@ export type LostStackParamList = {
   LostPetListScreen: undefined;
   LostPetRegister: undefined;
   FoundPetRegister: undefined;
-  LostPostDetail: { post: any };
+  LostPostDetail: { petId: string } | { post: any };
 };
 const Stack = createNativeStackNavigator<LostStackParamList>();
 

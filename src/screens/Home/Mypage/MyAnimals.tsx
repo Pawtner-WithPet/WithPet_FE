@@ -1,16 +1,185 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Header from "../../../components/Header";
+import { Colors } from "../../../constants/colors";
+import happy1 from "../../../assets/images/happy1.png";
+import iconArrow from "../../../assets/icons/icon_detail_page.png";
+
+const MOCK_DATA = [
+  {
+    id: "1",
+    status: "실종",
+    dateTime: "2025.03.01 11:25",
+    location: "서울특별시 도봉구",
+    breed: "견종",
+    feature: "특징",
+    image: happy1,
+  },
+  {
+    id: "2",
+    status: "발견",
+    dateTime: "2025.03.01 11:25",
+    location: "서울특별시 도봉구",
+    breed: "견종",
+    feature: "특징",
+    image: happy1,
+  },
+  {
+    id: "3",
+    status: "실종",
+    dateTime: "2025.03.01 11:25",
+    location: "서울특별시 도봉구",
+    breed: "견종",
+    feature: "특징",
+    image: happy1,
+  },
+];
 
 const MyAnimals: React.FC = () => {
+  const navigation = useNavigation<any>();
+  const [activeTab, setActiveTab] = useState("전체");
+
+  const filtered = activeTab === "전체"
+    ? MOCK_DATA
+    : MOCK_DATA.filter(d => d.status === activeTab);
+
+  const renderItem = ({ item }: { item: typeof MOCK_DATA[0] }) => {
+    const post = {
+      id: item.id,
+      status: item.status,
+      breed: item.breed,
+      feature: item.feature,
+      location: item.location,
+      lostDateTime: item.status === "실종" ? item.dateTime : undefined,
+      foundDateTime: item.status === "발견" ? item.dateTime : undefined,
+      image: item.image,
+    };
+
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate("LostPostDetail", { post, from: "MyAnimals" })}
+        activeOpacity={0.85}
+        style={styles.card}
+      >
+        <Image source={item.image} style={styles.image} />
+        <View style={styles.cardInfo}>
+          <Text style={styles.date}>{item.dateTime}</Text>
+          <Text style={styles.location}>{item.location}</Text>
+          <Text style={styles.breedFeature}>{item.breed} / {item.feature}</Text>
+        </View>
+        <Image source={iconArrow} style={styles.arrowIcon} />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <Text>내 동물 목록 화면</Text>
+      <Header />
+      <Text style={styles.title}>내 실종 / 발견 동물</Text>
+
+      {/* 탭 필터 */}
+      <View style={styles.tabs}>
+        {["전체", "실종", "발견"].map(label => (
+          <TouchableOpacity
+            key={label}
+            onPress={() => setActiveTab(label)}
+            style={[styles.tabBtn, activeTab === label && styles.tabBtnActive]}
+          >
+            <Text style={[styles.tabText, activeTab === label && styles.tabTextActive]}>
+              {label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
+        ListEmptyComponent={<Text style={{ textAlign: "center", marginTop: 40 }}>데이터 없음</Text>}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: { flex: 1, backgroundColor: Colors.background },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 20,
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  tabs: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 8,
+    marginBottom: 12,
+  },
+  tabBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "#eee",
+  },
+  tabBtnActive: {
+    backgroundColor: "#4262FF",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#999",
+  },
+  tabTextActive: {
+    color: "#fff",
+  },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 10,
+  },
+  image: {
+    width: 70,
+    height: 70,
+    borderRadius: 50,
+    marginRight: 12,
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  date: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#111",
+    marginBottom: 2,
+  },
+  location: {
+    fontSize: 13,
+    color: "#555",
+    marginBottom: 2,
+  },
+  breedFeature: {
+    fontSize: 13,
+    color: "#777",
+  },
+  arrowIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#000",
+  },
 });
 
 export default MyAnimals;
