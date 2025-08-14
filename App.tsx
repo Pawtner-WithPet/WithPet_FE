@@ -11,23 +11,24 @@ import NoseList from "./src/screens/Home/Nose/NoseList";
 import NoseResult from "./src/screens/Home/Nose/NoseResult";
 import LostPetRegister from "./src/screens/Home/Lost/LostPetRegister";
 import FoundPetRegister from "./src/screens/Home/Lost/FoundPetRegister";
-import LoginScreen from "./src/screens/Auth/LoginScreen"; // 로그인 스크린 import
+import LoginScreen from "./src/screens/Auth/LoginScreen";
+import SignUpScreen from "./src/screens/Auth/SignUpScreen"; // SignUpScreen import 추가
 
 const Stack = createNativeStackNavigator();
 
 const App: React.FC = () => (
   <NavigationContainer>
     <SafeAreaView style={styles.safe}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={Colors.primaryLight}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <Stack.Navigator
-        screenOptions={{ headerShown: false }}
-        initialRouteName="Login" // 초기 화면을 Login으로 설정
+        initialRouteName="Login"
+        screenOptions={{
+          headerShown: false,
+        }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="Main" component={TabNavigator} />
         <Stack.Screen name="NoseCamera" component={NoseCamera} />
         <Stack.Screen name="NoseList" component={NoseList} />
         <Stack.Screen name="NoseResult" component={NoseResult} />
