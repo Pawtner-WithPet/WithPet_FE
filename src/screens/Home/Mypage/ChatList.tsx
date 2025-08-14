@@ -84,7 +84,7 @@ const ChatList: React.FC = () => {
 
 
   const renderItem = ({ item }: { item: Chat }) => (
-    <TouchableOpacity style={styles.chatItem} activeOpacity={0.9}>
+    <TouchableOpacity style={styles.chatItem} activeOpacity={0.9} onPress={() => navigation.navigate("ChatRoom" as never)}>
       {/* 왼쪽 프로필 */}
       {item.profile ? (
         <Image source={item.profile} style={styles.avatar} />

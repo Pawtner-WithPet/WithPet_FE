@@ -5,11 +5,13 @@ import MyAnimals from "../screens/Home/Mypage/MyAnimals";
 import ProfileEdit from "../screens/Home/Mypage/ProfileEdit";
 import AddProfile from "../screens/Home/Mypage/AddProfile";
 import LostPostDetail from "../screens/Home/Lost/LostPostDetail";
+import ChatRoom from "../screens/Home/Mypage/ChatRoom";
 import Header from "../components/Header";
 
 
 export type MyPageStackParamList = {
   ChatList: undefined;
+  ChatRoom: undefined;
   MyAnimals: undefined;
   ProfileEdit: undefined;
   AddProfile: undefined;
@@ -25,6 +27,7 @@ const MyPageStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ChatList" component={ChatList} />
+      <Stack.Screen name="ChatRoom" component={ChatRoom} />
       <Stack.Screen name="MyAnimals" component={MyAnimals} />
       <Stack.Screen name="ProfileEdit" component={ProfileEdit} />
       <Stack.Screen name="AddProfile" component={AddProfile} />
