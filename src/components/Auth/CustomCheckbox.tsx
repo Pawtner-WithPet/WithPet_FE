@@ -26,11 +26,12 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 19,
+    marginTop: 8,
   },
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 23,
+    height: 23,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: "#E0E0E0",
@@ -40,8 +41,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   checkedBox: {
-    backgroundColor: "#4A90E2",
-    borderColor: "#4A90E2",
+    backgroundColor: "#4262FF",
+    borderColor: "#4262FF",
   },
   checkmark: {
     color: "#FFFFFF",
@@ -50,7 +51,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: "#333333",
+    fontWeight: "bold",
+    color: "#686767",
   },
 });
 

@@ -35,7 +35,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         value={id}
         onChangeText={setId}
         autoCapitalize="none"
-        placeholderTextColor="#999"
+        placeholderTextColor="#B9B9B9"
       />
 
       <TextInput
@@ -44,7 +44,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        placeholderTextColor="#999"
+        placeholderTextColor="#B9B9B9"
       />
 
       <CustomCheckbox
@@ -62,28 +62,29 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
 const styles = StyleSheet.create({
   formContainer: {
-    marginBottom: 30,
+    marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#D9D9D9",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 16,
-    marginBottom: 16,
-    backgroundColor: "#FAFAFA",
+    fontWeight: "bold",
+    marginBottom: 11,
+    backgroundColor: "#FFFFFF",
   },
   loginButton: {
-    backgroundColor: "#9E9E9E",
-    paddingVertical: 16,
+    backgroundColor: "#B9B9B9",
+    paddingVertical: 17,
     borderRadius: 8,
     alignItems: "center",
   },
   loginButtonText: {
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "bold",
   },
 });
 

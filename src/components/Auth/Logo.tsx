@@ -16,11 +16,12 @@ const Logo: React.FC = () => {
 const styles = StyleSheet.create({
   logoContainer: {
     alignItems: "center",
-    marginBottom: 60,
+    marginBottom: 67,
+    marginTop: 60,
   },
   titleImage: {
-    width: 300,
-    height: 120,
+    width: "80%",
+    height: 130,
   },
 });
 

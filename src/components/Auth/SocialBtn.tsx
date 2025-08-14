@@ -1,5 +1,5 @@
 import React from "react";
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, View, Image, StyleSheet } from "react-native";
 
 interface SocialBtnProps {
   type: "google" | "kakao" | "naver";
@@ -11,27 +11,19 @@ const SocialBtn: React.FC<SocialBtnProps> = ({ type, onPress }) => {
     switch (type) {
       case "google":
         return {
-          backgroundColor: "#fff",
-          icon: "G",
-          iconStyle: styles.googleIcon,
+          icon: require("../../assets/icons/Google.png"),
         };
       case "kakao":
         return {
-          backgroundColor: "#FEE500",
-          icon: "💬",
-          iconStyle: styles.kakaoIcon,
+          icon: require("../../assets/icons/Kakao.png"),
         };
       case "naver":
         return {
-          backgroundColor: "#03C75A",
-          icon: "N",
-          iconStyle: styles.naverIcon,
+          icon: require("../../assets/icons/Naver.png"),
         };
       default:
         return {
-          backgroundColor: "#fff",
-          icon: "",
-          iconStyle: {},
+          icon: null,
         };
     }
   };
@@ -40,14 +32,7 @@ const SocialBtn: React.FC<SocialBtnProps> = ({ type, onPress }) => {
 
   return (
     <TouchableOpacity style={styles.snsButton} onPress={onPress}>
-      <View
-        style={[
-          styles.snsIconContainer,
-          { backgroundColor: config.backgroundColor },
-        ]}
-      >
-        <Text style={config.iconStyle}>{config.icon}</Text>
-      </View>
+      {config.icon && <Image source={config.icon} style={styles.iconImage} />}
     </TouchableOpacity>
   );
 };
@@ -55,34 +40,15 @@ const SocialBtn: React.FC<SocialBtnProps> = ({ type, onPress }) => {
 const styles = StyleSheet.create({
   snsButton: {
     alignItems: "center",
-  },
-  snsIconContainer: {
     width: 60,
     height: 60,
-    borderRadius: 30,
-    alignItems: "center",
     justifyContent: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    marginHorizontal: 15,
   },
-  googleIcon: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#4285F4",
-  },
-  kakaoIcon: {
-    fontSize: 20,
-  },
-  naverIcon: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#FFFFFF",
+  iconImage: {
+    width: 55,
+    height: 55,
+    resizeMode: "contain",
   },
 });
 
