@@ -118,6 +118,7 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
 
   return (
     <>
+      {/* 상단 헤더 그라데이션 배경 */}
       <LinearGradient
         colors={[
           "rgba(255, 255, 255, 0.9)",
@@ -127,6 +128,8 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
         locations={[0, 0.5, 1]}
         style={styles.headerGradient}
       />
+
+      {/* 메인 카드 */}
       <View style={styles.container}>
         <View style={styles.petTagsContainer}>
           <TouchableOpacity
@@ -196,6 +199,8 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
           </View>
         </View>
       </View>
+
+      {/* 컨트롤 버튼들 */}
       <View style={styles.controlsContainer}>
         <TouchableOpacity style={styles.pauseButton} onPress={handlePause}>
           <Image
@@ -211,6 +216,17 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
           <Text style={styles.stopButtonText}>산책 기록 종료</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 하단 그라데이션 배경 */}
+      <LinearGradient
+        colors={[
+          "rgba(255, 255, 255, 0)",
+          "rgba(255, 255, 255, 0.7)",
+          "rgba(255, 255, 255, 0.9)",
+        ]}
+        locations={[0, 0.5, 1]}
+        style={styles.bottomGradient}
+      />
     </>
   );
 };
@@ -334,5 +350,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  bottomGradient: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    zIndex: 1,
   },
 });

@@ -120,9 +120,7 @@ const WalkScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="white" />
-        {/* 여기에 뒤로가기 버튼을 추가할 수 있습니다 */}
-        <WalkListScreen />
-        {/* 임시로 뒤로가기를 위한 처리 - 실제로는 헤더나 네비게이션 바에 구현 */}
+        <WalkListScreen onBack={handleBackFromWalkList} />
       </SafeAreaView>
     );
   }

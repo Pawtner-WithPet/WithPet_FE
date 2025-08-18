@@ -11,10 +11,10 @@ import { WalkRecord, Pet } from "../../../types/index";
 import { WalkRecordsList } from "../../../components/Walk/WalkRecordsList";
 
 interface WalkListScreenProps {
-  onBack?: () => void; // 뒤로가기 콜백 추가
+  onBack?: () => void; // 뒤로가기 콜백
 }
 
-export const WalkListScreen: React.FC = ({}) => {
+export const WalkListScreen: React.FC<WalkListScreenProps> = ({ onBack }) => {
   // 샘플 펫 데이터
   const samplePets: Pet[] = [
     { id: 1, name: "해피", isActive: true },
@@ -58,11 +58,17 @@ export const WalkListScreen: React.FC = ({}) => {
     // 여기서 상세 화면으로 네비게이션하거나 다른 액션을 수행할 수 있습니다.
   };
 
+  const handleBackPress = () => {
+    if (onBack) {
+      onBack();
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerButtons}>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
             <Image
               source={require("../../../assets/icons/Vector.png")}
               style={[styles.backButtonImage, { transform: [{ scaleX: -1 }] }]} // 좌우 반전
@@ -74,7 +80,7 @@ export const WalkListScreen: React.FC = ({}) => {
           <TouchableOpacity style={styles.searchButton}>
             <Image
               source={require("../../../assets/icons/search.png")}
-              style={styles.searchButtonImage} // 스타일 추가
+              style={styles.searchButtonImage}
             />
           </TouchableOpacity>
         </View>
@@ -102,7 +108,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center", // 세로 중앙 정렬 추가
+    alignItems: "center",
     elevation: 5, // Android용 그림자
     shadowColor: "#000", // iOS용 그림자 색상
     shadowOffset: { width: 0, height: 2 }, // 그림자 위치
@@ -141,7 +147,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-
   recordsContainer: {
     flex: 1,
     marginTop: 14,
