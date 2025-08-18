@@ -1,14 +1,13 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import ChatList from "../screens/Home/Mypage/ChatList";
-import Notifications from "../screens/Home/Mypage/Notifications";
-import MyAnimals from "../screens/Home/Mypage/MyAnimals";
-import ProfileEdit from "../screens/Home/Mypage/ProfileEdit";
-import AddProfile from "../screens/Home/Mypage/AddProfile";
+import ChatList from "../screens/Auth/Mypage/ChatList";
+import Notifications from "../screens/Auth/Mypage/Notifications";
+import MyAnimals from "../screens/Auth/Mypage/MyAnimals";
+import ProfileEdit from "../screens/Auth/Mypage/ProfileEdit";
+import AddProfile from "../screens/Auth/Mypage/AddProfile";
 import LostPostDetail from "../screens/Home/Lost/LostPostDetail";
-import ChatRoom from "../screens/Home/Mypage/ChatRoom";
+import ChatRoom from "../screens/Auth/Mypage/ChatRoom";
 import Header from "../components/Header";
-
 
 export type MyPageStackParamList = {
   ChatList: undefined;
@@ -22,8 +21,6 @@ export type MyPageStackParamList = {
 };
 
 const Stack = createNativeStackNavigator<MyPageStackParamList>();
-
-
 
 const MyPageStack = () => {
   return (

@@ -23,14 +23,28 @@ type Message = {
   text?: string;
   imageUri?: string;
   read?: boolean;
-  time: string; 
+  time: string;
 };
 
 const mockMessages: Message[] = [
-  { id: "1", side: "me", text: "안녕하세요 뿡뿡이 뿡뿡이.", read: true, time: "00:00" },
+  { id: "1", side: "me", text: "안녕하세요", read: true, time: "00:00" },
   { id: "2", side: "other", text: "안녕하세요 뿡뿡이 뿡뿡이.", time: "00:00" },
-  { id: "3", side: "me", text: "", imageUri: "image://dummy1", read: true, time: "00:00" },
-  { id: "4", side: "me", text: "", imageUri: "image://dummy2", read: false, time: "00:00" },
+  {
+    id: "3",
+    side: "me",
+    text: "",
+    imageUri: "image://dummy1",
+    read: true,
+    time: "00:00",
+  },
+  {
+    id: "4",
+    side: "me",
+    text: "",
+    imageUri: "image://dummy2",
+    read: false,
+    time: "00:00",
+  },
 ];
 
 const ChatRoom: React.FC = () => {
@@ -45,8 +59,8 @@ const ChatRoom: React.FC = () => {
       {/* 상단 알림 배너 */}
       <View style={styles.noticeWrap}>
         <Text style={styles.noticeText}>
-          사례금을 노린 허위 제보는 법령에 따라 처벌받을 수 있으나
-          서비스 이용 시 유의하여 주시길 바랍니다.
+          사례금을 노린 허위 제보는 법령에 따라 처벌받을 수 있으나 서비스 이용
+          시 유의하여 주시길 바랍니다.
         </Text>
       </View>
 
@@ -64,27 +78,41 @@ const ChatRoom: React.FC = () => {
     const isMe = item.side === "me";
 
     // 말풍선(텍스트/이미지)
-    const bubble =
-      item.imageUri ? (
-        <View style={[styles.imageBubble, isMe ? styles.bubbleRight : styles.bubbleLeft]} />
-      ) : (
-        <View
-          style={[
-            styles.bubble,
-            isMe ? styles.bubbleMe : styles.bubbleOther,
-            isMe ? styles.bubbleRight : styles.bubbleLeft,
-          ]}
-        >
-          <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>
-            {item.text}
-          </Text>
-        </View>
-      );
+    const bubble = item.imageUri ? (
+      <View
+        style={[
+          styles.imageBubble,
+          isMe ? styles.bubbleRight : styles.bubbleLeft,
+        ]}
+      />
+    ) : (
+      <View
+        style={[
+          styles.bubble,
+          isMe ? styles.bubbleMe : styles.bubbleOther,
+          isMe ? styles.bubbleRight : styles.bubbleLeft,
+        ]}
+      >
+        <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>
+          {item.text}
+        </Text>
+      </View>
+    );
 
     // 읽음/시간 라벨
     const statusLine = isMe ? (
-      <View style={[styles.statusRow, { alignSelf: isMe ? "flex-end" : "flex-start" }]}>
-        <Text style={[styles.readLabel, item.read ? styles.readBlue : styles.readRed]}>
+      <View
+        style={[
+          styles.statusRow,
+          { alignSelf: isMe ? "flex-end" : "flex-start" },
+        ]}
+      >
+        <Text
+          style={[
+            styles.readLabel,
+            item.read ? styles.readBlue : styles.readRed,
+          ]}
+        >
           {item.read ? "읽음" : "안읽음"}
         </Text>
         <Text style={styles.timeLabel}>{item.time}</Text>
@@ -97,25 +125,23 @@ const ChatRoom: React.FC = () => {
 
     return (
       <View style={[styles.row, isMe ? styles.rowRight : styles.rowLeft]}>
-        {isMe ? (
-          <>
-            {bubble}
-          </>
-        ) : (
-          <>
-            {bubble}
-          </>
-        )}
+        {isMe ? <>{bubble}</> : <>{bubble}</>}
         {statusLine}
       </View>
     );
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       {/* 상단 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.headerBtn}
+        >
           <Image source={iconBack} style={styles.backIcon} />
         </TouchableOpacity>
 
@@ -189,12 +215,22 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   headerBtn: { padding: 6, marginRight: 6 },
-  backIcon: { width: 24, height: 24, transform: [{ scaleX: -1 }], tintColor: "#111" },
+  backIcon: {
+    width: 24,
+    height: 24,
+    transform: [{ scaleX: -1 }],
+    tintColor: "#111",
+  },
   titleWrap: { flex: 1, alignItems: "center" },
   title: { fontSize: 18, fontWeight: "800", color: "#111" },
   subtitle: { fontSize: 12, color: "#999", marginTop: 2 },
   rightWrap: { width: 36, alignItems: "flex-end" },
-  headerAvatar: { width: 30, height: 30, borderRadius: 14, backgroundColor: "#EEE" },
+  headerAvatar: {
+    width: 30,
+    height: 30,
+    borderRadius: 14,
+    backgroundColor: "#EEE",
+  },
 
   /* 공지/날짜 */
   noticeWrap: {
@@ -205,7 +241,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F8FA",
     borderRadius: 12,
   },
-  noticeText: { fontSize: 12, color: "#666", lineHeight: 18, textAlign: "center" },
+  noticeText: {
+    fontSize: 12,
+    color: "#666",
+    lineHeight: 18,
+    textAlign: "center",
+  },
   thinDivider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: "#E5E7EB",
@@ -266,7 +307,9 @@ const styles = StyleSheet.create({
   /* 입력 바 */
   inputBar: {
     position: "absolute",
-    left: 0, right: 0, bottom: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F7F8FA",
@@ -276,10 +319,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   plusBtn: {
-    width: 34, height: 34, borderRadius: 17,
-    borderWidth: 1, borderColor: "#E5E7EB",
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
     backgroundColor: "#fff",
-    alignItems: "center", justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 8,
   },
   plusText: { fontSize: 22, color: "#9CA3AF", lineHeight: 22 },
@@ -295,9 +342,12 @@ const styles = StyleSheet.create({
   },
   input: { fontSize: 14, color: "#111", paddingVertical: 0 },
   sendBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     marginLeft: 8,
-    alignItems: "center", justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: BLUE,
   },
   sendIcon: { color: "#fff", fontSize: 16, fontWeight: "800" },

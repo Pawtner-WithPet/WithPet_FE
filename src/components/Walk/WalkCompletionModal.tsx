@@ -45,7 +45,7 @@ export const WalkCompletionModal: React.FC<WalkCompletionModalProps> = ({
         <View style={styles.modalContainer}>
           {/* 닫기 버튼 */}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
+            <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
 
           <View style={styles.heartContainer}>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContainer: {
-    backgroundColor: "#2A2A2A",
+    backgroundColor: "#00000080",
     borderRadius: 20,
     padding: 10,
     width: "85%",
@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   closeButtonText: {
-    color: "white",
-    fontSize: 20,
+    color: "#FFFFFF",
+    fontSize: 25,
     fontWeight: "bold",
   },
   heartContainer: {

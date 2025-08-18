@@ -29,9 +29,10 @@ const mockChats: Chat[] = [
   {
     id: 1,
     name: "포포",
-    preview: "혹시 근처에서 보셨나요?",
-    unreadCount: 2,
-    updatedAt: "2025-08-15T15:42:00+09:00",
+    preview: "아이 상태가 괜찮은가요?",
+    profile: require("../../../assets/images/happy1.png"),
+    unreadCount: 0,
+    updatedAt: "2025-08-14T12:10:00+09:00",
   },
   {
     id: 2,
