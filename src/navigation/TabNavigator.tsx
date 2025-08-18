@@ -12,6 +12,7 @@ import LostStack from "./LostStack";
 import NoseStack, { NoseStackParamList } from "./NoseStack";
 import WalkScreen from "../screens/Home/Walk/WalkSreen";
 
+
 export type TabParamList = {
   Walk: undefined;
   Lost: undefined;

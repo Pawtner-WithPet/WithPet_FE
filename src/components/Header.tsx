@@ -10,6 +10,7 @@ import {
   Pressable,
   Platform,
   StatusBar,
+  SafeAreaView,
 } from "react-native";
 import { Colors } from "../constants/colors";
 import {
@@ -84,20 +85,25 @@ const Header: React.FC = () => {
 
   return (
     <>
+      {/* StatusBar 검은색 아이콘 */}
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={openMenu}>
-          <Image source={ICONS.user} style={styles.icon} />
-        </TouchableOpacity>
-        <Image source={ICONS.logo} style={styles.logo} />
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("MyPageStack", { screen: "Notifications" })
-          }
-        >
-          <Image source={ICONS.bell} style={styles.icon} />
-        </TouchableOpacity>
-      </View>
+
+      {/* SafeAreaView로 StatusBar 겹침 방지 */}
+      <SafeAreaView style={{ backgroundColor: Colors.background }}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={openMenu}>
+            <Image source={ICONS.user} style={styles.icon} />
+          </TouchableOpacity>
+          <Image source={ICONS.logo} style={styles.logo} />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("MyPageStack", { screen: "Notifications" })
+            }
+          >
+            <Image source={ICONS.bell} style={styles.icon} />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
 
       {isMenuVisible && (
         <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -216,9 +222,7 @@ const MenuRow: React.FC<{ icon: any; label: string; onPress: () => void }> = ({
 
 const styles = StyleSheet.create({
   headerContainer: {
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 24,
-    height:
-      56 + (Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0),
+    height: 56,
     backgroundColor: Colors.background,
     flexDirection: "row",
     justifyContent: "space-between",

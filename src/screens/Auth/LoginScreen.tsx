@@ -7,57 +7,50 @@ import LoginForm from "../../components/Auth/LoginForm";
 import AuthLinks from "../../components/Auth/AuthLinks";
 import SocialLoginSection from "../../components/Auth/SocialLoginSection";
 
+// RootStackParamList에 MainTabs 추가
 type RootStackParamList = {
   Login: undefined;
   SignUp: undefined;
-  Main: undefined;
+  MainTabs: undefined; // 수정됨
+  Main: undefined; // 필요하다면 유지
 };
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "Login"
->;
+// RootStack 전체를 참조하는 navigation 타입
+type RootStackNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LoginScreen = () => {
-  const navigation = useNavigation<LoginScreenNavigationProp>();
+  const navigation = useNavigation<RootStackNavigationProp>();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [autoLogin, setAutoLogin] = useState(false);
 
   const handleLogin = () => {
-    console.log("로그인 시도:", { id, password, autoLogin });
-    navigation.navigate("Main");
+    navigation.navigate("MainTabs"); // ✅ 오류 없음
   };
 
   const handleFindId = () => {
     console.log("아이디 찾기");
-    // 아이디 찾기 로직
   };
 
   const handleFindPassword = () => {
     console.log("비밀번호 찾기");
-    // 비밀번호 찾기 로직
   };
 
   const handleSignUp = () => {
     console.log("회원가입");
-    // 회원가입 스크린으로 이동
-    navigation.navigate("SignUp");
+    navigation.navigate("SignUp"); // ✅ 오류 없음
   };
 
   const handleGoogleLogin = () => {
     console.log("구글 로그인");
-    // 구글 로그인 로직
   };
 
   const handleKakaoLogin = () => {
     console.log("카카오 로그인");
-    // 카카오 로그인 로직
   };
 
   const handleNaverLogin = () => {
     console.log("네이버 로그인");
-    // 네이버 로그인 로직
   };
 
   return (
