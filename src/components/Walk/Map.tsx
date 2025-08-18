@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Geolocation from "@react-native-community/geolocation";
+import Svg, { Path } from "react-native-svg";
 
 interface MapProps {
   onMenuPress?: () => void; // 메뉴 버튼 클릭 핸들러
@@ -19,8 +20,55 @@ interface Location {
   longitude: number;
 }
 
+interface AlertMarker {
+  id: string;
+  latitude: number;
+  longitude: number;
+  type: "warning" | "danger" | "info";
+  x: number; // 화면상의 x 좌표
+  y: number; // 화면상의 y 좌표
+}
+
 export const Map: React.FC<MapProps> = ({ onMenuPress }) => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
+  const [showRoute, setShowRoute] = useState(false);
+  const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
+
+  // 알림 마커들 (사진 기반으로 위치 설정)
+  const alertMarkers: AlertMarker[] = [
+    {
+      id: "1",
+      latitude: 37.5675,
+      longitude: 126.975,
+      type: "warning",
+      x: 150,
+      y: 200,
+    },
+    {
+      id: "2",
+      latitude: 37.5685,
+      longitude: 126.98,
+      type: "warning",
+      x: 300,
+      y: 180,
+    },
+    {
+      id: "4",
+      latitude: 37.5645,
+      longitude: 126.982,
+      type: "danger",
+      x: 320,
+      y: 120,
+    },
+    {
+      id: "5",
+      latitude: 37.5635,
+      longitude: 126.985,
+      type: "info",
+      x: 380,
+      y: 380,
+    },
+  ];
 
   useEffect(() => {
     // 현재 위치 가져오기 (시뮬레이션)
@@ -64,6 +112,61 @@ export const Map: React.FC<MapProps> = ({ onMenuPress }) => {
     getCurrentLocation();
   };
 
+  const handleMarkerPress = (markerId: string) => {
+    if (selectedMarker === markerId) {
+      // 같은 마커를 다시 클릭하면 경로 숨기기
+      setShowRoute(false);
+      setSelectedMarker(null);
+    } else {
+      // 다른 마커를 클릭하면 새로운 경로 표시
+      setSelectedMarker(markerId);
+      setShowRoute(true);
+    }
+  };
+
+  const getMarkerColor = (type: string) => {
+    switch (type) {
+      case "warning":
+        return "#FFA500"; // 오렌지
+      case "danger":
+        return "#FF4444"; // 빨강
+      case "info":
+        return "#00AA00"; // 초록
+      default:
+        return "#FFA500";
+    }
+  };
+
+  // 선택된 마커까지의 경로를 동적으로 생성 (도로를 따라)
+  const getRoutePath = () => {
+    if (!selectedMarker) return "";
+
+    const marker = alertMarkers.find((m) => m.id === selectedMarker);
+    if (!marker) return "";
+
+    // 현재 위치 (화면 중앙 하단)
+    const startX = 300;
+    const startY = 395;
+
+    // 마커 위치 (마커 중심점)
+    const endX = marker.x + 15;
+    const endY = marker.y + 15;
+
+    // 각 마커별로 도로를 따라가는 경로 정의
+    switch (marker.id) {
+      case "1": // 왼쪽 위 마커
+        return `M${startX},${startY} L180,380 Q160,360 140,340 L130,320 Q125,300 130,280 L140,260 Q150,240 ${endX},${endY}`;
+      case "2": // 오른쪽 위 마커
+        return `M${startX},${startY} L220,380 Q240,360 260,340 L280,320 Q290,300 295,280 L300,260 Q305,240 ${endX},${endY}`;
+      case "4": // 오른쪽 상단 마커
+        return `M${startX},${startY}  Q250,350 270,330 L290,310 Q300,290 310,270 L315,250 Q320,230 325,210 L200,175 Q380,170 ${endX},${endY}`;
+      case "5": // 오른쪽 하단 마커
+        return `M${startX},${startY} L240,390 Q260,385 280,380 L300,375 Q320,370 340,365 L360,360 Q370,355 ${endX},${endY}`;
+      default:
+        return `M${startX},${startY} L${endX},${endY}`;
+    }
+  };
+
   return (
     <View style={styles.mapContainer}>
       {/* 정적 지도 이미지 */}
@@ -72,6 +175,41 @@ export const Map: React.FC<MapProps> = ({ onMenuPress }) => {
         style={styles.mapImage}
         resizeMode="cover"
       />
+
+      {/* 파란 경로 선 */}
+      {showRoute && selectedMarker && (
+        <View style={styles.routeContainer}>
+          <Svg height="100%" width="100%" style={StyleSheet.absoluteFillObject}>
+            <Path
+              d={getRoutePath()}
+              stroke="#4285F4"
+              strokeWidth="4"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </View>
+      )}
+
+      {/* 알림 마커들 */}
+      {alertMarkers.map((marker) => (
+        <TouchableOpacity
+          key={marker.id}
+          style={[
+            styles.alertMarker,
+            {
+              left: marker.x,
+              top: marker.y,
+              backgroundColor: getMarkerColor(marker.type),
+            },
+            selectedMarker === marker.id && styles.selectedMarker,
+          ]}
+          onPress={() => handleMarkerPress(marker.id)}
+        >
+          <Text style={styles.alertMarkerText}>!</Text>
+        </TouchableOpacity>
+      ))}
 
       {/* 시뮬레이션된 현재 위치 마커 */}
       {currentLocation && (
@@ -171,6 +309,43 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     resizeMode: "contain",
+  },
+  // 새로 추가된 알림 마커 스타일
+  alertMarker: {
+    position: "absolute",
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
+    zIndex: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  selectedMarker: {
+    transform: [{ scale: 1.2 }],
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  alertMarkerText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  // 경로 선을 위한 컨테이너
+  routeContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 4,
   },
   headerGradient: {
     position: "absolute",
