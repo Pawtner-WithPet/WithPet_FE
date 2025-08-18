@@ -10,39 +10,56 @@ import {
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
-import icon_search from "../../../assets/icons/search.png";
+import icon_search from "../../../assets/icons/icon_search.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import happy1 from "../../../assets/images/happy1.png";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { LostStackParamList } from "../../../navigation/LostStack";
 import LostPostDetail from "./LostPostDetail";
-
-type NavigationProp = NativeStackNavigationProp<LostStackParamList>;
 
 const DATA = [
   {
     id: "1",
     status: "실종",
+    gender: "female" as "male" | "female",
+    name: "포포",
+    age: "1살",
+    breed: "포메라니안",
+    height: "25cm",
+    weight: "3.5kg",
+    feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
+    extra: "사례금 100만원\n찾으시면 채팅보다는 연락처로 전화주세요.",
     dateTime: "2025.03.01 11:25",
     location: "서울특별시 도봉구",
-    breed: "견종 / 특징",
     image: happy1,
   },
   {
     id: "2",
     status: "발견",
-    dateTime: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    breed: "견종 / 특징",
+    gender: "male" as "male" | "female",
+    name: "루이",
+    age: "2살",
+    breed: "시바견",
+    height: "30cm",
+    weight: "5kg",
+    feature: "활발하고 사람을 잘 따름.",
+    extra: "주인 찾습니다. 연락주세요.",
+    dateTime: "2025.03.02 14:10",
+    location: "서울특별시 강남구",
     image: happy1,
   },
   {
     id: "3",
     status: "실종",
-    dateTime: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    breed: "견종 / 특징",
+    gender: "female" as "male" | "female",
+    name: "보리",
+    age: "3살",
+    breed: "믹스견",
+    height: "28cm",
+    weight: "4kg",
+    feature: "낯을 많이 가리고 조용함.",
+    extra: "사례금 50만원\n발견 시 꼭 연락 부탁드립니다.",
+    dateTime: "2025.03.03 09:45",
+    location: "서울특별시 성북구",
     image: happy1,
   },
 ];
@@ -63,7 +80,7 @@ const LostPetListScreen: React.FC = () => {
             item.status === (activeTab === "실종동물" ? "실종" : "발견"),
         );
 
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
 
   // petcard
   const renderItem = ({ item }: { item: (typeof DATA)[0] }) => {
@@ -72,15 +89,17 @@ const LostPetListScreen: React.FC = () => {
     const post = {
       id: item.id,
       status: item.status as "실종" | "발견",
-      name: "포포",
-      age: "1살",
-      breed: "포메라니안",
-      height: "미측정",
-      weight: "미측정",
-      location: "서울 강북구 수유역 부근",
-      lostDateTime: "2025.03.01 오후 3시경",
-      feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
-      extra: "사례금 100만원\n찾으시면 채팅보다는 연락처로 전화주세요.",
+      gender: item.gender,
+      name: item.name,
+      age: item.age,
+      breed: item.breed,
+      height: item.height,
+      weight: item.weight,
+      location: item.location,
+      lostDateTime: item.status === "실종" ? item.dateTime : undefined,
+      foundDateTime: item.status === "발견" ? item.dateTime : undefined,
+      feature: item.feature,
+      extra: item.extra,
       image: item.image ?? happy1,
     };
     return (
@@ -104,13 +123,6 @@ const LostPetListScreen: React.FC = () => {
         <Image source={icon_detail_page} style={styles.arrowIcon} />
       </TouchableOpacity>
     );
-  };
-
-  // 반려견 선택 시 AIScreen으로 이동하는 함수
-  const handlePetSelection = (petName: string) => {
-    setDropdownVisible(false);
-    setPetToggleVisible(false);
-    navigation.navigate("AIScreen", { selectedPet: petName });
   };
 
   return (
@@ -175,7 +187,9 @@ const LostPetListScreen: React.FC = () => {
                   <TouchableOpacity
                     key={pet}
                     style={styles.dropdownItem}
-                    onPress={() => handlePetSelection(pet)} // 수정된 부분
+                    onPress={() => {
+                      setDropdownVisible(false);
+                    }}
                   >
                     <Text style={styles.dropdownText}>{pet}</Text>
                   </TouchableOpacity>

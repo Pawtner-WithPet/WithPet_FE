@@ -4,16 +4,13 @@ import LostPetListScreen from "../screens/Home/Lost/LostScreen";
 import LostPetRegister from "../screens/Home/Lost/LostPetRegister";
 import FoundPetRegister from "../screens/Home/Lost/FoundPetRegister";
 import LostPostDetail from "../screens/Home/Lost/LostPostDetail";
-import AIScreen from "../screens/Home/Lost/AIScreen";
 
 export type LostStackParamList = {
   LostPetListScreen: undefined;
   LostPetRegister: undefined;
   FoundPetRegister: undefined;
-  LostPostDetail: { post: any };
-  AIScreen: { selectedPet?: string };
+  LostPostDetail: { petId: string } | { post: any };
 };
-
 const Stack = createNativeStackNavigator<LostStackParamList>();
 
 const LostStack = () => {
@@ -23,7 +20,6 @@ const LostStack = () => {
       <Stack.Screen name="LostPetRegister" component={LostPetRegister} />
       <Stack.Screen name="FoundPetRegister" component={FoundPetRegister} />
       <Stack.Screen name="LostPostDetail" component={LostPostDetail} />
-      <Stack.Screen name="AIScreen" component={AIScreen} />
     </Stack.Navigator>
   );
 };
