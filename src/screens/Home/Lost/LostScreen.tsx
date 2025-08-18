@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
-import icon_search from "../../../assets/icons/icon_search.png";
+import icon_search from "../../../assets/icons/search.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import happy1 from "../../../assets/images/happy1.png";
 import { useNavigation } from "@react-navigation/native";

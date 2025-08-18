@@ -46,20 +46,29 @@ const LostPostDetail: React.FC = () => {
     <View style={styles.container}>
       {/* 상단 헤더 */}
       <View style={styles.headerWrapper}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Image source={icon_detail_page} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>동물 상세보기</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 커버 이미지 */}
         <View style={styles.coverWrap}>
           <Image source={happy1} style={styles.cover} resizeMode="cover" />
           <TouchableOpacity
             style={styles.fabSmall}
             activeOpacity={0.9}
-            onPress={() => { setZoomScale(1); setZoomOpen(true); }}
+            onPress={() => {
+              setZoomScale(1);
+              setZoomOpen(true);
+            }}
           >
             <Image source={iconZoom} />
           </TouchableOpacity>
@@ -86,28 +95,36 @@ const LostPostDetail: React.FC = () => {
               <View
                 style={[
                   styles.genderPill,
-                  pet.gender === "female" ? styles.genderActive : styles.genderInactive,
+                  pet.gender === "female"
+                    ? styles.genderActive
+                    : styles.genderInactive,
                 ]}
               >
                 <Image
                   source={woman}
                   style={[
                     styles.genderIcon,
-                    pet.gender === "female" ? styles.genderIconActive : styles.genderIconInactive,
+                    pet.gender === "female"
+                      ? styles.genderIconActive
+                      : styles.genderIconInactive,
                   ]}
                 />
               </View>
               <View
                 style={[
                   styles.genderPill,
-                  pet.gender === "male" ? styles.genderActive : styles.genderInactive,
+                  pet.gender === "male"
+                    ? styles.genderActive
+                    : styles.genderInactive,
                 ]}
               >
                 <Image
                   source={man}
                   style={[
                     styles.genderIcon,
-                    pet.gender === "male" ? styles.genderIconActive : styles.genderIconInactive,
+                    pet.gender === "male"
+                      ? styles.genderIconActive
+                      : styles.genderIconInactive,
                   ]}
                 />
               </View>
@@ -116,10 +133,10 @@ const LostPostDetail: React.FC = () => {
 
           {/* 칩 4개 */}
           <View style={styles.chipsRow}>
-            <Chip label="나이"  value={pet.age} />
-            <Chip label="견종"  value={pet.breed} />
-            <Chip label="신장"  value={pet.height} />
-            <Chip label="체중"  value={pet.weight} />
+            <Chip label="나이" value={pet.age} />
+            <Chip label="견종" value={pet.breed} />
+            <Chip label="신장" value={pet.height} />
+            <Chip label="체중" value={pet.weight} />
           </View>
 
           {/* 카드 내부 본문 섹션들 */}
@@ -146,53 +163,62 @@ const LostPostDetail: React.FC = () => {
               사례금 100만원{"\n"}찾으시면 채팅보다는 연락처로 전화주세요.
             </Text>
           </View>
-        
 
           {/* 산책 경로 및 익숙한 장소 */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>산책 경로 및 익숙한 장소</Text>
             <View style={styles.mapPlaceholder}>
-              <Text style={{ color: "#777", fontSize: 12 }}>지도 영역 (플레이스홀더)</Text>
+              <Text style={{ color: "#777", fontSize: 12 }}>
+                지도 영역 (플레이스홀더)
+              </Text>
             </View>
           </View>
-        <Modal
-  visible={zoomOpen}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setZoomOpen(false)}
->
-  <Pressable
-    style={styles.zoomBackdrop}
-    onPress={() => {
-      const now = Date.now();
-      if (now - lastTap < 250) {
-        // 더블탭: 1x <-> 2x 토글
-        setZoomScale((s) => (s > 1 ? 1 : 2));
-      }
-      lastTap = now;
-    }}
-  >
-    <Image
-      source={happy1}
-      resizeMode="contain"
-      style={[styles.zoomImage, { transform: [{ scale: zoomScale }] }]}
-    />
-    <TouchableOpacity style={styles.zoomClose} onPress={() => setZoomOpen(false)}>
-      <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>닫기</Text>
-    </TouchableOpacity>
-  </Pressable>
-</Modal>
-
-        
+          <Modal
+            visible={zoomOpen}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setZoomOpen(false)}
+          >
+            <Pressable
+              style={styles.zoomBackdrop}
+              onPress={() => {
+                const now = Date.now();
+                if (now - lastTap < 250) {
+                  // 더블탭: 1x <-> 2x 토글
+                  setZoomScale((s) => (s > 1 ? 1 : 2));
+                }
+                lastTap = now;
+              }}
+            >
+              <Image
+                source={happy1}
+                resizeMode="contain"
+                style={[
+                  styles.zoomImage,
+                  { transform: [{ scale: zoomScale }] },
+                ]}
+              />
+              <TouchableOpacity
+                style={styles.zoomClose}
+                onPress={() => setZoomOpen(false)}
+              >
+                <Text
+                  style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}
+                >
+                  닫기
+                </Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Modal>
         </View>
       </ScrollView>
 
       {/* 하단 CTA */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.primaryBtn}>
-            <Text style={styles.primaryBtnText}>완료하기</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={styles.primaryBtn}>
+          <Text style={styles.primaryBtnText}>완료하기</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -312,7 +338,12 @@ const styles = StyleSheet.create({
 
   // 섹션
   section: { paddingHorizontal: 18, paddingTop: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: "800", color: "#111", marginBottom: 6 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111",
+    marginBottom: 6,
+  },
   sectionBody: { fontSize: 13, color: "#333" },
 
   featureText: { fontSize: 13, color: "#333", lineHeight: 18 },
@@ -327,43 +358,41 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-
-
   zoomBackdrop: {
-  flex: 1,
-  backgroundColor: "#000",
-  alignItems: "center",
-  justifyContent: "center",
-},
-zoomImage: {
-  width: "100%",
-  height: "100%",
-},
-zoomClose: {
-  position: "absolute",
-  top: 36,
-  right: 20,
-  paddingVertical: 8,
-  paddingHorizontal: 14,
-  backgroundColor: "#00000066",
-  borderRadius: 20,
-},
+    flex: 1,
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  zoomImage: {
+    width: "100%",
+    height: "100%",
+  },
+  zoomClose: {
+    position: "absolute",
+    top: 36,
+    right: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: "#00000066",
+    borderRadius: 20,
+  },
 
   bottomBar: {
-  position: "absolute",
-  left: 0,
-  right: 0,
-  bottom: 0,
-  padding: 12,
-  backgroundColor: "#ffffffee",
-},  
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 12,
+    backgroundColor: "#ffffffee",
+  },
   primaryBtn: {
-  height: 54,
-  borderRadius: 14,
-  backgroundColor: "#4262FF",
-  alignItems: "center",
-  justifyContent: "center",
-},
+    height: 54,
+    borderRadius: 14,
+    backgroundColor: "#4262FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   primaryBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
 });
 
