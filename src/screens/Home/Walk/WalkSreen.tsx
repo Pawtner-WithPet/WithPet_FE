@@ -131,7 +131,10 @@ const WalkScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      <Map onMenuPress={handleMenuPress} />
+      <Map
+        onMenuPress={handleMenuPress}
+        isWalkRecordVisible={isWalkingStarted}
+      />
       {!isWalkingStarted && <StartBtn onPress={handleStartWalk} />}
       {/* Only render WalkRecordCard when selectedPet is not null */}
       {isWalkingStarted && selectedPet && (

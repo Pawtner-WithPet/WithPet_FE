@@ -13,6 +13,7 @@ import Svg, { Path } from "react-native-svg";
 
 interface MapProps {
   onMenuPress?: () => void; // 메뉴 버튼 클릭 핸들러
+  isWalkRecordVisible?: boolean; // 산책 기록 카드 표시 여부
 }
 
 interface Location {
@@ -29,7 +30,10 @@ interface AlertMarker {
   y: number; // 화면상의 y 좌표
 }
 
-export const Map: React.FC<MapProps> = ({ onMenuPress }) => {
+export const Map: React.FC<MapProps> = ({
+  onMenuPress,
+  isWalkRecordVisible = false,
+}) => {
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [showRoute, setShowRoute] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
@@ -260,7 +264,12 @@ export const Map: React.FC<MapProps> = ({ onMenuPress }) => {
       </View>
 
       {/* 오른쪽 위치 및 메뉴 버튼들 */}
-      <View style={styles.rightButtons}>
+      <View
+        style={[
+          styles.rightButtons,
+          isWalkRecordVisible && styles.rightButtonsWithCard,
+        ]}
+      >
         <TouchableOpacity
           style={styles.locationButton}
           onPress={handleLocationPress}
@@ -398,6 +407,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "90%",
     zIndex: 10,
+  },
+  rightButtonsWithCard: {
+    bottom: 10, // 카드가 표시될 때 더 위로 이동
   },
   locationButton: {
     width: 51,
