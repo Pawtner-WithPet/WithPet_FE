@@ -1,4 +1,3 @@
-// App.tsx
 import React from "react";
 import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -6,13 +5,12 @@ import TabNavigator from "./src/navigation/TabNavigator";
 import { Colors } from "./src/constants/colors";
 import NoseCamera from "./src/screens/Home/Nose/NoseCamera";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import NoseImageR from "./src/screens/Home/Nose/NoseImageRModal";
 import NoseList from "./src/screens/Home/Nose/NoseList";
 import NoseResult from "./src/screens/Home/Nose/NoseResult";
 import LostPetRegister from "./src/screens/Home/Lost/LostPetRegister";
 import FoundPetRegister from "./src/screens/Home/Lost/FoundPetRegister";
 import LoginScreen from "./src/screens/Auth/LoginScreen";
-import SignUpScreen from "./src/screens/Auth/SignUpScreen"; // SignUpScreen import 추가
+import SignUpScreen from "./src/screens/Auth/SignUpScreen";
 
 const Stack = createNativeStackNavigator();
 

@@ -26,9 +26,7 @@ const LoginScreen = () => {
 
   const handleLogin = () => {
     console.log("로그인 시도:", { id, password, autoLogin });
-    // 로그인 로직 구현
-    // 로그인 성공 시 Main 화면으로 이동
-    // navigation.navigate('Main');
+    navigation.navigate("Main");
   };
 
   const handleFindId = () => {
