@@ -189,6 +189,9 @@ const LostPetListScreen: React.FC = () => {
                     style={styles.dropdownItem}
                     onPress={() => {
                       setDropdownVisible(false);
+                      setPetToggleVisible(false);
+                      // 같은 스택 내에서 AIScreen으로 이동
+                      navigation.navigate("AIScreen", { selectedPet: pet });
                     }}
                   >
                     <Text style={styles.dropdownText}>{pet}</Text>
