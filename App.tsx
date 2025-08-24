@@ -17,6 +17,7 @@ import LostPetRegister from "./src/screens/Home/Lost/LostPetRegister";
 import FoundPetRegister from "./src/screens/Home/Lost/FoundPetRegister";
 import LoginScreen from "./src/screens/Auth/LoginScreen";
 import SignUpScreen from "./src/screens/Auth/SignUpScreen";
+import ChatRoom from "./src/screens/Auth/Mypage/ChatRoom"; 
 
 // 루트 스택 타입 정의
 export type RootStackParamList = {
@@ -29,6 +30,7 @@ export type RootStackParamList = {
   NoseResult: { noseId?: string } | undefined;
   LostPetRegister: undefined;
   FoundPetRegister: undefined;
+  ChatRoom: { roomId?: string; title?: string; subtitle?: string; avatar?: any;} | undefined;
 };
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
@@ -60,6 +62,9 @@ const App: React.FC = () => (
           name="FoundPetRegister"
           component={FoundPetRegister}
         />
+
+        {/* Chat */}
+        <RootStack.Screen name="ChatRoom" component={ChatRoom} />
       </RootStack.Navigator>
     </SafeAreaView>
   </NavigationContainer>

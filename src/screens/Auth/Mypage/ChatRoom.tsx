@@ -21,27 +21,18 @@ type Message = {
   id: string;
   side: "me" | "other";
   text?: string;
-  imageUri?: string;
+  image?: string;
   read?: boolean;
   time: string;
 };
 
 const mockMessages: Message[] = [
   { id: "1", side: "me", text: "안녕하세요", read: true, time: "00:00" },
-  { id: "2", side: "other", text: "안녕하세요 뿡뿡이 뿡뿡이.", time: "00:00" },
+  { id: "2", side: "other", text: "안녕하세요. 강아지 주인분 맞으신가요?", time: "00:00" },
   {
     id: "3",
     side: "me",
-    text: "",
-    imageUri: "image://dummy1",
-    read: true,
-    time: "00:00",
-  },
-  {
-    id: "4",
-    side: "me",
-    text: "",
-    imageUri: "image://dummy2",
+    text: "네, 맞습니다",
     read: false,
     time: "00:00",
   },
@@ -56,7 +47,6 @@ const ChatRoom: React.FC = () => {
 
   const renderHeader = () => (
     <>
-      {/* 상단 알림 배너 */}
       <View style={styles.noticeWrap}>
         <Text style={styles.noticeText}>
           사례금을 노린 허위 제보는 법령에 따라 처벌받을 수 있으나 서비스 이용
@@ -64,10 +54,8 @@ const ChatRoom: React.FC = () => {
         </Text>
       </View>
 
-      {/* 얇은 구분선 */}
       <View style={styles.thinDivider} />
 
-      {/* 날짜 칩 */}
       <View style={styles.dateChip}>
         <Text style={styles.dateChipText}>00월 00일</Text>
       </View>
@@ -77,8 +65,7 @@ const ChatRoom: React.FC = () => {
   const renderItem = ({ item }: { item: Message }) => {
     const isMe = item.side === "me";
 
-    // 말풍선(텍스트/이미지)
-    const bubble = item.imageUri ? (
+    const bubble = item.image ? (
       <View
         style={[
           styles.imageBubble,
@@ -99,7 +86,6 @@ const ChatRoom: React.FC = () => {
       </View>
     );
 
-    // 읽음/시간 라벨
     const statusLine = isMe ? (
       <View
         style={[
@@ -136,7 +122,6 @@ const ChatRoom: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* 상단 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -146,8 +131,8 @@ const ChatRoom: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.titleWrap}>
-          <Text style={styles.title}>뿡뿡이</Text>
-          <Text style={styles.subtitle}>골든리트리버</Text>
+          <Text style={styles.title}>포포</Text>
+          <Text style={styles.subtitle}>포메라니안</Text>
         </View>
 
         <View style={styles.rightWrap}>
@@ -155,7 +140,6 @@ const ChatRoom: React.FC = () => {
         </View>
       </View>
 
-      {/* 리스트 */}
       <FlatList
         ref={listRef}
         data={data}
@@ -166,7 +150,6 @@ const ChatRoom: React.FC = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* 하단 입력 바 */}
       <View style={styles.inputBar}>
         <TouchableOpacity style={styles.plusBtn} activeOpacity={0.8}>
           <Text style={styles.plusText}>+</Text>
@@ -187,12 +170,10 @@ const ChatRoom: React.FC = () => {
           activeOpacity={0.8}
           disabled={!input.trim()}
           onPress={() => {
-            // 전송 로직 자리 (모킹)
             setInput("");
             listRef.current?.scrollToEnd({ animated: true });
           }}
         >
-          {/* 아이콘 대체(유니코드 비행기) */}
           <Text style={styles.sendIcon}>➤</Text>
         </TouchableOpacity>
       </View>
@@ -206,7 +187,6 @@ const BG = "#FFFFFF";
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
 
-  /* 헤더 */
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -232,7 +212,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEE",
   },
 
-  /* 공지/날짜 */
   noticeWrap: {
     marginHorizontal: 16,
     marginTop: 8,
@@ -265,7 +244,6 @@ const styles = StyleSheet.create({
   },
   dateChipText: { fontSize: 11, color: "#999" },
 
-  /* 리스트/메시지 */
   listContent: { paddingHorizontal: 16, paddingBottom: 88 },
   row: { marginVertical: 6 },
   rowLeft: { alignItems: "flex-start" },

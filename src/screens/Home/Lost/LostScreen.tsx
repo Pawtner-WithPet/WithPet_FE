@@ -13,6 +13,8 @@ import { Colors } from "../../../constants/colors";
 import icon_search from "../../../assets/icons/search.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import happy1 from "../../../assets/images/happy1.png";
+import happy2 from "../../../assets/images/happy2.png";
+import happy3 from "../../../assets/images/happy3.png";
 import { useNavigation } from "@react-navigation/native";
 import LostPostDetail from "./LostPostDetail";
 
@@ -27,7 +29,7 @@ const DATA = [
     height: "25cm",
     weight: "3.5kg",
     feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
-    extra: "사례금 100만원\n찾으시면 채팅보다는 연락처로 전화주세요.",
+    extra: "사례금 100만원\n찾으시면 채팅주세요.",
     dateTime: "2025.03.01 11:25",
     location: "서울특별시 도봉구",
     image: happy1,
@@ -45,7 +47,7 @@ const DATA = [
     extra: "주인 찾습니다. 연락주세요.",
     dateTime: "2025.03.02 14:10",
     location: "서울특별시 강남구",
-    image: happy1,
+    image: happy2,
   },
   {
     id: "3",
@@ -60,7 +62,7 @@ const DATA = [
     extra: "사례금 50만원\n발견 시 꼭 연락 부탁드립니다.",
     dateTime: "2025.03.03 09:45",
     location: "서울특별시 성북구",
-    image: happy1,
+    image: happy3,
   },
 ];
 
