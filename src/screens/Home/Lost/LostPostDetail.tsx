@@ -1,4 +1,3 @@
-// screens/Home/Lost/LostPostDetail.tsx
 import React, { useMemo, useState } from "react";
 import {
   View,
@@ -22,6 +21,7 @@ import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import print from "../../../assets/icons/print.png";
 import poster from "../../../assets/images/poster.png";
 import happy1 from "../../../assets/images/happy1.png";
+import map from "../../../assets/images/map.png";
 
 type Gender = "male" | "female";
 type LostPost = {
@@ -159,12 +159,12 @@ const LostPostDetail: React.FC = () => {
             style={styles.chatBtn}
             activeOpacity={0.9}
             onPress={() => navigation.navigate("ChatRoom", {
-                title: post?.name ?? "채팅",
-                subtitle: post?.breed ?? "",
-                avatar: post?.image, // 있으면 헤더 우측에 표시할 용도
-                roomId: post?.id,    // 필요시 사용
-              })
-            }
+              title: post?.name ?? "채팅",
+              subtitle: post?.breed ?? "",
+              avatar: post?.image, 
+              roomId: post?.id,   
+            })
+          }
           >
             <Image source={iconChat} style={styles.chatIcon} />
           </TouchableOpacity>
@@ -236,17 +236,17 @@ const LostPostDetail: React.FC = () => {
           {!isFound && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>산책 경로 및 익숙한 장소</Text>
+                <Image source={map} style={styles.familiarImage} resizeMode="cover" />
+              {/*
               {post.familiar && post.familiar.trim() ? (
-                <Image
-                  source={happy1}
-                  style={styles.familiarImage}
-                  resizeMode="cover"
-                />
+                <Image source={map} style={styles.familiarImage} resizeMode="cover" />
               ) : (
                 <View style={styles.familiarPlaceholder}>
                   <Text style={styles.familiarPlaceholderText}>정보 없음</Text>
                 </View>
               )}
+              */}
+              
             </View>
           )}
 

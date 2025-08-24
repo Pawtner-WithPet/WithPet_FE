@@ -9,12 +9,14 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { Colors } from "../../../constants/colors";
 import icon_camera from "../../../assets/icons/camera.png";
 import icon_close from "../../../assets/icons/icon_close.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import enter_image from "../../../assets/icons/enter_image.png";
 import icon_calendar from "../../../assets/icons/icon_calendar.png";
+import happy1 from "../../../assets/images/happy1.png";
 import Header from "../../../components/Header";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -53,6 +55,17 @@ const LostPetRegister: React.FC = () => {
       </TouchableOpacity>
     ) : null;
 
+    const route = useRoute<any>();
+
+    React.useEffect(() => {
+      if (route.params?.petName === "포포") {
+        setName("포포");
+        setGender("female");
+        setAge("1");
+        setBreed("포메라니안");
+  }
+}, [route.params?.petName]);
+    
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
