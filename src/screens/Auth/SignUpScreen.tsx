@@ -6,9 +6,16 @@ import AnimalRegist from "../../components/Auth/SignUp/AnimalRegist";
 import Agreement from "../../components/Auth/SignUp/Agreement";
 import SignUpBtn from "../../components/Auth/SignUp/SignUpBtn";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../../App";
+
+type SignUpScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "SignUp"
+>;
 
 const SignUpScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<SignUpScreenNavigationProp>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,6 +40,11 @@ const SignUpScreen: React.FC = () => {
 
   const handleSignUp = () => {
     console.log("회원가입");
+  };
+
+  // 동물등록 확인하기 페이지로 이동
+  const handleAnimalRegistrationCheck = () => {
+    navigation.navigate("AnimalRegister");
   };
 
   return (
@@ -60,6 +72,7 @@ const SignUpScreen: React.FC = () => {
             onToggle={() =>
               setAnimalRegistrationChecked(!animalRegistrationChecked)
             }
+            onNavigateToCheck={handleAnimalRegistrationCheck} // 네비게이션 함수 전달
           />
 
           <Agreement
