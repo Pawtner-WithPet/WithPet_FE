@@ -22,8 +22,7 @@ const WalkScreen: React.FC = () => {
     speed: "",
   });
   const [pets, setPets] = useState<Pet[]>([
-    { id: 1, name: "해피", isActive: false },
-    { id: 2, name: "조이", isActive: false },
+    { id: 1, name: "곰탱이", isActive: false },
   ]);
 
   const [walkRecord] = useState<WalkRecord>({

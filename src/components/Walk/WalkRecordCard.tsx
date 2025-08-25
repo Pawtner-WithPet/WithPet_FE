@@ -135,31 +135,16 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
           <TouchableOpacity
             style={[
               styles.petTag,
-              selectedPet?.name === "해피" && styles.petTagActive,
+              selectedPet?.name === "곰탱이" && styles.petTagActive,
             ]}
           >
             <Text
               style={[
                 styles.petTagText,
-                selectedPet?.name === "해피" && styles.petTagTextActive,
+                selectedPet?.name === "곰탱이" && styles.petTagTextActive,
               ]}
             >
-              해피
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.petTag,
-              selectedPet?.name === "조이" && styles.petTagActive,
-            ]}
-          >
-            <Text
-              style={[
-                styles.petTagText,
-                selectedPet?.name === "조이" && styles.petTagTextActive,
-              ]}
-            >
-              조이
+              곰탱이
             </Text>
           </TouchableOpacity>
         </View>
