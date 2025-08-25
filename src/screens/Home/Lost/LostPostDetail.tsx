@@ -1,4 +1,3 @@
-// screens/Home/Lost/LostPostDetail.tsx
 import React, { useMemo, useState } from "react";
 import {
   View,
@@ -19,7 +18,10 @@ import woman from "../../../assets/icons/woman.png";
 import man from "../../../assets/icons/man.png";
 import iconZoom from "../../../assets/icons/zoom.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
+import print from "../../../assets/icons/print.png";
+import poster from "../../../assets/images/poster.png";
 import happy1 from "../../../assets/images/happy1.png";
+import map from "../../../assets/images/map.png";
 
 type Gender = "male" | "female";
 type LostPost = {
@@ -79,10 +81,10 @@ const LostPostDetail: React.FC = () => {
       <Text style={styles.chipValue}>{value?.trim() ? value : "미측정"}</Text>
     </View>
   );
+  const [printOpen, setPrintOpen] = useState(false); //printer
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.headerWrapper}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -91,7 +93,43 @@ const LostPostDetail: React.FC = () => {
           <Image source={icon_detail_page} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>동물 상세보기</Text>
+        <TouchableOpacity onPress={() => setPrintOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <Image source={print} resizeMode="contain" />
+        </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={printOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPrintOpen(false)}
+      >
+        <Pressable style={styles.printBackdrop} onPress={() => setPrintOpen(false)}>
+          <View style={styles.printCard} pointerEvents="box-none">
+            {/* 닫기(X) 버튼 */}
+            <TouchableOpacity style={styles.printClose} onPress={() => setPrintOpen(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Text style={styles.printCloseText}>×</Text>
+            </TouchableOpacity>
+
+            {/* 실제 이미지 */}
+            <Image
+              source={poster}
+              resizeMode="contain"
+              style={styles.printImage}
+            />
+          </View>
+        </Pressable>
+      </Modal>
+
+
+
+
+
+
+
+
+
+
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 70 }}
@@ -116,13 +154,22 @@ const LostPostDetail: React.FC = () => {
           </View>
         </View>
 
-        {/* 카드 */}
         <View style={styles.infoCard}>
-          <TouchableOpacity style={styles.chatBtn} activeOpacity={0.9}>
+          <TouchableOpacity
+            style={styles.chatBtn}
+            activeOpacity={0.9}
+            onPress={() => navigation.navigate("ChatRoom", {
+              title: post?.name ?? "채팅",
+              subtitle: post?.breed ?? "",
+              avatar: post?.image, 
+              roomId: post?.id,   
+            })
+          }
+          >
             <Image source={iconChat} style={styles.chatIcon} />
           </TouchableOpacity>
 
-          {/* 이름/성별 영역 */}
+
           {(!isFound || post.name || post.gender) && (
             <View style={styles.nameRow}>
               {!isFound && (
@@ -155,7 +202,6 @@ const LostPostDetail: React.FC = () => {
             </View>
           )}
 
-          {/* 칩 영역 */}
           <View style={styles.chipsRow}>
             {!isFound && <Chip label="나이" value={post.age} />}
             <Chip label="견종" value={post.breed} />
@@ -163,7 +209,6 @@ const LostPostDetail: React.FC = () => {
             {!isFound && <Chip label="체중" value={post.weight} />}
           </View>
 
-          {/* 본문 */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{locationLabel}</Text>
             <Text style={styles.sectionBody}>{post.location ?? "-"}</Text>
@@ -174,7 +219,6 @@ const LostPostDetail: React.FC = () => {
             <Text style={styles.sectionBody}>{dateTimeValue}</Text>
           </View>
 
-          {/* 특징 */}
           {!isFound && post.feature?.trim() && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>특징</Text>
@@ -182,7 +226,6 @@ const LostPostDetail: React.FC = () => {
             </View>
           )}
 
-          {/* 추가 설명 */}
           {post.extra?.trim() && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>추가 설명</Text>
@@ -190,25 +233,23 @@ const LostPostDetail: React.FC = () => {
             </View>
           )}
 
-          {/* 산책 경로 및 익숙한 장소*/}
           {!isFound && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>산책 경로 및 익숙한 장소</Text>
+                <Image source={map} style={styles.familiarImage} resizeMode="cover" />
+              {/*
               {post.familiar && post.familiar.trim() ? (
-                <Image
-                  source={happy1}
-                  style={styles.familiarImage}
-                  resizeMode="cover"
-                />
+                <Image source={map} style={styles.familiarImage} resizeMode="cover" />
               ) : (
                 <View style={styles.familiarPlaceholder}>
                   <Text style={styles.familiarPlaceholderText}>정보 없음</Text>
                 </View>
               )}
+              */}
+              
             </View>
           )}
 
-          {/* 줌 */}
           <Modal
             visible={zoomOpen}
             transparent
@@ -306,6 +347,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: Colors.background,
   },
   backButton: {
@@ -319,9 +361,65 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
     fontWeight: "bold",
     color: "#1A1A1A",
   },
+
+  headerImg: {
+    width: 28,
+    height: 28,
+  },
+
+  // ⬇️ 프린트 팝업
+  printBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  printCard: {
+    flex: 1, 
+    width: "100%",
+    maxHeight: "80%",
+    backgroundColor: "#111",  
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  printClose: {
+    position: "absolute",
+    right: 10,
+    top: 8,
+    zIndex: 2,
+    backgroundColor: "#000",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  printCloseText: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  printImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",   
+  },
+
+
+
+
+
+
+
+
+
+
 
   coverWrap: {
     position: "relative",

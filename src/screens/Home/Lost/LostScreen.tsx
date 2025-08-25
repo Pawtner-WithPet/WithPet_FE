@@ -7,12 +7,16 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
+  Modal, 
+  Pressable,
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import icon_search from "../../../assets/icons/search.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import happy1 from "../../../assets/images/happy1.png";
+import happy2 from "../../../assets/images/happy2.png";
+import happy3 from "../../../assets/images/happy3.png";
 import { useNavigation } from "@react-navigation/native";
 import LostPostDetail from "./LostPostDetail";
 
@@ -27,7 +31,7 @@ const DATA = [
     height: "25cm",
     weight: "3.5kg",
     feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
-    extra: "사례금 100만원\n찾으시면 채팅보다는 연락처로 전화주세요.",
+    extra: "사례금 100만원\n찾으시면 채팅주세요.",
     dateTime: "2025.03.01 11:25",
     location: "서울특별시 도봉구",
     image: happy1,
@@ -45,7 +49,7 @@ const DATA = [
     extra: "주인 찾습니다. 연락주세요.",
     dateTime: "2025.03.02 14:10",
     location: "서울특별시 강남구",
-    image: happy1,
+    image: happy2,
   },
   {
     id: "3",
@@ -60,13 +64,15 @@ const DATA = [
     extra: "사례금 50만원\n발견 시 꼭 연락 부탁드립니다.",
     dateTime: "2025.03.03 09:45",
     location: "서울특별시 성북구",
-    image: happy1,
+    image: happy3,
   },
 ];
 
 const LostPetListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false); // 등록
+  const [registerModalOpen, setRegisterModalOpen] = useState(false); // 등록 (실종 동물 등록 반려견 선택)
+  const PET_NAMES = ["포포"] as const;
 
   const [selectedPet, setSelectedPet] = useState(); //탐색
   const [isPetToggleVisible, setPetToggleVisible] = useState(false); //탐색
@@ -126,6 +132,7 @@ const LostPetListScreen: React.FC = () => {
   };
 
   return (
+    <>
     <View style={styles.container}>
       <Header />
 
@@ -183,14 +190,13 @@ const LostPetListScreen: React.FC = () => {
 
             {isDropdownVisible && (
               <View style={styles.dropdown}>
-                {["쫑이", "하양이"].map((pet) => (
+                {["포포"].map((pet) => (
                   <TouchableOpacity
                     key={pet}
                     style={styles.dropdownItem}
                     onPress={() => {
                       setDropdownVisible(false);
                       setPetToggleVisible(false);
-                      // 같은 스택 내에서 AIScreen으로 이동
                       navigation.navigate("AIScreen", { selectedPet: pet });
                     }}
                   >
@@ -212,7 +218,7 @@ const LostPetListScreen: React.FC = () => {
           <View style={styles.dropdownButtons}>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: "#F64C4C" }]}
-              onPress={() => navigation.navigate("LostPetRegister")}
+              onPress={() => setRegisterModalOpen(true)} 
             >
               <Text style={styles.actionButtonText}>실종동물 등록</Text>
             </TouchableOpacity>
@@ -223,8 +229,10 @@ const LostPetListScreen: React.FC = () => {
               <Text style={styles.actionButtonText}>발견동물 등록</Text>
             </TouchableOpacity>
           </View>
+          
         )}
 
+      
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setIsExpanded((prev) => !prev)}
@@ -232,7 +240,46 @@ const LostPetListScreen: React.FC = () => {
           <Text style={styles.fabPlus}>+</Text>
         </TouchableOpacity>
       </View>
+      
     </View>
+
+     <Modal
+      visible={registerModalOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setRegisterModalOpen(false)}
+    >
+      <Pressable
+        style={styles.modalBackdrop}
+        onPress={() => setRegisterModalOpen(false)}
+      >
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>반려견 선택</Text>
+
+          {["포포"].map((pet) => (
+            <TouchableOpacity
+              key={pet}
+              style={styles.modalItem}
+              onPress={() => {
+                setRegisterModalOpen(false);
+                navigation.navigate("LostPetRegister", { petName: pet });
+              }}
+            >
+              <Text style={styles.modalItemText}>{pet}</Text>
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity
+            style={styles.modalCloseBtn}
+            onPress={() => setRegisterModalOpen(false)}
+          >
+            <Text style={styles.modalCloseText}>닫기</Text>
+          </TouchableOpacity>
+        </View>
+      </Pressable>
+    </Modal>
+  </>
+
   );
 };
 
@@ -450,6 +497,54 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
+  modalBackdrop: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.45)",
+  alignItems: "center",
+  justifyContent: "center",
+},
+modalCard: {
+  width: "84%",
+  maxWidth: 360,
+  backgroundColor: "#fff",
+  borderRadius: 16,
+  paddingVertical: 18,
+  paddingHorizontal: 16,
+  elevation: 6,
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: "800",
+  color: "#111",
+  textAlign: "center",
+  marginBottom: 12,
+},
+modalItem: {
+  paddingVertical: 12,
+  alignItems: "center",
+  backgroundColor: "#F2F4F8",
+  marginVertical: 6,
+  borderRadius: 10,
+},
+modalItemText: {
+  fontSize: 16,
+  color: "#111",
+  fontWeight: "600",
+},
+modalCloseBtn: {
+  alignSelf: "center",
+  marginTop: 10,
+  paddingHorizontal: 16,
+  paddingVertical: 8,
+  backgroundColor: "#3366FF",
+  borderRadius: 10,
+},
+modalCloseText: {
+  color: "#fff",
+  fontSize: 14,
+  fontWeight: "700",
+},
+
 });
 
 export default LostPetListScreen;

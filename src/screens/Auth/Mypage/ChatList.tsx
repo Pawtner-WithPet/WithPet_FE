@@ -29,7 +29,7 @@ const mockChats: Chat[] = [
   {
     id: 1,
     name: "포포",
-    preview: "아이 상태가 괜찮은가요?",
+    preview: "네, 맞습니다.",
     profile: require("../../../assets/images/happy1.png"),
     unreadCount: 0,
     updatedAt: "2025-08-14T12:10:00+09:00",
@@ -37,7 +37,7 @@ const mockChats: Chat[] = [
   {
     id: 2,
     name: "두부",
-    preview: "아이 상태가 괜찮은가요?",
+    preview: "안녕하세요.",
     profile: require("../../../assets/images/happy1.png"),
     unreadCount: 0,
     updatedAt: "2025-08-14T12:10:00+09:00",
@@ -47,7 +47,7 @@ const mockChats: Chat[] = [
     name: "망고",
     preview: "사진 보내드렸어요!",
     profile: require("../../../assets/images/happy2.png"),
-    unreadCount: 5,
+    unreadCount: 1,
     updatedAt: "2025-07-20T10:05:00+09:00",
   },
 ];
@@ -98,7 +98,6 @@ const ChatList: React.FC = () => {
         </View>
       )}
 
-      {/* 가운데 이름 + 미리보기 */}
       <View style={styles.middle}>
         <Text style={styles.name} numberOfLines={1}>
           {item.name}
@@ -108,7 +107,6 @@ const ChatList: React.FC = () => {
         </Text>
       </View>
 
-      {/* 오른쪽 시간 + 뱃지 */}
       <View style={styles.right}>
         <Text style={styles.time}>
           {formatChatTime(item.updatedAt, item.time)}
@@ -126,7 +124,6 @@ const ChatList: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* 상단 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerBtn}
@@ -139,8 +136,6 @@ const ChatList: React.FC = () => {
           <Image source={iconSearch} style={styles.headerIcon} />
         </TouchableOpacity>
       </View>
-
-      {/* 채팅 리스트 */}
       <FlatList
         data={chatList}
         keyExtractor={(item) => String(item.id)}

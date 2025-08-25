@@ -11,7 +11,7 @@ import Header from "../components/Header";
 
 export type MyPageStackParamList = {
   ChatList: undefined;
-  ChatRoom: undefined;
+  ChatRoom: { roomId: string };
   MyAnimals: undefined;
   ProfileEdit: undefined;
   AddProfile: undefined;
