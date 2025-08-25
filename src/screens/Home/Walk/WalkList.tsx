@@ -16,10 +16,7 @@ interface WalkListScreenProps {
 
 export const WalkListScreen: React.FC<WalkListScreenProps> = ({ onBack }) => {
   // 샘플 펫 데이터
-  const samplePets: Pet[] = [
-    { id: 1, name: "해피", isActive: true },
-    { id: 2, name: "조이", isActive: false },
-  ];
+  const samplePets: Pet[] = [{ id: 1, name: "곰탱이", isActive: true }];
 
   // 샘플 산책 기록 데이터
   const sampleRecords: WalkRecord[] = [

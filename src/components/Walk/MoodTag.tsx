@@ -2,13 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 interface MoodTagProps {
-  mood: "happy" | "joy";
+  mood: "곰탱이"; // 여기서 mood를 곰탱이로만 설정
   isActive?: boolean;
 }
 
 export const MoodTag: React.FC<MoodTagProps> = ({ mood, isActive = true }) => {
   const getMoodText = (mood: string) => {
-    return mood === "happy" ? "해피" : "조이";
+    return mood === "곰탱이" ? "곰탱이" : ""; // 곰탱이로만 처리
   };
 
   return (
@@ -24,7 +24,7 @@ export const MoodTag: React.FC<MoodTagProps> = ({ mood, isActive = true }) => {
           isActive ? styles.activeText : styles.inactiveText,
         ]}
       >
-        {getMoodText(mood)}
+        {getMoodText(mood)} {/* 곰탱이로만 텍스트 출력 */}
       </Text>
     </View>
   );

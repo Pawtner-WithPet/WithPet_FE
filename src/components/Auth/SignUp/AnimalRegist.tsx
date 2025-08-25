@@ -4,11 +4,19 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 interface AnimalRegistProps {
   checked: boolean;
   onToggle: () => void;
+  onNavigateToCheck: () => void;
 }
 
-const AnimalRegist: React.FC<AnimalRegistProps> = ({ checked, onToggle }) => {
+const AnimalRegist: React.FC<AnimalRegistProps> = ({
+  checked,
+  onToggle,
+  onNavigateToCheck,
+}) => {
   return (
-    <View style={styles.noticeContainer}>
+    <TouchableOpacity
+      onPress={onNavigateToCheck}
+      style={styles.noticeContainer}
+    >
       <View style={styles.noticeContent}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>
@@ -26,9 +34,10 @@ const AnimalRegist: React.FC<AnimalRegistProps> = ({ checked, onToggle }) => {
           서비스를 이용해보세요!
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
+
 const styles = StyleSheet.create({
   noticeContainer: {
     marginBottom: 46,

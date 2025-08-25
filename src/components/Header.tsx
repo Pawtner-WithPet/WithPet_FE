@@ -222,7 +222,7 @@ const MenuRow: React.FC<{ icon: any; label: string; onPress: () => void }> = ({
 
 const styles = StyleSheet.create({
   headerContainer: {
-    height: 56,
+    height: 80,
     backgroundColor: Colors.background,
     flexDirection: "row",
     justifyContent: "space-between",

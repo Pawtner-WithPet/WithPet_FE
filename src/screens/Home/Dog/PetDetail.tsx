@@ -247,7 +247,7 @@ const PetDetailScreen: React.FC = () => {
             <View style={styles.nameAgeWrapper}>
               <DisabledInput
                 label="이름"
-                placeholder="해피"
+                placeholder="곰탱이"
                 value={petInfo.name}
                 required
               />
