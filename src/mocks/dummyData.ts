@@ -27,44 +27,44 @@ export const searchResults = [
 export const snsResults = [
   {
     id: 1,
-    keywords: "탐지 키워드, 키워드",
+    keywords: "도봉구, 실종",
     platform: "인스타그램",
     image: "https://example.com/profile1.jpg",
   },
   {
     id: 2,
-    keywords: "탐지 키워드, 키워드",
+    keywords: "도봉구, 실종",
     platform: "인스타그램",
-    image: "https://example.com/profile2.jpg",
+    image: "https://example.com/profile1.jpg",
   },
   {
     id: 3,
-    keywords: "탐지 키워드, 키워드",
+    keywords: "도봉구, 실종",
     platform: "인스타그램",
-    image: "https://example.com/profile3.jpg",
+    image: "https://example.com/profile1.jpg",
   },
 ];
 
 export const shelterResults = [
   {
     id: 1,
-    name: "보호소 이름",
-    location: "보호소 위치",
-    contact: "보호소 연락처",
+    name: "노원반려동물문화센터",
+    location: "서울특별시 노원구 수락산로 258 (상계동, 호성빌딩)",
+    contact: "02-933-8500",
     image: "https://example.com/shelter1.jpg",
   },
   {
     id: 2,
-    name: "보호소 이름",
-    location: "보호소 위치",
-    contact: "보호소 연락처",
-    image: "https://example.com/shelter2.jpg",
+    name: "노원반려동물문화센터",
+    location: "서울특별시 노원구 수락산로 258 (상계동, 호성빌딩)",
+    contact: "02-933-8500",
+    image: "https://example.com/shelter1.jpg",
   },
   {
     id: 3,
-    name: "보호소 이름",
-    location: "보호소 위치",
-    contact: "보호소 연락처",
-    image: "https://example.com/shelter3.jpg",
+    name: "노원반려동물문화센터",
+    location: "서울특별시 노원구 수락산로 258 (상계동, 호성빌딩)",
+    contact: "02-933-8500",
+    image: "https://example.com/shelter1.jpg",
   },
 ];

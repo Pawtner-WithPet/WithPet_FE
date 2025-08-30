@@ -21,6 +21,7 @@
     "axios": "^1.9.0",
     "babel-plugin-dotenv-import": "^3.0.1",
     "buffer": "^6.0.3",
+    "form-data": "^4.0.4",
     "react": "19.0.0",
     "react-native": "0.79.2",
     "react-native-dotenv": "^3.4.11",

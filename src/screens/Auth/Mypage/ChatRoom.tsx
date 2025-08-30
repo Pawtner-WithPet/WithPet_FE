@@ -28,7 +28,12 @@ type Message = {
 
 const mockMessages: Message[] = [
   { id: "1", side: "me", text: "안녕하세요", read: true, time: "00:00" },
-  { id: "2", side: "other", text: "안녕하세요. 강아지 주인분 맞으신가요?", time: "00:00" },
+  {
+    id: "2",
+    side: "other",
+    text: "안녕하세요. 강아지 주인분 맞으신가요?",
+    time: "00:00",
+  },
   {
     id: "3",
     side: "me",
@@ -131,7 +136,7 @@ const ChatRoom: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.titleWrap}>
-          <Text style={styles.title}>포포</Text>
+          <Text style={styles.title}>곰탱이</Text>
           <Text style={styles.subtitle}>포메라니안</Text>
         </View>
 

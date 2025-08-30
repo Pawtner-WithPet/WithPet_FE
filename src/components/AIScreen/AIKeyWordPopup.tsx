@@ -8,7 +8,9 @@ import {
   TextInput,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
+import { startRealtimeSearchWithKeywords } from "../../services/api/AIBtn";
 
 interface RealTimeSearchPopupProps {
   visible: boolean;
@@ -27,6 +29,7 @@ const AIKeyWordPopup: React.FC<RealTimeSearchPopupProps> = ({
     "도봉구",
   ]);
   const [newKeyword, setNewKeyword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRemoveKeyword = (index: number) => {
     setKeywords(keywords.filter((_, i) => i !== index));
@@ -39,9 +42,74 @@ const AIKeyWordPopup: React.FC<RealTimeSearchPopupProps> = ({
     }
   };
 
-  const handleStartSearch = () => {
-    onStart(keywords);
-    onClose();
+  const handleStartSearch = async () => {
+    if (keywords.length === 0) {
+      Alert.alert("알림", "최소 하나의 키워드를 입력해주세요.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // 키워드를 쉼표와 공백으로 구분된 문자열로 변환
+      const keywordsString = keywords.join(", ");
+
+      console.log("실시간 AI 탐색 시작 요청:", {
+        userId: 1,
+        petId: 1,
+        status: "lost",
+        keywords: keywordsString,
+        keywordsArray: keywords,
+      });
+
+      // 실시간 검색 API 호출
+      const response = await startRealtimeSearchWithKeywords(
+        1, // 임시 userId
+        1, // 임시 petId
+        "lost", // status
+        keywords,
+      );
+
+      if (response && response.status === 200) {
+        console.log("실시간 검색 시작 성공:", response);
+
+        // 성공 시 기존 onStart 콜백 호출
+        onStart(keywords);
+        onClose();
+
+        Alert.alert("성공", "실시간 AI 탐색이 시작되었습니다.");
+      } else {
+        console.error("실시간 검색 시작 실패 - 응답:", response);
+        Alert.alert(
+          "오류",
+          response?.message ||
+            "실시간 탐색 시작에 실패했습니다. 다시 시도해주세요.",
+        );
+      }
+    } catch (error: any) {
+      console.error("실시간 검색 시작 중 오류:", error);
+
+      // 더 상세한 에러 정보 로깅
+      if (error.response) {
+        console.error("에러 응답 상태:", error.response.status);
+        console.error("에러 응답 데이터:", error.response.data);
+        console.error("에러 응답 헤더:", error.response.headers);
+      }
+
+      let errorMessage = "네트워크 오류가 발생했습니다.";
+      if (error.response?.status === 500) {
+        errorMessage =
+          "서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+      } else if (error.response?.status === 400) {
+        errorMessage = "요청 데이터에 문제가 있습니다. 키워드를 확인해주세요.";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      Alert.alert("오류", errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,10 +144,12 @@ const AIKeyWordPopup: React.FC<RealTimeSearchPopupProps> = ({
               onChangeText={setNewKeyword}
               onSubmitEditing={handleAddKeyword}
               returnKeyType="done"
+              editable={!isLoading}
             />
             <TouchableOpacity
               onPress={handleAddKeyword}
               style={styles.addButton}
+              disabled={isLoading}
             >
               <Image
                 source={require("../../assets/icons/search.png")}
@@ -94,7 +164,10 @@ const AIKeyWordPopup: React.FC<RealTimeSearchPopupProps> = ({
               {keywords.map((keyword, index) => (
                 <View key={index} style={styles.keywordTag}>
                   <Text style={styles.keywordText}>{keyword}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveKeyword(index)}>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveKeyword(index)}
+                    disabled={isLoading}
+                  >
                     <Text style={styles.removeText}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -104,10 +177,16 @@ const AIKeyWordPopup: React.FC<RealTimeSearchPopupProps> = ({
 
           {/* 시작 버튼 */}
           <TouchableOpacity
-            style={styles.startButton}
+            style={[
+              styles.startButton,
+              isLoading && styles.startButtonDisabled,
+            ]}
             onPress={handleStartSearch}
+            disabled={isLoading}
           >
-            <Text style={styles.startButtonText}>실시간 AI 탐색 시작하기</Text>
+            <Text style={styles.startButtonText}>
+              {isLoading ? "시작 중..." : "실시간 AI 탐색 시작하기"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -211,6 +290,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: "center",
+  },
+  startButtonDisabled: {
+    backgroundColor: "#9CA3AF",
   },
   startButtonText: {
     color: "#FFF",

@@ -28,7 +28,7 @@ type Chat = {
 const mockChats: Chat[] = [
   {
     id: 1,
-    name: "포포",
+    name: "곰탱이",
     preview: "네, 맞습니다.",
     profile: require("../../../assets/images/happy1.png"),
     unreadCount: 0,

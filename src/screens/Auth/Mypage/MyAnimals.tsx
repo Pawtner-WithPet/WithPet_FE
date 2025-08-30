@@ -17,29 +17,12 @@ import iconSearch from "../../../assets/icons/search.png";
 const MOCK_DATA = [
   {
     id: "1",
+    age: "8살",
     status: "실종",
     dateTime: "2025.03.01 11:25",
     location: "서울특별시 도봉구",
-    breed: "견종",
-    feature: "특징",
-    image: happy1,
-  },
-  {
-    id: "2",
-    status: "발견",
-    dateTime: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    breed: "견종",
-    feature: "특징",
-    image: happy1,
-  },
-  {
-    id: "3",
-    status: "실종",
-    dateTime: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    breed: "견종",
-    feature: "특징",
+    breed: "포메라니안",
+    feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
     image: happy1,
   },
 ];
@@ -57,6 +40,7 @@ const MyAnimals: React.FC = () => {
     const post = {
       id: item.id,
       status: item.status,
+      age: item.age,
       breed: item.breed,
       feature: item.feature,
       location: item.location,

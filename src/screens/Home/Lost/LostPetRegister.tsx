@@ -55,17 +55,17 @@ const LostPetRegister: React.FC = () => {
       </TouchableOpacity>
     ) : null;
 
-    const route = useRoute<any>();
+  const route = useRoute<any>();
 
-    React.useEffect(() => {
-      if (route.params?.petName === "포포") {
-        setName("포포");
-        setGender("female");
-        setAge("1");
-        setBreed("포메라니안");
-  }
-}, [route.params?.petName]);
-    
+  React.useEffect(() => {
+    if (route.params?.petName === "곰탱이") {
+      setName("곰탱이");
+      setGender("female");
+      setAge("1");
+      setBreed("포메라니안");
+    }
+  }, [route.params?.petName]);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>

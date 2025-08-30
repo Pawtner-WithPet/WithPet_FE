@@ -175,7 +175,7 @@ const Header: React.FC = () => {
             />
             <View style={styles.divider} />
             <MenuRow
-              label="등록했던 동물 목록"
+              label="등록한 동물 목록"
               icon={ICONS.my_pet}
               onPress={() => {
                 closeMenu();

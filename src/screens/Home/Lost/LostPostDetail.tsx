@@ -93,7 +93,10 @@ const LostPostDetail: React.FC = () => {
           <Image source={icon_detail_page} style={styles.backIcon} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>동물 상세보기</Text>
-        <TouchableOpacity onPress={() => setPrintOpen(true)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity
+          onPress={() => setPrintOpen(true)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Image source={print} resizeMode="contain" />
         </TouchableOpacity>
       </View>
@@ -104,10 +107,17 @@ const LostPostDetail: React.FC = () => {
         animationType="fade"
         onRequestClose={() => setPrintOpen(false)}
       >
-        <Pressable style={styles.printBackdrop} onPress={() => setPrintOpen(false)}>
+        <Pressable
+          style={styles.printBackdrop}
+          onPress={() => setPrintOpen(false)}
+        >
           <View style={styles.printCard} pointerEvents="box-none">
             {/* 닫기(X) 버튼 */}
-            <TouchableOpacity style={styles.printClose} onPress={() => setPrintOpen(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity
+              style={styles.printClose}
+              onPress={() => setPrintOpen(false)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <Text style={styles.printCloseText}>×</Text>
             </TouchableOpacity>
 
@@ -120,16 +130,6 @@ const LostPostDetail: React.FC = () => {
           </View>
         </Pressable>
       </Modal>
-
-
-
-
-
-
-
-
-
-
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 70 }}
@@ -158,22 +158,22 @@ const LostPostDetail: React.FC = () => {
           <TouchableOpacity
             style={styles.chatBtn}
             activeOpacity={0.9}
-            onPress={() => navigation.navigate("ChatRoom", {
-              title: post?.name ?? "채팅",
-              subtitle: post?.breed ?? "",
-              avatar: post?.image, 
-              roomId: post?.id,   
-            })
-          }
+            onPress={() =>
+              navigation.navigate("ChatRoom", {
+                title: post?.name ?? "채팅",
+                subtitle: post?.breed ?? "",
+                avatar: post?.image,
+                roomId: post?.id,
+              })
+            }
           >
             <Image source={iconChat} style={styles.chatIcon} />
           </TouchableOpacity>
 
-
           {(!isFound || post.name || post.gender) && (
             <View style={styles.nameRow}>
               {!isFound && (
-                <Text style={styles.name}>{post.name ?? "이름 미등록"}</Text>
+                <Text style={styles.name}>{post.name ?? "곰탱이"}</Text>
               )}
               {post.gender && (
                 <View style={styles.genderRow}>
@@ -236,7 +236,11 @@ const LostPostDetail: React.FC = () => {
           {!isFound && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>산책 경로 및 익숙한 장소</Text>
-                <Image source={map} style={styles.familiarImage} resizeMode="cover" />
+              <Image
+                source={map}
+                style={styles.familiarImage}
+                resizeMode="cover"
+              />
               {/*
               {post.familiar && post.familiar.trim() ? (
                 <Image source={map} style={styles.familiarImage} resizeMode="cover" />
@@ -246,7 +250,6 @@ const LostPostDetail: React.FC = () => {
                 </View>
               )}
               */}
-              
             </View>
           )}
 
@@ -383,10 +386,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   printCard: {
-    flex: 1, 
+    flex: 1,
     width: "100%",
     maxHeight: "80%",
-    backgroundColor: "#111",  
+    backgroundColor: "#111",
     borderRadius: 12,
     overflow: "hidden",
   },
@@ -408,18 +411,8 @@ const styles = StyleSheet.create({
   printImage: {
     width: "100%",
     height: "100%",
-    resizeMode: "contain",   
+    resizeMode: "contain",
   },
-
-
-
-
-
-
-
-
-
-
 
   coverWrap: {
     position: "relative",

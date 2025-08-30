@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from "react";
 import {
-  View, Text, StyleSheet, Image, Alert,
-  TouchableOpacity, SafeAreaView, ScrollView, TextInput,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Alert,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  TextInput,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import type { RootStackParamList } from "../../../types/NoseCamera";
 import Header from "../../../components/Header";
 import Svg, { Circle, Defs, LinearGradient, Stop } from "react-native-svg";
-import { fetchNoseResult, NoseResultResponse, saveNoseprintResult } from "../../../services/api/NoseResult";
+import {
+  fetchNoseResult,
+  NoseResultResponse,
+  saveNoseprintResult,
+} from "../../../services/api/NoseResult";
 import { Colors } from "../../../constants/colors";
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { TabParamList } from "../../../navigation/TabNavigator";
@@ -25,13 +36,24 @@ const NOSE_THUMBS: any[] = [
   require("../../../assets/images/nose9.png"),
 ];
 
+const SAMPLE_MATCHES = [
+  { resultId: 1, matchRate: 93.4, nosePrintImg: NOSE_THUMBS[0] },
+  { resultId: 2, matchRate: 87, nosePrintImg: NOSE_THUMBS[1] },
+  { resultId: 5, matchRate: 82, nosePrintImg: NOSE_THUMBS[4] },
+  { resultId: 3, matchRate: 75, nosePrintImg: NOSE_THUMBS[2] },
+  { resultId: 6, matchRate: 71, nosePrintImg: NOSE_THUMBS[5] },
+  { resultId: 4, matchRate: 65, nosePrintImg: NOSE_THUMBS[3] },
+];
+
 const NoseResultScreen = () => {
   const route = useRoute<RouteProp<RootStackParamList, "NoseResult">>();
   const searchId = route.params?.dogId ?? 1;
   const { type = "unknown", from = "list" } = route.params || {};
   const tabNavigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
-  const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(null);
+  const [matchedInfo, setMatchedInfo] = useState<NoseResultResponse | null>(
+    null,
+  );
   const [showPopup, setShowPopup] = useState(false);
   const [foundLocation, setFoundLocation] = useState("");
 
@@ -54,21 +76,36 @@ const NoseResultScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.titleRow}>
-          <TouchableOpacity onPress={() => tabNavigation.navigate("Nose", { screen: "NoseListScreen" })}>
-            <Image source={require("../../../assets/Camera/back_b.png")} style={styles.titleIcon} />
+          <TouchableOpacity
+            onPress={() =>
+              tabNavigation.navigate("Nose", { screen: "NoseListScreen" })
+            }
+          >
+            <Image
+              source={require("../../../assets/Camera/back_b.png")}
+              style={styles.titleIcon}
+            />
           </TouchableOpacity>
           <Text style={styles.title}>
-            {type === "found" ? "실종된 내 반려동물과의" : "촬영한 발견동물과의"}{"\n"}
+            {type === "found"
+              ? "실종된 내 반려동물과의"
+              : "촬영한 발견동물과의"}
+            {"\n"}
             <Text style={styles.highlight}>비문 인식률</Text>
           </Text>
         </View>
 
         <View style={styles.imageRow}>
           <View style={styles.myNoseCard}>
-            <Image source={require("../../../assets/images/nose.png")} style={styles.noseImage} />
+            <Image
+              source={require("../../../assets/images/nose.png")}
+              style={styles.noseImage}
+            />
             <Text style={styles.metaText}>
-              {matchedInfo?.searchLocation}{"\n\n"}
-              {matchedInfo?.searchDatetime?.slice(0, 10)}{"\n"}
+              {matchedInfo?.searchLocation}
+              {"\n\n"}
+              {matchedInfo?.searchDatetime?.slice(0, 10)}
+              {"\n"}
               {matchedInfo?.searchDatetime?.slice(11, 16)}
             </Text>
           </View>
@@ -80,7 +117,13 @@ const NoseResultScreen = () => {
                   <Stop offset="100%" stopColor="#4361ee" />
                 </LinearGradient>
               </Defs>
-              <Circle cx={80} cy={80} r={circleRadius} strokeWidth={strokeWidth} fill="none" />
+              <Circle
+                cx={80}
+                cy={80}
+                r={circleRadius}
+                strokeWidth={strokeWidth}
+                fill="none"
+              />
               <Circle
                 cx={70}
                 cy={70}
@@ -95,7 +138,10 @@ const NoseResultScreen = () => {
                 origin="80,70"
               />
             </Svg>
-            <Image source={require("../../../assets/images/nose2.png")} style={styles.noseImageSmall} />
+            <Image
+              source={require("../../../assets/images/nose2.png")}
+              style={styles.noseImageSmall}
+            />
             <View style={styles.matchOverlay}>
               <Text style={styles.matchText}>{parsedMatch}%</Text>
             </View>
@@ -103,12 +149,14 @@ const NoseResultScreen = () => {
         </View>
 
         <Text style={styles.listTitle}>
-          {type === "found" ? "등록된 실종동물 일치율 목록" : "등록된 발견동물 일치율 목록"}
+          {type === "found"
+            ? "등록된 실종동물 일치율 목록"
+            : "등록된 발견동물 일치율 목록"}
         </Text>
 
         <View style={styles.gridWrapper}>
-          {(matchedInfo?.result || []).map((item, index) => {
-            const percent = Math.round(item.matchRate);
+          {SAMPLE_MATCHES.map((item, index) => {
+            const percent = item.matchRate; // 각 아이템마다 다른 수치
             const radius = 64;
             const strokeDash = (1 - percent / 100) * 2 * Math.PI * radius;
             const imgSource = NOSE_THUMBS[index % NOSE_THUMBS.length];
@@ -118,17 +166,30 @@ const NoseResultScreen = () => {
                 <View style={styles.noseItemWrapper}>
                   <Svg width={140} height={140}>
                     <Defs>
-                      <LinearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <LinearGradient
+                        id={`grad-${index}`}
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="0%"
+                      >
                         <Stop offset="0%" stopColor="#4361ee" />
                         <Stop offset="100%" stopColor="#a0c4ff" />
                       </LinearGradient>
                     </Defs>
-                    <Circle cx={70} cy={70} r={radius} stroke="#e0e0e0" strokeWidth={6} fill="none" />
                     <Circle
                       cx={70}
                       cy={70}
                       r={radius}
-                      stroke="url(#grad)"
+                      stroke="#e0e0e0"
+                      strokeWidth={6}
+                      fill="none"
+                    />
+                    <Circle
+                      cx={70}
+                      cy={70}
+                      r={radius}
+                      stroke={`url(#grad-${index})`}
                       strokeWidth={6}
                       fill="none"
                       strokeDasharray={2 * Math.PI * radius}
@@ -159,20 +220,82 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   titleIcon: { width: 24, height: 24, resizeMode: "contain" },
   highlight: { fontSize: 18, fontWeight: "600", color: "#5b6eff" },
-  imageRow: { flexDirection: "row", justifyContent: "space-around", marginBottom: 20 },
-  myNoseCard: { alignItems: "center", padding: 16, backgroundColor: "#eaf0ff", borderRadius: 20, width: 150 },
-  noseImageWrapper: { position: "relative", alignItems: "center", justifyContent: "center", width: 160, height: 160 },
+  imageRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+  myNoseCard: {
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#eaf0ff",
+    borderRadius: 20,
+    width: 150,
+  },
+  noseImageWrapper: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 160,
+    height: 160,
+  },
   noseImage: { width: 100, height: 100, borderRadius: 50 },
-  noseImageSmall: { width: 130, height: 130, borderRadius: 65, position: "absolute" },
-  matchOverlay: { position: "absolute", top: -5, right: 15, backgroundColor: "#4f75ff", width: 50, height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center" },
+  noseImageSmall: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    position: "absolute",
+  },
+  matchOverlay: {
+    position: "absolute",
+    top: -5,
+    right: 15,
+    backgroundColor: "#4f75ff",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   matchText: { color: "white", fontSize: 16, fontWeight: "bold" },
-  metaText: { marginTop: 12, fontSize: 14, textAlign: "center", color: "#333", lineHeight: 20, fontWeight: "bold" },
+  metaText: {
+    marginTop: 12,
+    fontSize: 14,
+    textAlign: "center",
+    color: "#333",
+    lineHeight: 20,
+    fontWeight: "bold",
+  },
   listTitle: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
-  gridWrapper: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: 10 },
+  gridWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+  },
   gridItem: { width: "48%", marginBottom: 20, alignItems: "center" },
-  noseItemWrapper: { width: 180, height: 180, justifyContent: "center", alignItems: "center", position: "relative" },
-  listImage: { width: 115, height: 115, borderRadius: 100, position: "absolute" },
-  overlayCircle: { position: "absolute", width: 115, height: 115, borderRadius: 100, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center" },
+  noseItemWrapper: {
+    width: 180,
+    height: 180,
+    justifyContent: "center",
+    alignItems: "center",
+    position: "relative",
+  },
+  listImage: {
+    width: 115,
+    height: 115,
+    borderRadius: 100,
+    position: "absolute",
+  },
+  overlayCircle: {
+    position: "absolute",
+    width: 115,
+    height: 115,
+    borderRadius: 100,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   overlayText: { color: "#fff", fontSize: 25, fontWeight: "bold" },
 });
 

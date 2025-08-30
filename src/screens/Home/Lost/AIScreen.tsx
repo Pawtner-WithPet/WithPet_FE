@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, ScrollView, Text, StyleSheet } from "react-native";
-import { useRoute, RouteProp } from "@react-navigation/native";
+import { useRoute, RouteProp, useNavigation } from "@react-navigation/native";
 import Header from "../../../components/Header";
 import TabNavigation from "../../../components/AIScreen/TabNavigation";
 import SearchBar from "../../../components/AIScreen/SearchBar";
@@ -13,17 +13,17 @@ import AIKeyWordPopup from "../../../components/AIScreen/AIKeyWordPopup";
 import AIStopPopup from "../../../components/AIScreen/AIStopPopup";
 import {
   fetchFoundPetResults,
-  fetchLostPetList,
-  FindResult,
-  LostPet,
+  fetchFoundPetList,
+  fetchShelterResults,
+  fetchPetDetail,
+  FoundPet,
+  ShelterInfo,
+  PetDetailData,
+  PostType,
   getSexInKorean,
   formatDate,
 } from "../../../services/api/AIScreen";
-import {
-  searchResults,
-  snsResults,
-  shelterResults,
-} from "../../../mocks/dummyData";
+import { snsResults } from "../../../mocks/dummyData";
 
 type RouteParams = {
   selectedPet?: string;
@@ -34,51 +34,59 @@ type AIScreenRouteProp = RouteProp<{ AIScreen: RouteParams }, "AIScreen">;
 const AIScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("discovered");
   const [searchText, setSearchText] = useState("");
-  const [keywords, setKeywords] = useState<string[]>([]); // 키워드 상태 추가
-  const [searchResults, setSearchResults] = useState<FindResult[]>([]); // 검색 결과 상태
-  const [lostPetList, setLostPetList] = useState<LostPet[]>([]); // 실종동물 목록 상태
-  const [hasSearched, setHasSearched] = useState(false); // 검색 여부 상태
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<FoundPet[]>([]);
+  const [foundPetList, setFoundPetList] = useState<FoundPet[]>([]);
+  const [shelterResults, setShelterResults] = useState<ShelterInfo[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showKeywordPopup, setShowKeywordPopup] = useState(false);
   const [showStopPopup, setShowStopPopup] = useState(false);
   const [isRealTimeSearchActive, setIsRealTimeSearchActive] = useState(false);
 
+  const navigation = useNavigation<any>();
   const route = useRoute<AIScreenRouteProp>();
   const { selectedPet } = route.params || {};
 
-  // 선택된 반려견 정보는 받지만 키워드로 자동 설정하지 않음
   useEffect(() => {
     if (selectedPet) {
       console.log(`${selectedPet}를 선택하여 AI 탐색 페이지로 이동했습니다.`);
     }
   }, [selectedPet]);
 
-  // 컴포넌트 마운트 시 실종동물 목록 불러오기
+  // 컴포넌트 마운트 시 데이터 불러오기
   useEffect(() => {
-    const loadLostPetList = async () => {
-      if (activeTab === "discovered" && !hasSearched) {
-        setIsLoading(true);
-        try {
-          const results = await fetchLostPetList();
-          setLostPetList(results);
-          console.log("실종동물 목록:", results);
-        } catch (error) {
-          console.error("실종동물 목록 로딩 중 오류:", error);
-          setLostPetList([]);
-        } finally {
-          setIsLoading(false);
+    const loadData = async () => {
+      if (hasSearched) return;
+
+      setIsLoading(true);
+      try {
+        if (activeTab === "discovered") {
+          const results = await fetchFoundPetList();
+          setFoundPetList(results);
+          console.log("발견동물 목록:", results);
+        } else if (activeTab === "report") {
+          const results = await fetchShelterResults();
+          setShelterResults(results);
+          console.log("보호소 결과:", results);
         }
+      } catch (error) {
+        console.error("데이터 로딩 중 오류:", error);
+        setFoundPetList([]);
+        setShelterResults([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    loadLostPetList();
+    loadData();
   }, [activeTab, hasSearched]);
 
   // 키워드 추가 함수
   const handleAddKeyword = () => {
     if (searchText.trim() && !keywords.includes(searchText.trim())) {
       setKeywords([...keywords, searchText.trim()]);
-      setSearchText(""); // 입력창 비우기
+      setSearchText("");
     }
   };
 
@@ -87,40 +95,53 @@ const AIScreen: React.FC = () => {
     const newKeywords = keywords.filter((_, i) => i !== index);
     setKeywords(newKeywords);
 
-    // 모든 키워드가 제거되면 검색 상태 초기화
     if (newKeywords.length === 0) {
       setHasSearched(false);
       setSearchResults([]);
     }
   };
 
-  // 키워드로 검색하는 함수
-  const handleKeywordSearch = async () => {
-    if (keywords.length > 0) {
-      console.log("키워드 검색:", keywords);
-      setIsLoading(true);
-      setHasSearched(true);
+  // 검색 함수 (키워드 검색과 일반 검색을 통합)
+  const performSearch = async (keywordsToSearch: string[]) => {
+    if (keywordsToSearch.length === 0) return;
 
-      try {
-        // 키워드들을 쉼표로 구분하여 문자열로 변환
-        const keywordsString = keywords.join(",");
+    console.log("검색 키워드:", keywordsToSearch);
+    setIsLoading(true);
+    setHasSearched(true);
+
+    try {
+      const keywordsString = keywordsToSearch.join(",");
+
+      if (activeTab === "discovered") {
+        // petId 없이 keywords만 전송 (필요한 경우만 petId 추가)
         const results = await fetchFoundPetResults({
-          petId: 1,
           keywords: keywordsString,
         });
         setSearchResults(results);
         console.log("발견동물 검색 결과:", results);
-      } catch (error) {
-        console.error("검색 중 오류:", error);
-        setSearchResults([]);
-      } finally {
-        setIsLoading(false);
+      } else if (activeTab === "report") {
+        // petId 없이 keywords만 전송 (필요한 경우만 petId 추가)
+        const results = await fetchShelterResults({
+          keywords: keywordsString,
+        });
+        setShelterResults(results);
+        console.log("보호소 검색 결과:", results);
       }
+    } catch (error) {
+      console.error("검색 중 오류:", error);
+      setSearchResults([]);
+      setShelterResults([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // 키워드로 검색하는 함수
+  const handleKeywordSearch = async () => {
+    await performSearch(keywords);
+  };
+
   const handleSearch = async () => {
-    // 현재 입력된 텍스트도 키워드로 추가하고 검색
     const updatedKeywords = [...keywords];
     if (searchText.trim() && !keywords.includes(searchText.trim())) {
       updatedKeywords.push(searchText.trim());
@@ -128,30 +149,103 @@ const AIScreen: React.FC = () => {
       setSearchText("");
     }
 
-    if (updatedKeywords.length > 0) {
-      console.log("검색 키워드:", updatedKeywords);
-      setIsLoading(true);
-      setHasSearched(true);
-
-      try {
-        const keywordsString = updatedKeywords.join(",");
-        const results = await fetchFoundPetResults({
-          petId: 1,
-          keywords: keywordsString,
-        });
-        setSearchResults(results);
-        console.log("발견동물 검색 결과:", results);
-      } catch (error) {
-        console.error("검색 중 오류:", error);
-        setSearchResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    await performSearch(updatedKeywords);
   };
 
-  const handleCardPress = (postId: number) => {
-    console.log("카드 클릭:", postId);
+  // 카드 클릭 시 상세 정보를 API로 가져와서 상세페이지로 이동
+  const handleCardPress = async (item: FoundPet) => {
+    try {
+      setIsLoading(true);
+
+      // API를 통해 상세 정보 가져오기
+      const detailData = await fetchPetDetail(item.postId, "FOUND");
+
+      if (detailData) {
+        console.log("API 상세 데이터:", detailData);
+
+        // 성별 변환 로직 개선
+        let gender: "male" | "female" | undefined;
+        if (detailData.sex === "수컷" || detailData.sex === "MALE") {
+          gender = "male";
+        } else if (detailData.sex === "암컷" || detailData.sex === "FEMALE") {
+          gender = "female";
+        }
+
+        // API 데이터를 LostPostDetail에서 기대하는 형식으로 변환
+        const postData = {
+          id: item.postId.toString(),
+          status: "발견" as const,
+          name: detailData.dogNm,
+          breed: detailData.kindNm,
+          gender: gender,
+          age: detailData.age?.toString(),
+          height: detailData.height?.toString(),
+          weight: detailData.weight?.toString(),
+          // 발견동물이므로 foundLocation/foundDateTime 사용
+          location: item.foundLocation || detailData.lostLocation,
+          foundDateTime: formatDate(item.foundDate || detailData.lostDate),
+          lostDateTime: undefined, // 발견동물이므로 실종날짜는 없음
+          feature: detailData.features,
+          extra: detailData.description,
+          familiar: detailData.favoritePlace,
+          image: detailData.imgUrl ? { uri: detailData.imgUrl } : undefined,
+        };
+
+        console.log("변환된 postData:", postData);
+
+        navigation.navigate("LostPostDetail", {
+          post: postData,
+          from: "AIScreen",
+        });
+      } else {
+        console.error("상세 정보를 가져올 수 없습니다.");
+        // 실패 시 기본 정보로라도 이동
+        const fallbackData = {
+          id: item.postId.toString(),
+          status: "발견" as const,
+          breed: item.kindNm,
+          gender:
+            item.sex === "MALE"
+              ? "male"
+              : item.sex === "FEMALE"
+                ? "female"
+                : undefined,
+          location: item.foundLocation,
+          foundDateTime: formatDate(item.foundDate),
+          image: item.imgUrl ? { uri: item.imgUrl } : undefined,
+        };
+
+        navigation.navigate("LostPostDetail", {
+          post: fallbackData,
+          from: "AIScreen",
+        });
+      }
+    } catch (error) {
+      console.error("상세 정보 조회 중 오류:", error);
+
+      // 에러 발생 시에도 기본 정보로 이동
+      const fallbackData = {
+        id: item.postId.toString(),
+        status: "발견" as const,
+        breed: item.kindNm,
+        gender:
+          item.sex === "MALE"
+            ? "male"
+            : item.sex === "FEMALE"
+              ? "female"
+              : undefined,
+        location: item.foundLocation,
+        foundDateTime: formatDate(item.foundDate),
+        image: item.imgUrl ? { uri: item.imgUrl } : undefined,
+      };
+
+      navigation.navigate("LostPostDetail", {
+        post: fallbackData,
+        from: "AIScreen",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSNSCardPress = (id: number) => {
@@ -164,10 +258,8 @@ const AIScreen: React.FC = () => {
 
   const handleRealTimeSearchToggle = () => {
     if (isRealTimeSearchActive) {
-      console.log("실시간 AI 탐색 끄기 팝업 열기");
       setShowStopPopup(true);
     } else {
-      console.log("실시간 AI 탐색 켜놓기");
       setShowKeywordPopup(true);
     }
   };
@@ -194,45 +286,29 @@ const AIScreen: React.FC = () => {
     }
 
     if (activeTab === "discovered") {
-      // 검색을 했을 때는 발견동물 검색 결과를 보여줌
-      if (hasSearched && keywords.length > 0) {
-        return searchResults.length > 0 ? (
-          <View style={styles.resultsContainer}>
-            {searchResults.map((item) => (
-              <FindCard
-                key={item.postId}
-                date={formatDate(item.foundDate)}
-                location={item.foundLocation}
-                status={`${item.kindNm} / ${getSexInKorean(item.sex)}`}
-                image={item.imgUrl}
-                onPress={() => handleCardPress(item.postId)}
-              />
-            ))}
-          </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>발견동물 탐색 결과가 없습니다</Text>
-          </View>
-        );
-      }
+      const dataToShow =
+        hasSearched && keywords.length > 0 ? searchResults : foundPetList;
 
-      // 검색 전 기본 화면에서는 실종동물 목록을 보여줌
-      return lostPetList.length > 0 ? (
+      return dataToShow.length > 0 ? (
         <View style={styles.resultsContainer}>
-          {lostPetList.map((item) => (
+          {dataToShow.map((item) => (
             <FindCard
               key={item.postId}
-              date={formatDate(item.lostDate)}
-              location={item.lostLocation}
+              date={formatDate(item.foundDate)}
+              location={item.foundLocation}
               status={`${item.kindNm} / ${getSexInKorean(item.sex)}`}
               image={item.imgUrl}
-              onPress={() => handleCardPress(item.postId)}
+              onPress={() => handleCardPress(item)}
             />
           ))}
         </View>
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>실종동물 목록이 없습니다</Text>
+          <Text style={styles.emptyText}>
+            {hasSearched
+              ? "발견동물 탐색 결과가 없습니다"
+              : "발견동물 목록이 없습니다"}
+          </Text>
         </View>
       );
     }
@@ -260,20 +336,26 @@ const AIScreen: React.FC = () => {
     if (activeTab === "report") {
       return shelterResults.length > 0 ? (
         <View style={styles.resultsContainer}>
-          {shelterResults.map((item) => (
+          {shelterResults.map((item, index) => (
             <ShelterCard
-              key={item.id}
-              name={item.name}
-              location={item.location}
-              contact={item.contact}
-              image={item.image}
-              onPress={() => handleShelterCardPress(item.id)}
+              key={index}
+              name={item.shelterName}
+              location={item.shelterLocation}
+              contact={item.shelterTel}
+              image={item.petImg}
+              foundLocation={item.foundLocation}
+              feature={item.feature}
+              onPress={() => handleShelterCardPress(index)}
             />
           ))}
         </View>
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>보호소 탐색 결과가 없습니다</Text>
+          <Text style={styles.emptyText}>
+            {hasSearched
+              ? "보호소 탐색 결과가 없습니다"
+              : "보호소 목록이 없습니다"}
+          </Text>
         </View>
       );
     }

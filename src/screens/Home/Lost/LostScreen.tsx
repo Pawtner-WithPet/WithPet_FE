@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
-  Modal, 
+  Modal,
   Pressable,
 } from "react-native";
 import Header from "../../../components/Header";
@@ -25,7 +25,7 @@ const DATA = [
     id: "1",
     status: "실종",
     gender: "female" as "male" | "female",
-    name: "포포",
+    name: "곰탱이",
     age: "1살",
     breed: "포메라니안",
     height: "25cm",
@@ -72,7 +72,7 @@ const LostPetListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false); // 등록
   const [registerModalOpen, setRegisterModalOpen] = useState(false); // 등록 (실종 동물 등록 반려견 선택)
-  const PET_NAMES = ["포포"] as const;
+  const PET_NAMES = ["곰탱이"] as const;
 
   const [selectedPet, setSelectedPet] = useState(); //탐색
   const [isPetToggleVisible, setPetToggleVisible] = useState(false); //탐색
@@ -133,153 +133,149 @@ const LostPetListScreen: React.FC = () => {
 
   return (
     <>
-    <View style={styles.container}>
-      <Header />
+      <View style={styles.container}>
+        <Header />
 
-      <View style={styles.tabWrapper}>
-        {["전체", "실종동물", "발견동물"].map((label) => (
-          <TouchableOpacity
-            key={label}
-            onPress={() => setActiveTab(label)}
-            style={styles.tabItem}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === label && styles.tabTextActive,
-              ]}
-            >
-              {label}
-            </Text>
-            {activeTab === label && <View style={styles.tabUnderline} />}
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.searchWrapper}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="지역 또는 견종으로 검색"
-          placeholderTextColor="#999"
-        />
-        <TouchableOpacity>
-          <Image source={icon_search} style={styles.searchIcon} />
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        data={filteredData}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ListEmptyComponent={
-          <Text style={{ textAlign: "center", marginTop: 20 }}>
-            등록된 정보가 없습니다.
-          </Text>
-        }
-        contentContainerStyle={{ padding: 16 }}
-      />
-
-      <View style={styles.floatingWrapper}>
-        {isPetToggleVisible && (
-          <View style={styles.petDropdownWrapper}>
+        <View style={styles.tabWrapper}>
+          {["전체", "실종동물", "발견동물"].map((label) => (
             <TouchableOpacity
-              style={styles.petToggleBtn}
-              onPress={() => setDropdownVisible((prev) => !prev)}
+              key={label}
+              onPress={() => setActiveTab(label)}
+              style={styles.tabItem}
             >
-              <Text style={styles.petToggleText}>탐색할 반려견 ▲</Text>
-            </TouchableOpacity>
-
-            {isDropdownVisible && (
-              <View style={styles.dropdown}>
-                {["포포"].map((pet) => (
-                  <TouchableOpacity
-                    key={pet}
-                    style={styles.dropdownItem}
-                    onPress={() => {
-                      setDropdownVisible(false);
-                      setPetToggleVisible(false);
-                      navigation.navigate("AIScreen", { selectedPet: pet });
-                    }}
-                  >
-                    <Text style={styles.dropdownText}>{pet}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setPetToggleVisible((prev) => !prev)}
-        >
-          <Image source={icon_search} style={styles.fabIcon} />
-        </TouchableOpacity>
-
-        {isExpanded && (
-          <View style={styles.dropdownButtons}>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: "#F64C4C" }]}
-              onPress={() => setRegisterModalOpen(true)} 
-            >
-              <Text style={styles.actionButtonText}>실종동물 등록</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: "#4262FF" }]}
-              onPress={() => navigation.navigate("FoundPetRegister")}
-            >
-              <Text style={styles.actionButtonText}>발견동물 등록</Text>
-            </TouchableOpacity>
-          </View>
-          
-        )}
-
-      
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => setIsExpanded((prev) => !prev)}
-        >
-          <Text style={styles.fabPlus}>+</Text>
-        </TouchableOpacity>
-      </View>
-      
-    </View>
-
-     <Modal
-      visible={registerModalOpen}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setRegisterModalOpen(false)}
-    >
-      <Pressable
-        style={styles.modalBackdrop}
-        onPress={() => setRegisterModalOpen(false)}
-      >
-        <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>반려견 선택</Text>
-
-          {["포포"].map((pet) => (
-            <TouchableOpacity
-              key={pet}
-              style={styles.modalItem}
-              onPress={() => {
-                setRegisterModalOpen(false);
-                navigation.navigate("LostPetRegister", { petName: pet });
-              }}
-            >
-              <Text style={styles.modalItemText}>{pet}</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === label && styles.tabTextActive,
+                ]}
+              >
+                {label}
+              </Text>
+              {activeTab === label && <View style={styles.tabUnderline} />}
             </TouchableOpacity>
           ))}
+        </View>
 
-          <TouchableOpacity
-            style={styles.modalCloseBtn}
-            onPress={() => setRegisterModalOpen(false)}
-          >
-            <Text style={styles.modalCloseText}>닫기</Text>
+        <View style={styles.searchWrapper}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="지역 또는 견종으로 검색"
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity>
+            <Image source={icon_search} style={styles.searchIcon} />
           </TouchableOpacity>
         </View>
-      </Pressable>
-    </Modal>
-  </>
+        <FlatList
+          data={filteredData}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          ListEmptyComponent={
+            <Text style={{ textAlign: "center", marginTop: 20 }}>
+              등록된 정보가 없습니다.
+            </Text>
+          }
+          contentContainerStyle={{ padding: 16 }}
+        />
 
+        <View style={styles.floatingWrapper}>
+          {isPetToggleVisible && (
+            <View style={styles.petDropdownWrapper}>
+              <TouchableOpacity
+                style={styles.petToggleBtn}
+                onPress={() => setDropdownVisible((prev) => !prev)}
+              >
+                <Text style={styles.petToggleText}>탐색할 반려견 ▲</Text>
+              </TouchableOpacity>
+
+              {isDropdownVisible && (
+                <View style={styles.dropdown}>
+                  {["곰탱이"].map((pet) => (
+                    <TouchableOpacity
+                      key={pet}
+                      style={styles.dropdownItem}
+                      onPress={() => {
+                        setDropdownVisible(false);
+                        setPetToggleVisible(false);
+                        navigation.navigate("AIScreen", { selectedPet: pet });
+                      }}
+                    >
+                      <Text style={styles.dropdownText}>{pet}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={() => setPetToggleVisible((prev) => !prev)}
+          >
+            <Image source={icon_search} style={styles.fabIcon} />
+          </TouchableOpacity>
+
+          {isExpanded && (
+            <View style={styles.dropdownButtons}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: "#F64C4C" }]}
+                onPress={() => setRegisterModalOpen(true)}
+              >
+                <Text style={styles.actionButtonText}>실종동물 등록</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: "#4262FF" }]}
+                onPress={() => navigation.navigate("FoundPetRegister")}
+              >
+                <Text style={styles.actionButtonText}>발견동물 등록</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={() => setIsExpanded((prev) => !prev)}
+          >
+            <Text style={styles.fabPlus}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Modal
+        visible={registerModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRegisterModalOpen(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setRegisterModalOpen(false)}
+        >
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>반려견 선택</Text>
+
+            {["곰탱이"].map((pet) => (
+              <TouchableOpacity
+                key={pet}
+                style={styles.modalItem}
+                onPress={() => {
+                  setRegisterModalOpen(false);
+                  navigation.navigate("LostPetRegister", { petName: pet });
+                }}
+              >
+                <Text style={styles.modalItemText}>{pet}</Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setRegisterModalOpen(false)}
+            >
+              <Text style={styles.modalCloseText}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+    </>
   );
 };
 
@@ -498,53 +494,52 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   modalBackdrop: {
-  flex: 1,
-  backgroundColor: "rgba(0,0,0,0.45)",
-  alignItems: "center",
-  justifyContent: "center",
-},
-modalCard: {
-  width: "84%",
-  maxWidth: 360,
-  backgroundColor: "#fff",
-  borderRadius: 16,
-  paddingVertical: 18,
-  paddingHorizontal: 16,
-  elevation: 6,
-},
-modalTitle: {
-  fontSize: 18,
-  fontWeight: "800",
-  color: "#111",
-  textAlign: "center",
-  marginBottom: 12,
-},
-modalItem: {
-  paddingVertical: 12,
-  alignItems: "center",
-  backgroundColor: "#F2F4F8",
-  marginVertical: 6,
-  borderRadius: 10,
-},
-modalItemText: {
-  fontSize: 16,
-  color: "#111",
-  fontWeight: "600",
-},
-modalCloseBtn: {
-  alignSelf: "center",
-  marginTop: 10,
-  paddingHorizontal: 16,
-  paddingVertical: 8,
-  backgroundColor: "#3366FF",
-  borderRadius: 10,
-},
-modalCloseText: {
-  color: "#fff",
-  fontSize: 14,
-  fontWeight: "700",
-},
-
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCard: {
+    width: "84%",
+    maxWidth: 360,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    elevation: 6,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  modalItem: {
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#F2F4F8",
+    marginVertical: 6,
+    borderRadius: 10,
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: "#111",
+    fontWeight: "600",
+  },
+  modalCloseBtn: {
+    alignSelf: "center",
+    marginTop: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#3366FF",
+    borderRadius: 10,
+  },
+  modalCloseText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+  },
 });
 
 export default LostPetListScreen;

@@ -23,6 +23,21 @@ import {
 } from "../../../services/api/NoseList";
 import { fetchDogs, Dog } from "../../../services/api/dogs";
 
+// 다양한 일치율을 위한 샘플 데이터
+const SAMPLE_SCORES = [95.2, 88.7, 82.1, 76.8, 91.3, 79.5, 85.9, 73.4];
+
+// 다양한 코 이미지들
+const SAMPLE_NOSE_IMAGES = [
+  require("../../../assets/images/nose2.png"),
+  require("../../../assets/images/nose3.png"),
+  require("../../../assets/images/nose3.png"),
+  require("../../../assets/images/nose4.png"),
+  require("../../../assets/images/nose5.png"),
+  require("../../../assets/images/nose6.png"),
+  require("../../../assets/images/nose7.png"),
+  require("../../../assets/images/nose8.png"),
+];
+
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
@@ -120,7 +135,7 @@ const NoseScreen: React.FC = () => {
                 navigation.navigate("NoseCamera", {
                   fromScreen: "NoseScreen",
                   petId: String(dog.id),
-                  hasNoseprint: true, 
+                  hasNoseprint: true,
                 });
               },
             },
@@ -173,6 +188,17 @@ const NoseScreen: React.FC = () => {
     return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
   };
 
+  // 다양한 일치율을 가져오는 함수
+  const getVariedScore = (index: number): string => {
+    const score = SAMPLE_SCORES[index % SAMPLE_SCORES.length];
+    return score.toFixed(1);
+  };
+
+  // 다양한 이미지를 가져오는 함수
+  const getVariedImage = (index: number) => {
+    return SAMPLE_NOSE_IMAGES[index % SAMPLE_NOSE_IMAGES.length];
+  };
+
   return (
     <View style={styles.container}>
       <Header />
@@ -189,13 +215,13 @@ const NoseScreen: React.FC = () => {
             </Text>
           </View>
         ) : noseData.length > 0 ? (
-          noseData.map((item) => (
+          noseData.map((item, index) => (
             <NoseCard
               key={item.searchId}
               date={formatDate(item.searchDatetime)}
               location={item.searchLocation}
-              percentage={`${item.highestScore}`}
-              image={{ uri: item.nosePrintImg }}
+              percentage={getVariedScore(index)}
+              image={getVariedImage(index)}
             />
           ))
         ) : (
