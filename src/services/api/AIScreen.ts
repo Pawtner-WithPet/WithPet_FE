@@ -123,6 +123,56 @@ export type PetDetailResponse = {
   data: PetDetailData;
 };
 
+// 사용자 실종 반려견 데이터 타입
+export type UserLostPet = {
+  petId: number;
+  dogNm: string;
+  kindNm: string;
+  sex: string;
+  status: boolean;
+};
+
+// API 응답 타입
+export type UserLostPetsResponse = {
+  status: number;
+  code: string;
+  message: string;
+  data: UserLostPet[];
+};
+
+// 사용자의 실종 반려견 목록을 가져오는 함수
+export const fetchUserLostPets = async (
+  userId: number,
+): Promise<UserLostPet[]> => {
+  try {
+    console.log(`사용자 ${userId}의 실종 반려견 목록 조회 중...`);
+
+    const response = await api.get<UserLostPetsResponse>(
+      `/api/search/${userId}/pets/lost`,
+    );
+
+    console.log("사용자 실종 반려견 목록 조회 결과:", response.data);
+
+    if (response.data.status === 200 && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error(
+        response.data.message ||
+          "사용자 실종 반려견 목록을 가져오는데 실패했습니다.",
+      );
+    }
+  } catch (error: any) {
+    console.error("사용자 실종 반려견 목록 조회 오류:", error.message);
+
+    if (error.response) {
+      console.error("상태 코드:", error.response.status);
+      console.error("응답 데이터:", error.response.data);
+    }
+
+    return [];
+  }
+};
+
 // CORS 에러 감지 함수
 const isCorsError = (error: any): boolean => {
   const errorMessage = error.message?.toLowerCase() || "";
@@ -484,4 +534,57 @@ export const fetchPetDetail = async (
     }
     return null;
   }
+};
+
+// 기존 fetchUserLostPets 함수가 없거나 다르다면 이 버전으로 교체/추가
+export const fetchUserLostPetsById = async (
+  userId: number,
+): Promise<UserLostPet[]> => {
+  try {
+    console.log(`사용자 ${userId}의 실종 반려견 목록 조회 중...`);
+
+    const response = await api.get<UserLostPetsResponse>(
+      `/api/search/${userId}/pets/lost`,
+    );
+
+    console.log("사용자 실종 반려견 목록 조회 결과:", response.data);
+
+    if (response.data.status === 200 && response.data.data) {
+      return response.data.data;
+    } else {
+      throw new Error(
+        response.data.message ||
+          "사용자 실종 반려견 목록을 가져오는데 실패했습니다.",
+      );
+    }
+  } catch (error: any) {
+    console.error("사용자 실종 반려견 목록 조회 오류:", error.message);
+
+    if (error.response) {
+      console.error("상태 코드:", error.response.status);
+      console.error("응답 데이터:", error.response.data);
+    }
+
+    return [];
+  }
+};
+
+// 특정 사용자 ID(11)로 실종 반려견 목록을 가져오는 함수
+export const fetchCurrentUserLostPets = async (): Promise<UserLostPet[]> => {
+  const userId = 11; // 임시로 하드코딩된 사용자 ID
+  return await fetchUserLostPetsById(userId);
+};
+
+// 사용자 실종 반려견 목록을 드롭다운용 이름 배열로 변환하는 함수
+export const getUserLostPetNames = (pets: UserLostPet[]): string[] => {
+  return pets.map((pet) => pet.dogNm);
+};
+
+// 반려견 이름으로 petId를 찾는 함수
+export const getPetIdByName = (
+  pets: UserLostPet[],
+  dogName: string,
+): number | null => {
+  const pet = pets.find((pet) => pet.dogNm === dogName);
+  return pet ? pet.petId : null;
 };

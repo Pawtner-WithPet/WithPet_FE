@@ -26,6 +26,9 @@ import {
   LostPet,
   FoundPet,
   PostType,
+  getPetIdByName,
+  fetchCurrentUserLostPets,
+  UserLostPet,
 } from "../../../services/api/AIScreen";
 
 // 통합된 Pet 타입 정의
@@ -61,11 +64,15 @@ const LostPetListScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // 사용자 실종 반려견 목록 상태 추가
+  const [userLostPets, setUserLostPets] = useState<UserLostPet[]>([]);
+
   const [selectedPet, setSelectedPet] = useState();
   const [isPetToggleVisible, setPetToggleVisible] = useState(false);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-  const PET_NAMES = ["곰탱이"] as const;
+  // 동적으로 사용자 반려견 이름 목록 생성
+  const PET_NAMES = userLostPets.map((pet) => pet.dogNm);
   const navigation = useNavigation<any>();
 
   // 성별 변환 함수
@@ -111,6 +118,19 @@ const LostPetListScreen: React.FC = () => {
     );
   };
 
+  // 사용자 실종 반려견 목록 로드 함수
+  const loadUserLostPets = async () => {
+    try {
+      console.log("사용자 실종 반려견 목록 로딩 중...");
+      const userPets = await fetchCurrentUserLostPets();
+      setUserLostPets(userPets);
+      console.log("사용자 실종 반려견 목록 로딩 완료:", userPets);
+    } catch (error) {
+      console.error("사용자 실종 반려견 목록 로딩 오류:", error);
+      setUserLostPets([]); // 오류 시 빈 배열로 설정
+    }
+  };
+
   // 데이터 로드 함수
   const loadPetData = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
@@ -143,7 +163,7 @@ const LostPetListScreen: React.FC = () => {
   // 새로고침 함수
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await loadPetData(false);
+    await Promise.all([loadPetData(false), loadUserLostPets()]);
     setIsRefreshing(false);
   };
 
@@ -180,12 +200,14 @@ const LostPetListScreen: React.FC = () => {
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     loadPetData();
+    loadUserLostPets();
   }, []);
 
   // 화면이 포커스될 때마다 데이터 새로고침
   useFocusEffect(
     React.useCallback(() => {
       loadPetData(false);
+      loadUserLostPets();
     }, []),
   );
 
@@ -358,19 +380,25 @@ const LostPetListScreen: React.FC = () => {
 
               {isDropdownVisible && (
                 <View style={styles.dropdown}>
-                  {PET_NAMES.map((pet) => (
-                    <TouchableOpacity
-                      key={pet}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setDropdownVisible(false);
-                        setPetToggleVisible(false);
-                        navigation.navigate("AIScreen", { selectedPet: pet });
-                      }}
-                    >
-                      <Text style={styles.dropdownText}>{pet}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  {PET_NAMES.map((pet) => {
+                    const petId = getPetIdByName(userLostPets, pet);
+                    return (
+                      <TouchableOpacity
+                        key={pet}
+                        style={styles.dropdownItem}
+                        onPress={() => {
+                          setDropdownVisible(false);
+                          setPetToggleVisible(false);
+                          navigation.navigate("AIScreen", {
+                            selectedPet: pet,
+                            petId: petId,
+                          });
+                        }}
+                      >
+                        <Text style={styles.dropdownText}>{pet}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               )}
             </View>
@@ -421,18 +449,30 @@ const LostPetListScreen: React.FC = () => {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>반려견 선택</Text>
 
-            {PET_NAMES.map((pet) => (
-              <TouchableOpacity
-                key={pet}
-                style={styles.modalItem}
-                onPress={() => {
-                  setRegisterModalOpen(false);
-                  navigation.navigate("LostPetRegister", { petName: pet });
-                }}
-              >
-                <Text style={styles.modalItemText}>{pet}</Text>
-              </TouchableOpacity>
-            ))}
+            {PET_NAMES.length > 0 ? (
+              PET_NAMES.map((pet) => (
+                <TouchableOpacity
+                  key={pet}
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setRegisterModalOpen(false);
+                    const petId = getPetIdByName(userLostPets, pet);
+                    navigation.navigate("LostPetRegister", {
+                      petName: pet,
+                      petId: petId,
+                    });
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{pet}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.modalItem}>
+                <Text style={[styles.modalItemText, { color: "#999" }]}>
+                  등록된 반려견이 없습니다
+                </Text>
+              </View>
+            )}
 
             <TouchableOpacity
               style={styles.modalCloseBtn}
