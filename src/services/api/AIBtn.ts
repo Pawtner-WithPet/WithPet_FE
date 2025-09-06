@@ -12,6 +12,11 @@ export type RealtimeSearchParams = {
   image?: File | Blob;
 };
 
+// 실시간 검색 중단 요청 파라미터 타입
+export type RealtimeSearchStopParams = {
+  userId: number;
+};
+
 // 실시간 검색 응답 타입
 export type RealtimeSearchResponse = {
   status: number;
@@ -23,7 +28,7 @@ export type RealtimeSearchResponse = {
 // 실시간 검색 시작 함수
 export const startRealtimeSearch = async (
   params: RealtimeSearchParams,
-): Promise<RealtimeSearchResponse | null> => {
+): Promise<RealtimeSearchResponse> => {
   try {
     if (!params.keywords?.trim() && !params.image) {
       throw new Error("keywords 또는 image 중 하나 이상은 필수입니다.");
@@ -87,7 +92,63 @@ export const startRealtimeSearch = async (
       console.error("📦 요청 설정 오류:", error.message);
     }
 
-    return null;
+    // 에러 발생 시 기본 응답 반환
+    return {
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: error.message || "실시간 검색 시작에 실패했습니다.",
+    };
+  }
+};
+
+// 실시간 검색 중단 함수
+export const stopRealtimeSearch = async (
+  jobId: string,
+  params: RealtimeSearchStopParams = { userId: 1 },
+): Promise<RealtimeSearchResponse> => {
+  try {
+    const formData = new FormData();
+
+    // 필수 파라미터 추가
+    formData.append("userId", params.userId.toString());
+
+    console.log("🛑 실시간 검색 중단 요청:");
+    console.log(`  jobId: ${jobId}`);
+    console.log(`  userId: ${params.userId}`);
+
+    const response = await api.post<RealtimeSearchResponse>(
+      `/api/realtime/search/${jobId}/stop`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 10000,
+      },
+    );
+
+    console.log("🛑 실시간 검색 중단 응답:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("🐾 Failed to stop realtime search:", error.message);
+
+    // 더 상세한 에러 로깅
+    if (error.response) {
+      console.error("📦 에러 상태 코드:", error.response.status);
+      console.error("📦 에러 응답 데이터:", error.response.data);
+      console.error("📦 에러 응답 헤더:", error.response.headers);
+    } else if (error.request) {
+      console.error("📦 요청이 전송되지 않음:", error.request);
+    } else {
+      console.error("📦 요청 설정 오류:", error.message);
+    }
+
+    // 에러 발생 시 기본 응답 반환
+    return {
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: error.message || "실시간 검색 중단에 실패했습니다.",
+    };
   }
 };
 
@@ -102,7 +163,7 @@ export const startRealtimeSearchWithKeywords = async (
   petId: number,
   status: RealtimeSearchStatus,
   keywords: string[],
-): Promise<RealtimeSearchResponse | null> => {
+): Promise<RealtimeSearchResponse> => {
   const keywordsString = formatKeywordsForApi(keywords);
 
   return startRealtimeSearch({
@@ -119,7 +180,7 @@ export const startRealtimeSearchWithImage = async (
   petId: number,
   status: RealtimeSearchStatus,
   image: File | Blob,
-): Promise<RealtimeSearchResponse | null> => {
+): Promise<RealtimeSearchResponse> => {
   return startRealtimeSearch({
     userId,
     petId,
@@ -135,7 +196,7 @@ export const startRealtimeSearchWithBoth = async (
   status: RealtimeSearchStatus,
   keywords: string[],
   image: File | Blob,
-): Promise<RealtimeSearchResponse | null> => {
+): Promise<RealtimeSearchResponse> => {
   const keywordsString = formatKeywordsForApi(keywords);
 
   return startRealtimeSearch({

@@ -101,28 +101,27 @@ const AIScreen: React.FC = () => {
     }
   };
 
-  // 검색 함수 (키워드 검색과 일반 검색을 통합)
   const performSearch = async (keywordsToSearch: string[]) => {
-    if (keywordsToSearch.length === 0) return;
-
     console.log("검색 키워드:", keywordsToSearch);
     setIsLoading(true);
     setHasSearched(true);
 
     try {
-      const keywordsString = keywordsToSearch.join(",");
+      const keywordsString =
+        keywordsToSearch.length === 0 ? "" : keywordsToSearch.join(",");
 
       if (activeTab === "discovered") {
-        // petId 없이 keywords만 전송 (필요한 경우만 petId 추가)
+        // 발견동물 탐색 API 호출
         const results = await fetchFoundPetResults({
           keywords: keywordsString,
         });
         setSearchResults(results);
         console.log("발견동물 검색 결과:", results);
       } else if (activeTab === "report") {
-        // petId 없이 keywords만 전송 (필요한 경우만 petId 추가)
+        // 보호소 탐색 API 호출 시 petId = 1을 추가
         const results = await fetchShelterResults({
-          keywords: keywordsString,
+          petId: 1, // 키워드가 없을 경우에도 petId=1로 보내기
+          keywords: keywordsString, // 빈 문자열로 보내기
         });
         setShelterResults(results);
         console.log("보호소 검색 결과:", results);

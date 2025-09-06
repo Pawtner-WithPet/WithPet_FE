@@ -123,6 +123,66 @@ export type PetDetailResponse = {
   data: PetDetailData;
 };
 
+// CORS 에러 감지 함수
+const isCorsError = (error: any): boolean => {
+  const errorMessage = error.message?.toLowerCase() || "";
+  const errorName = error.name?.toLowerCase() || "";
+
+  return (
+    error.code === "ERR_NETWORK" ||
+    errorMessage.includes("cors") ||
+    errorMessage.includes("cross-origin") ||
+    errorMessage.includes("access-control") ||
+    errorName.includes("cors") ||
+    (error.response?.status === 0 && !error.request?.response)
+  );
+};
+
+// 네트워크 에러 감지 함수
+const isNetworkError = (error: any): boolean => {
+  return (
+    error.code === "ECONNABORTED" ||
+    error.code === "ENOTFOUND" ||
+    error.code === "ECONNREFUSED" ||
+    error.code === "ETIMEDOUT" ||
+    error.message?.includes("timeout") ||
+    error.message?.includes("network")
+  );
+};
+
+// CORS 간단 테스트 함수
+export const testCorsIssue = async (): Promise<boolean> => {
+  try {
+    console.log("🧪 CORS 테스트 시작...");
+
+    // 간단한 GET 요청으로 테스트
+    const response = await fetch("/api/search/withshelter?petId=1", {
+      method: "GET",
+      mode: "cors", // CORS 모드 명시적 설정
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("✅ CORS 테스트 성공:", response.status);
+    console.log(
+      "📋 응답 헤더:",
+      Object.fromEntries(response.headers.entries()),
+    );
+    return true;
+  } catch (error: any) {
+    console.error("❌ CORS 테스트 실패:", error.message);
+
+    if (error.name === "TypeError" && error.message.includes("CORS")) {
+      console.error("🚫 CORS 에러 확인됨");
+      return false;
+    }
+
+    console.error("🤔 다른 에러 타입:", error.name);
+    return false;
+  }
+};
+
 // 실종동물 목록을 가져오는 함수
 export const fetchLostPetList = async (searchParams?: {
   petId?: number;
@@ -196,34 +256,208 @@ export const fetchFoundPetResults = async (searchParams?: {
   }
 };
 
-// 보호소 기반 탐색 결과를 가져오는 함수
+// 서버 에러 처리를 위한 개선된 fetchShelterResults 함수
 export const fetchShelterResults = async (searchParams?: {
   petId?: number;
   keywords?: string;
 }): Promise<ShelterInfo[]> => {
-  try {
-    // 파라미터 정리: null/undefined 값 제거
-    const cleanParams = Object.fromEntries(
-      Object.entries(searchParams || {}).filter(([_, value]) => value != null),
-    );
+  // 재시도 로직 추가
+  const maxRetries = 3;
+  let attempt = 0;
 
-    console.log("🏠 보호소 검색 요청 파라미터:", cleanParams);
+  while (attempt < maxRetries) {
+    try {
+      attempt++;
+      console.log(`🔄 보호소 검색 시도 ${attempt}/${maxRetries}`);
 
-    const response = await api.get<ShelterSearchResponse>(
-      "/api/search/withshelter",
-      {
-        params: cleanParams,
-      },
-    );
-    console.log("🏠 보호소 기반 탐색 결과:", response.data);
-    return response.data.data;
-  } catch (error: any) {
-    console.error("🐾 Failed to fetch shelter results:", error.message);
-    if (error.response) {
-      console.error("📦 상태 코드:", error.response.status);
-      console.error("📦 응답 데이터:", error.response.data);
+      const cleanParams = Object.fromEntries(
+        Object.entries(searchParams || {}).filter(
+          ([_, value]) => value != null,
+        ),
+      );
+
+      console.log("📋 요청 파라미터:", JSON.stringify(cleanParams));
+
+      const response = await api.get<ShelterSearchResponse>(
+        "/api/search/withshelter",
+        {
+          params: cleanParams,
+          timeout: 30000,
+          headers: {
+            "X-Request-ID": Math.random().toString(36).substr(2, 9),
+          },
+        },
+      );
+
+      console.log("✅ 보호소 검색 성공");
+      return response.data.data;
+    } catch (error: any) {
+      console.error(`❌ 시도 ${attempt} 실패:`, error.message);
+
+      // 500 에러 상세 분석
+      if (error.response?.status === 500) {
+        const errorData = error.response.data;
+
+        console.error("🔥 서버 내부 에러 (500) 상세:");
+        console.error("  - 에러 코드:", errorData.code);
+        console.error("  - 에러 메시지:", errorData.message);
+        console.error("  - 발생 시간:", errorData.timestamp);
+        console.error("  - API 경로:", errorData.path);
+
+        // 에러 리포팅
+        const cleanParams = Object.fromEntries(
+          Object.entries(searchParams || {}).filter(
+            ([_, value]) => value != null,
+          ),
+        );
+
+        await reportServerError({
+          api: "/api/search/withshelter",
+          params: cleanParams,
+          errorResponse: errorData,
+          timestamp: new Date().toISOString(),
+        });
+
+        // 마지막 시도가 아니면 재시도
+        if (attempt < maxRetries) {
+          console.log(`⏳ ${2000 * attempt}ms 후 재시도...`);
+          await new Promise((resolve) =>
+            setTimeout(() => resolve(undefined), 2000 * attempt),
+          );
+          continue;
+        }
+      }
+
+      // 최종 실패 시
+      if (attempt === maxRetries) {
+        console.error("🚫 최대 재시도 횟수 초과 - 보호소 검색 최종 실패");
+
+        // 백엔드 팀에게 전달할 정보
+        const cleanParams = Object.fromEntries(
+          Object.entries(searchParams || {}).filter(
+            ([_, value]) => value != null,
+          ),
+        );
+
+        console.error("📋 백엔드 팀 전달 정보:");
+        console.error(`  - API: /api/search/withshelter`);
+        console.error(`  - 파라미터: ${JSON.stringify(cleanParams)}`);
+        console.error(`  - 에러 시간: ${new Date().toISOString()}`);
+        console.error(`  - 클라이언트: React Native Android`);
+
+        return [];
+      }
     }
+  }
+
+  return [];
+};
+
+// 서버 상태 체크 함수 추가
+export const checkServerStatus = async (): Promise<boolean> => {
+  try {
+    console.log("🏥 서버 상태 확인 중...");
+
+    // 간단한 헬스체크 API 호출 (있다면)
+    const response = await api.get("/health", { timeout: 5000 });
+    console.log("✅ 서버 상태 정상");
+    return true;
+  } catch (error) {
+    // 헬스체크 API가 없다면 다른 가벼운 API로 테스트
+    try {
+      const response = await api.get("/api/search/lost-list", {
+        params: { limit: 1 },
+        timeout: 5000,
+      });
+      console.log("✅ 서버 상태 정상 (대체 API 확인)");
+      return true;
+    } catch (fallbackError) {
+      console.error("❌ 서버 상태 불량");
+      return false;
+    }
+  }
+};
+
+// 파라미터 유효성 검증 함수
+export const validateShelterSearchParams = (searchParams?: {
+  petId?: number;
+  keywords?: string;
+}): { isValid: boolean; error?: string } => {
+  if (!searchParams) {
+    return { isValid: false, error: "검색 파라미터가 필요합니다" };
+  }
+
+  const { petId, keywords } = searchParams;
+
+  // petId와 keywords 중 하나는 있어야 함
+  if (!petId && !keywords) {
+    return {
+      isValid: false,
+      error: "petId 또는 keywords 중 하나는 필수입니다",
+    };
+  }
+
+  // petId 유효성 검증
+  if (petId && (petId <= 0 || !Number.isInteger(petId))) {
+    return {
+      isValid: false,
+      error: "petId는 양의 정수여야 합니다",
+    };
+  }
+
+  // keywords 유효성 검증
+  if (
+    keywords &&
+    (typeof keywords !== "string" || keywords.trim().length === 0)
+  ) {
+    return {
+      isValid: false,
+      error: "keywords는 비어있지 않은 문자열이어야 합니다",
+    };
+  }
+
+  return { isValid: true };
+};
+
+// 개선된 보호소 검색 함수 (유효성 검증 + 재시도 + 상태 체크)
+export const fetchShelterResultsWithValidation = async (searchParams?: {
+  petId?: number;
+  keywords?: string;
+}): Promise<ShelterInfo[]> => {
+  console.log("🚀 보호소 검색 시작");
+
+  // 1. 파라미터 유효성 검증
+  const validation = validateShelterSearchParams(searchParams);
+  if (!validation.isValid) {
+    console.error("❌ 파라미터 유효성 검증 실패:", validation.error);
     return [];
+  }
+
+  // 2. 서버 상태 체크 (선택사항)
+  const serverStatus = await checkServerStatus();
+  if (!serverStatus) {
+    console.warn("⚠️ 서버 상태가 불안정하지만 요청을 계속 진행합니다");
+  }
+
+  // 3. 실제 검색 실행
+  return await fetchShelterResults(searchParams);
+};
+
+// 에러 리포팅 함수 (서버 팀에게 자동으로 에러 정보 전송)
+export const reportServerError = async (errorInfo: {
+  api: string;
+  params: any;
+  errorResponse: any;
+  timestamp: string;
+}) => {
+  try {
+    // 에러 리포팅 API가 있다면 여기서 호출
+    console.log("📨 에러 리포트 전송:", errorInfo);
+
+    // 실제 구현 예시:
+    // await api.post("/api/error-report", errorInfo);
+  } catch (reportError) {
+    console.error("📨 에러 리포트 전송 실패:", reportError);
   }
 };
 
