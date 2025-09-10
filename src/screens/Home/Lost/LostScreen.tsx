@@ -13,9 +13,20 @@ import {
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
+
+import SearchBar from "../../../components/Lost/SearchBar";
+import PetCard, { PetCardData } from "../../../components/Lost/PetCard";
+import Fab from "../../../components/Lost/Button";
+import PetSelectorDropdown from "../../../components/Lost/PetSelectorDropdown";
+import SelectModal from "../../../components/Lost/SelectModal";
+
+
+
 import icon_search from "../../../assets/icons/search.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import happy1 from "../../../assets/images/happy1.png";
+
+
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   fetchLostPetList,
@@ -30,6 +41,71 @@ import {
   fetchCurrentUserLostPets,
   UserLostPet,
 } from "../../../services/api/AIScreen";
+
+
+
+
+
+// [ADD] 카드에 맞춘 목데이터 타입 (화면에서 쓰는 CombinedPetData와 필드 일치)
+type MockItem = {
+  id: string;
+  status: "실종" | "발견";
+  dateTime: string;
+  location: string;
+  breed: string;
+  image?: any;
+  postId: number;
+  sex: string;
+  imgUrl?: string | null;
+  // (필요 시 gender/name/age/feature 등 더 추가 가능)
+};
+
+// [ADD] 실제로 화면에 띄울 목데이터
+const MOCK_DATA: MockItem[] = [
+  {
+    id: "found-101",
+    status: "발견",
+    dateTime: "2025-09-08 14:20",
+    location: "서울 강남구 삼성동",
+    breed: "말티즈",
+    image: happy1,
+    postId: 101,
+    sex: "FEMALE",
+  },
+  {
+    id: "lost-88",
+    status: "실종",
+    dateTime: "2025-09-07 18:40",
+    location: "경기 남양주시 화도읍",
+    breed: "포메라니안",
+    image: happy1,
+    postId: 88,
+    sex: "MALE",
+  },
+  {
+    id: "found-77",
+    status: "발견",
+    dateTime: "2025-09-06 09:10",
+    location: "서울 마포구 합정동",
+    breed: "시바 이누",
+    image: happy1,
+    postId: 77,
+    sex: "MALE",
+  },
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // 통합된 Pet 타입 정의
 interface CombinedPetData {
@@ -52,24 +128,35 @@ interface CombinedPetData {
 }
 
 const LostPetListScreen: React.FC = () => {
+  const MOCK_MODE = true;
+
+
   const [activeTab, setActiveTab] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
+  const PET_ITEMS = [
+    { label: "코코", value: 101 },
+    { label: "보리", value: 202 },
+    { label: "초코", value: 303 },
+  ];
   const [searchText, setSearchText] = useState("");
 
   // API 데이터 상태
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
   const [foundPets, setFoundPets] = useState<FoundPet[]>([]);
-  const [combinedPets, setCombinedPets] = useState<CombinedPetData[]>([]);
+  const [combinedPets, setCombinedPets] = useState<CombinedPetData[]>(
+  MOCK_MODE ? (MOCK_DATA as any) : []
+);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 사용자 실종 반려견 목록 상태 추가
   const [userLostPets, setUserLostPets] = useState<UserLostPet[]>([]);
 
-  const [selectedPet, setSelectedPet] = useState();
+
   const [isPetToggleVisible, setPetToggleVisible] = useState(false);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
+
 
   // 동적으로 사용자 반려견 이름 목록 생성
   const PET_NAMES = userLostPets.map((pet) => pet.dogNm);
@@ -133,32 +220,22 @@ const LostPetListScreen: React.FC = () => {
 
   // 데이터 로드 함수
   const loadPetData = async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
-
-    try {
-      console.log("반려동물 데이터 로딩 시작...");
-
-      const [lostData, foundData] = await Promise.all([
-        fetchLostPetList(),
-        fetchFoundPetList(),
-      ]);
-
-      console.log("실종동물 데이터:", lostData);
-      console.log("발견동물 데이터:", foundData);
-
-      setLostPets(lostData);
-      setFoundPets(foundData);
-
-      const combined = transformPetData(lostData, foundData);
-      setCombinedPets(combined);
-
-      console.log("데이터 로딩 완료, 총", combined.length, "건");
-    } catch (error) {
-      console.error("데이터 로딩 중 오류:", error);
-    } finally {
-      if (showLoading) setIsLoading(false);
-    }
-  };
+  if (MOCK_MODE) return; // ✅ 목모드면 API 콜 자체를 막기
+  if (showLoading) setIsLoading(true);
+  try {
+    const [lostData, foundData] = await Promise.all([
+      fetchLostPetList(),
+      fetchFoundPetList(),
+    ]);
+    setLostPets(lostData);
+    setFoundPets(foundData);
+    setCombinedPets(transformPetData(lostData, foundData));
+  } catch (e) {
+    console.error("데이터 로딩 중 오류:", e);
+  } finally {
+    if (showLoading) setIsLoading(false);
+  }
+};
 
   // 새로고침 함수
   const onRefresh = async () => {
@@ -199,16 +276,27 @@ const LostPetListScreen: React.FC = () => {
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-    loadPetData();
-    loadUserLostPets();
-  }, []);
+  if (MOCK_MODE) {
+    const sorted = [...MOCK_DATA].sort(
+      (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
+    );
+    setCombinedPets(sorted as any);
+    console.log("[MOCK] 세팅됨:", sorted.length);
+    return; // <- 이 return이 핵심! 아래 실제 API 호출 막기
+  }
+
+  // 기존 로직
+  loadPetData();
+  loadUserLostPets();
+}, []);
 
   // 화면이 포커스될 때마다 데이터 새로고침
   useFocusEffect(
     React.useCallback(() => {
+      if (MOCK_MODE) return; // ✅ 포커스될 때 API 재호출 금지
       loadPetData(false);
       loadUserLostPets();
-    }, []),
+    }, [])
   );
 
   // 카드 클릭 시 상세 정보 조회 및 네비게이션
@@ -272,34 +360,23 @@ const LostPetListScreen: React.FC = () => {
     }
   };
 
-  // 카드 렌더링 함수
+  // 카드 렌더링
   const renderItem = ({ item }: { item: CombinedPetData }) => {
-    const isLost = item.status === "실종";
+    const cardData: PetCardData = {
+      id: item.id,
+      status: item.status,        
+      dateTime: item.dateTime,     
+      location: item.location,     
+      breed: item.breed,           
+      image: item.image ?? happy1,  
+    };
 
     return (
-      <TouchableOpacity
-        activeOpacity={0.85}
+      <PetCard
+        item={cardData}
+        arrowIconSource={icon_detail_page}
         onPress={() => handleCardPress(item)}
-        style={styles.card}
-      >
-        <View
-          style={[styles.badge, isLost ? styles.badgeLost : styles.badgeFound]}
-        >
-          <Text style={styles.badgeText}>{item.status}</Text>
-        </View>
-
-        <Image
-          source={item.image}
-          style={styles.image}
-          defaultSource={happy1}
-        />
-        <View style={styles.cardInfo}>
-          <Text style={styles.dateText}>{item.dateTime}</Text>
-          <Text style={styles.locationText}>{item.location}</Text>
-          <Text style={styles.breedText}>{item.breed}</Text>
-        </View>
-        <Image source={icon_detail_page} style={styles.arrowIcon} />
-      </TouchableOpacity>
+      />
     );
   };
 
@@ -328,19 +405,12 @@ const LostPetListScreen: React.FC = () => {
           ))}
         </View>
 
-        <View style={styles.searchWrapper}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="지역 또는 견종으로 검색"
-            placeholderTextColor="#999"
-            value={searchText}
-            onChangeText={setSearchText}
-            onSubmitEditing={handleSearch}
-          />
-          <TouchableOpacity onPress={handleSearch}>
-            <Image source={icon_search} style={styles.searchIcon} />
-          </TouchableOpacity>
-        </View>
+        <SearchBar
+          value={searchText}
+          onChange={setSearchText}
+          onSubmit={handleSearch}
+          iconSource={icon_search}
+        />
 
         <FlatList
           data={filteredData}
@@ -369,46 +439,24 @@ const LostPetListScreen: React.FC = () => {
         />
 
         <View style={styles.floatingWrapper}>
-          {isPetToggleVisible && (
-            <View style={styles.petDropdownWrapper}>
-              <TouchableOpacity
-                style={styles.petToggleBtn}
-                onPress={() => setDropdownVisible((prev) => !prev)}
-              >
-                <Text style={styles.petToggleText}>탐색할 반려견 ▲</Text>
-              </TouchableOpacity>
-
-              {isDropdownVisible && (
-                <View style={styles.dropdown}>
-                  {PET_NAMES.map((pet) => {
-                    const petId = getPetIdByName(userLostPets, pet);
-                    return (
-                      <TouchableOpacity
-                        key={pet}
-                        style={styles.dropdownItem}
-                        onPress={() => {
-                          setDropdownVisible(false);
-                          setPetToggleVisible(false);
-                          navigation.navigate("AIScreen", {
-                            selectedPet: pet,
-                            petId: petId,
-                          });
-                        }}
-                      >
-                        <Text style={styles.dropdownText}>{pet}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-          )}
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={() => setPetToggleVisible((prev) => !prev)}
-          >
-            <Image source={icon_search} style={styles.fabIcon} />
-          </TouchableOpacity>
+          <PetSelectorDropdown
+            visible={isPetToggleVisible}
+            expanded={isDropdownVisible}
+            onToggleExpand={() => setDropdownVisible((prev) => !prev)}
+            items={PET_ITEMS}
+            onSelect={(value) => {
+              // 목데이터 확인용: 선택 시 닫기 + 로그
+              setDropdownVisible(false);
+              setPetToggleVisible(false);
+              console.log("[PetSelector] selected:", value);
+              // 실제 연동 시:
+              // navigation.navigate("AIScreen", { selectedPet: label, petId: value });
+            }}
+          />
+          <Fab
+            icon={icon_search}
+            onPress={() => setPetToggleVisible(prev => !prev)}
+          />
 
           {isExpanded && (
             <View style={styles.dropdownButtons}>
@@ -427,62 +475,36 @@ const LostPetListScreen: React.FC = () => {
             </View>
           )}
 
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={() => setIsExpanded((prev) => !prev)}
-          >
-            <Text style={styles.fabPlus}>+</Text>
-          </TouchableOpacity>
+          <Fab
+            label="+"
+            onPress={() => setIsExpanded(prev => !prev)}
+          />
         </View>
       </View>
+      <SelectModal
+        open={registerModalOpen}
+        title="반려견 선택"
+        items={PET_ITEMS} // ← 목데이터. 실제 연동 시 userLostPets 매핑
+        emptyText="등록된 반려견이 없습니다"
+        onSelect={(petId) => {
+          setRegisterModalOpen(false);
 
-      <Modal
-        visible={registerModalOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setRegisterModalOpen(false)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setRegisterModalOpen(false)}
-        >
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>반려견 선택</Text>
+          // 목데이터: label이 필요하면 여기서 찾아도 됨
+          const petName = PET_ITEMS.find(p => p.value === petId)?.label ?? "";
 
-            {PET_NAMES.length > 0 ? (
-              PET_NAMES.map((pet) => (
-                <TouchableOpacity
-                  key={pet}
-                  style={styles.modalItem}
-                  onPress={() => {
-                    setRegisterModalOpen(false);
-                    const petId = getPetIdByName(userLostPets, pet);
-                    navigation.navigate("LostPetRegister", {
-                      petName: pet,
-                      petId: petId,
-                    });
-                  }}
-                >
-                  <Text style={styles.modalItemText}>{pet}</Text>
-                </TouchableOpacity>
-              ))
-            ) : (
-              <View style={styles.modalItem}>
-                <Text style={[styles.modalItemText, { color: "#999" }]}>
-                  등록된 반려견이 없습니다
-                </Text>
-              </View>
-            )}
+          // 실제 연동 시:
+          // const petName = PET_NAMES.find(n => getPetIdByName(userLostPets, n) === petId) ?? "";
 
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={() => setRegisterModalOpen(false)}
-            >
-              <Text style={styles.modalCloseText}>닫기</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
+          navigation.navigate("LostPetRegister", {
+            petName,
+            petId,
+          });
+        }}
+        onClose={() => setRegisterModalOpen(false)}
+      />
+
+
+-
     </>
   );
 };
@@ -518,95 +540,9 @@ const styles = StyleSheet.create({
     width: "80%",
     backgroundColor: "#222",
   },
-  searchWrapper: {
-    marginTop: 12,
-    marginHorizontal: 16,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 17,
-    color: "#333",
-    paddingVertical: 12,
-  },
-  searchIcon: {
-    width: 24,
-    height: 24,
-    tintColor: "#000",
-    marginLeft: 8,
-  },
   listContainer: {
     padding: 16,
-    paddingBottom: 120, // 플로팅 버튼 공간 확보
-  },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f4f4f4",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
-    position: "relative",
-  },
-  badge: {
-    position: "absolute",
-    top: -6,
-    left: -6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 12,
-    zIndex: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  badgeLost: {
-    backgroundColor: "#F64C4C",
-    width: 60,
-    height: 30,
-    top: 5,
-    left: 10,
-  },
-  badgeFound: {
-    width: 60,
-    height: 30,
-    top: 5,
-    left: 10,
-    backgroundColor: "#0086FF",
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 18,
-  },
-  image: {
-    width: 90,
-    height: 90,
-    borderRadius: 100,
-    marginRight: 12,
-  },
-  cardInfo: {
-    flex: 1,
-  },
-  dateText: {
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  locationText: {
-    fontSize: 17,
-    color: "#999",
-  },
-  breedText: {
-    fontSize: 17,
-    color: "#999",
-  },
-  arrowIcon: {
-    width: 40,
-    height: 40,
-    tintColor: "#000",
-    marginLeft: 8,
+    paddingBottom: 120, 
   },
   emptyContainer: {
     alignItems: "center",
@@ -626,77 +562,11 @@ const styles = StyleSheet.create({
     left: 30,
     right: 30,
   },
-  fab: {
-    backgroundColor: "#3366FF",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  fabIcon: {
-    width: 40,
-    height: 40,
-    tintColor: "#fff",
-  },
-  fabPlus: {
-    fontSize: 50,
-    color: "#fff",
-    fontWeight: "bold",
-    marginTop: -4,
-  },
   dropdownButtons: {
     position: "absolute",
     bottom: 80,
     right: 0,
     alignItems: "flex-end",
-  },
-  petDropdownWrapper: {
-    position: "absolute",
-    bottom: 80,
-    right: 230,
-    alignItems: "flex-end",
-    zIndex: 10,
-  },
-  petToggleBtn: {
-    backgroundColor: "#3366FF",
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    left: 10,
-  },
-  petToggleText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  dropdown: {
-    position: "absolute",
-    bottom: 44,
-    right: -8,
-    backgroundColor: "#A5BFFF",
-    borderRadius: 10,
-    overflow: "hidden",
-    zIndex: 20,
-    minWidth: 150,
-  },
-  dropdownItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  dropdownText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
   },
   actionButton: {
     paddingVertical: 10,
@@ -709,53 +579,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  modalCard: {
-    width: "84%",
-    maxWidth: 360,
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    elevation: 6,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#111",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  modalItem: {
-    paddingVertical: 12,
-    alignItems: "center",
-    backgroundColor: "#F2F4F8",
-    marginVertical: 6,
-    borderRadius: 10,
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: "#111",
-    fontWeight: "600",
-  },
-  modalCloseBtn: {
-    alignSelf: "center",
-    marginTop: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: "#3366FF",
-    borderRadius: 10,
-  },
-  modalCloseText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
+
 });
 
 export default LostPetListScreen;

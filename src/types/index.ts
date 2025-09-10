@@ -1,7 +1,7 @@
 export interface Pet {
   id: number;
   name: string;
-  isActive: boolean;
+  isActive?: boolean;
 }
 
 export interface WalkRecord {
