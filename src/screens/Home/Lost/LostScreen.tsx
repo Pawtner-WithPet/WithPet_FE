@@ -41,72 +41,9 @@ import {
   fetchCurrentUserLostPets,
   UserLostPet,
 } from "../../../services/api/AIScreen";
+import { fetchSearchAllList, PostItem } from "../../../services/api/LostList";
 
-
-
-
-
-// [ADD] 카드에 맞춘 목데이터 타입 (화면에서 쓰는 CombinedPetData와 필드 일치)
-type MockItem = {
-  id: string;
-  status: "실종" | "발견";
-  dateTime: string;
-  location: string;
-  breed: string;
-  image?: any;
-  postId: number;
-  sex: string;
-  imgUrl?: string | null;
-  // (필요 시 gender/name/age/feature 등 더 추가 가능)
-};
-
-// [ADD] 실제로 화면에 띄울 목데이터
-const MOCK_DATA: MockItem[] = [
-  {
-    id: "found-101",
-    status: "발견",
-    dateTime: "2025-09-08 14:20",
-    location: "서울 강남구 삼성동",
-    breed: "말티즈",
-    image: happy1,
-    postId: 101,
-    sex: "FEMALE",
-  },
-  {
-    id: "lost-88",
-    status: "실종",
-    dateTime: "2025-09-07 18:40",
-    location: "경기 남양주시 화도읍",
-    breed: "포메라니안",
-    image: happy1,
-    postId: 88,
-    sex: "MALE",
-  },
-  {
-    id: "found-77",
-    status: "발견",
-    dateTime: "2025-09-06 09:10",
-    location: "서울 마포구 합정동",
-    breed: "시바 이누",
-    image: happy1,
-    postId: 77,
-    sex: "MALE",
-  },
-];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+type SelectItem = { label: string; value: number | string };
 // 통합된 Pet 타입 정의
 interface CombinedPetData {
   id: string;
@@ -127,41 +64,55 @@ interface CombinedPetData {
   imgUrl?: string | null;
 }
 
+// ALL
+const mapAllToCombined = (rows: PostItem[]): CombinedPetData[] =>
+  rows.map((r) => ({
+    id: r.id,
+    status: r.status,         
+    gender: r.gender,
+    breed: r.breed,
+    dateTime: r.dateTime,
+    location: r.location,
+    image: r.image ?? happy1,
+    postId: r.postId,
+    sex: r.sex ?? "",
+    imgUrl: r.raw?.imgUrl ?? null,
+  }));
+
+
 const LostPetListScreen: React.FC = () => {
-  const MOCK_MODE = true;
-
-
+  const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
-  const PET_ITEMS = [
-    { label: "코코", value: 101 },
-    { label: "보리", value: 202 },
-    { label: "초코", value: 303 },
-  ];
   const [searchText, setSearchText] = useState("");
 
   // API 데이터 상태
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
   const [foundPets, setFoundPets] = useState<FoundPet[]>([]);
-  const [combinedPets, setCombinedPets] = useState<CombinedPetData[]>(
-  MOCK_MODE ? (MOCK_DATA as any) : []
-);
+  const [allPosts, setAllPosts] = useState<CombinedPetData[]>([]); 
+  const [basePets, setBasePets] = useState<CombinedPetData[]>([]);
+  const [combinedPets, setCombinedPets] = useState<CombinedPetData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 사용자 실종 반려견 목록 상태 추가
   const [userLostPets, setUserLostPets] = useState<UserLostPet[]>([]);
 
-
+  const [selectedPet, setSelectedPet] = useState();
   const [isPetToggleVisible, setPetToggleVisible] = useState(false);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
 
   // 동적으로 사용자 반려견 이름 목록 생성
   const PET_NAMES = userLostPets.map((pet) => pet.dogNm);
-  const navigation = useNavigation<any>();
+  
 
+  const userPetItems: SelectItem[] = userLostPets.map((p) => ({
+    label: p.dogNm,
+    // value는 실제 사용 중인 식별자에 맞춰 주세요 (예: p.petId, p.id 등)
+    value: (p as any).petId ?? (p as any).id ?? p.dogNm, // 최후 수단으로 이름
+  }));
   // 성별 변환 함수
   const convertGender = (sex: string): "male" | "female" | undefined => {
     if (sex === "MALE" || sex === "수컷") return "male";
@@ -208,7 +159,7 @@ const LostPetListScreen: React.FC = () => {
   // 사용자 실종 반려견 목록 로드 함수
   const loadUserLostPets = async () => {
     try {
-      console.log("사용자 실종 반려견 목록 로딩 중...");
+      //console.log("사용자 실종 반려견 목록 로딩 중...");
       const userPets = await fetchCurrentUserLostPets();
       setUserLostPets(userPets);
       console.log("사용자 실종 반려견 목록 로딩 완료:", userPets);
@@ -220,22 +171,53 @@ const LostPetListScreen: React.FC = () => {
 
   // 데이터 로드 함수
   const loadPetData = async (showLoading = true) => {
-  if (MOCK_MODE) return; // ✅ 목모드면 API 콜 자체를 막기
-  if (showLoading) setIsLoading(true);
-  try {
-    const [lostData, foundData] = await Promise.all([
-      fetchLostPetList(),
-      fetchFoundPetList(),
-    ]);
-    setLostPets(lostData);
-    setFoundPets(foundData);
-    setCombinedPets(transformPetData(lostData, foundData));
-  } catch (e) {
-    console.error("데이터 로딩 중 오류:", e);
-  } finally {
-    if (showLoading) setIsLoading(false);
-  }
-};
+    if (showLoading) setIsLoading(true);
+
+    try {
+      //console.log("반려동물 데이터 로딩 시작...");
+
+      const [lostData, foundData] = await Promise.all([
+        fetchLostPetList(),
+        fetchFoundPetList(),
+      ]);
+      
+
+      //console.log("실종동물 데이터:", lostData);
+      //console.log("발견동물 데이터:", foundData);
+
+      setLostPets(lostData);
+      setFoundPets(foundData);
+    } catch (error) {
+      //console.error("데이터 로딩 중 오류:", error);
+    } finally {
+      if (showLoading) setIsLoading(false);
+    }
+  };
+  const loadAllList = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const rows = await fetchSearchAllList();
+      const mapped = mapAllToCombined(rows);
+      setAllPosts(mapped);                      // "전체" 탭에서 사용
+      if (activeTab === "전체") {
+        setBasePets(mapped);
+        setCombinedPets(applySearch(mapped, searchText));
+      }
+    } catch (e) {
+      console.error("전체 목록 로딩 오류:", e);
+      setAllPosts([]);
+      if (activeTab === "전체") {
+        setBasePets([]);
+        setCombinedPets([]);
+      }
+    } finally {
+      if (showLoading) setIsLoading(false);
+    }
+  };
+
+
+  
+
 
   // 새로고침 함수
   const onRefresh = async () => {
@@ -248,15 +230,12 @@ const LostPetListScreen: React.FC = () => {
   const handleSearch = () => {
     if (!searchText.trim()) {
       // 검색어가 없으면 전체 데이터 표시
-      const combined = transformPetData(lostPets, foundPets);
-      setCombinedPets(combined);
+      setCombinedPets(basePets);
       return;
     }
 
     const searchKeyword = searchText.trim().toLowerCase();
-    const combined = transformPetData(lostPets, foundPets);
-
-    const filtered = combined.filter(
+    const filtered = basePets.filter(
       (pet) =>
         pet.location.toLowerCase().includes(searchKeyword) ||
         pet.breed.toLowerCase().includes(searchKeyword),
@@ -266,6 +245,17 @@ const LostPetListScreen: React.FC = () => {
     console.log(`검색 결과: ${filtered.length}건 (검색어: ${searchKeyword})`);
   };
 
+  const applySearch = (source: CombinedPetData[], q: string) => {
+    const s = q.trim().toLowerCase();
+    if (!s) return source;
+    return source.filter(p =>
+      p.location.toLowerCase().includes(s) ||
+      p.breed.toLowerCase().includes(s) ||
+      (p.name ?? "").toLowerCase().includes(s)
+    );
+  };
+  
+
   // 탭에 따른 데이터 필터링
   const filteredData = combinedPets.filter((item) => {
     if (activeTab === "전체") return true;
@@ -274,26 +264,32 @@ const LostPetListScreen: React.FC = () => {
     return true;
   });
 
+  // 탭/원본 변경 시 베이스 데이터 재계산
+  useEffect(() => {
+    if (activeTab === "전체") {
+      setBasePets(allPosts);
+      setCombinedPets(applySearch(allPosts, searchText));
+    } else {
+      const both = transformPetData(lostPets, foundPets);
+      const filteredByTab =
+        activeTab === "실종동물" ? both.filter(p => p.status === "실종")
+        : activeTab === "발견동물" ? both.filter(p => p.status === "발견")
+        : both;
+      setBasePets(filteredByTab);
+      setCombinedPets(applySearch(filteredByTab, searchText));
+    }
+  }, [activeTab, allPosts, lostPets, foundPets]);
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-  if (MOCK_MODE) {
-    const sorted = [...MOCK_DATA].sort(
-      (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
-    );
-    setCombinedPets(sorted as any);
-    console.log("[MOCK] 세팅됨:", sorted.length);
-    return; // <- 이 return이 핵심! 아래 실제 API 호출 막기
-  }
-
-  // 기존 로직
-  loadPetData();
-  loadUserLostPets();
-}, []);
+    loadAllList();   
+    loadPetData(false);
+    loadUserLostPets();
+  }, []);
 
   // 화면이 포커스될 때마다 데이터 새로고침
   useFocusEffect(
     React.useCallback(() => {
-      if (MOCK_MODE) return; // ✅ 포커스될 때 API 재호출 금지
+      loadAllList(false);  
       loadPetData(false);
       loadUserLostPets();
     }, [])
@@ -303,13 +299,13 @@ const LostPetListScreen: React.FC = () => {
   const handleCardPress = async (item: CombinedPetData) => {
     try {
       setIsLoading(true);
-      console.log("카드 클릭:", item.id, item.status);
+      //console.log("카드 클릭:", item.id, item.status);
 
       const postType: PostType = item.status === "실종" ? "LOST" : "FOUND";
       const detailData = await fetchPetDetail(item.postId, postType);
 
       if (detailData) {
-        console.log("상세 데이터 조회 성공:", detailData);
+        //console.log("상세 데이터 조회 성공:", detailData);
 
         const postData = {
           id: item.id,
@@ -443,14 +439,13 @@ const LostPetListScreen: React.FC = () => {
             visible={isPetToggleVisible}
             expanded={isDropdownVisible}
             onToggleExpand={() => setDropdownVisible((prev) => !prev)}
-            items={PET_ITEMS}
+            items={userPetItems}
             onSelect={(value) => {
-              // 목데이터 확인용: 선택 시 닫기 + 로그
               setDropdownVisible(false);
               setPetToggleVisible(false);
               console.log("[PetSelector] selected:", value);
-              // 실제 연동 시:
-              // navigation.navigate("AIScreen", { selectedPet: label, petId: value });
+              const sel = userPetItems.find(i => i.value === value);
+              navigation.navigate("AIScreen", { selectedPet: sel?.label ?? "", petId: value });
             }}
           />
           <Fab
@@ -484,27 +479,15 @@ const LostPetListScreen: React.FC = () => {
       <SelectModal
         open={registerModalOpen}
         title="반려견 선택"
-        items={PET_ITEMS} // ← 목데이터. 실제 연동 시 userLostPets 매핑
+        items={userPetItems} 
         emptyText="등록된 반려견이 없습니다"
         onSelect={(petId) => {
           setRegisterModalOpen(false);
-
-          // 목데이터: label이 필요하면 여기서 찾아도 됨
-          const petName = PET_ITEMS.find(p => p.value === petId)?.label ?? "";
-
-          // 실제 연동 시:
-          // const petName = PET_NAMES.find(n => getPetIdByName(userLostPets, n) === petId) ?? "";
-
-          navigation.navigate("LostPetRegister", {
-            petName,
-            petId,
-          });
+          const petName = userPetItems.find(p => p.value === petId)?.label ?? "";
+          navigation.navigate("LostPetRegister", { petName, petId });
         }}
         onClose={() => setRegisterModalOpen(false)}
       />
-
-
--
     </>
   );
 };

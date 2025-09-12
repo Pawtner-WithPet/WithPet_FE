@@ -1,4 +1,3 @@
-// components/Lost/SelectModal.tsx
 import React, { memo } from "react";
 import {
   Modal,
@@ -13,13 +12,13 @@ import {
 export type SelectItem = { label: string; value: string | number };
 
 type Props = {
-  open: boolean;                     
-  title: string;                     
-  items: SelectItem[];               
+  open: boolean;                       
+  title: string;                       
+  items: SelectItem[];                 
   emptyText?: string;               
   onSelect: (value: string | number) => void; 
-  onClose: () => void;             
-  cardStyle?: ViewStyle;              
+  onClose: () => void;                 
+  cardStyle?: ViewStyle;               
 };
 
 const SelectModal: React.FC<Props> = ({
