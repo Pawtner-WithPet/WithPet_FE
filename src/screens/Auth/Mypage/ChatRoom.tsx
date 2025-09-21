@@ -9,11 +9,13 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
 const iconBack = require("../../../assets/icons/icon_detail_page.png");
 const avatarPlaceholder = require("../../../assets/icons/enter_image.png");
+const dropIcon = require("../../../assets/icons/drop.png");
 const happy1 = require("../../../assets/images/happy1.png");
 const happy2 = require("../../../assets/images/happy2.png");
 
@@ -46,9 +48,17 @@ const mockMessages: Message[] = [
 const ChatRoom: React.FC = () => {
   const navigation = useNavigation();
   const [input, setInput] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const listRef = useRef<FlatList>(null);
 
   const data = useMemo(() => mockMessages, []);
+
+  const handleGoToPost = () => {
+    setShowModal(false);
+    // 여기에 게시글로 이동하는 로직을 구현
+    // navigation.navigate('PostDetail', { postId: 'your_post_id' });
+    console.log("게시글로 이동");
+  };
 
   const renderHeader = () => (
     <>
@@ -127,6 +137,7 @@ const ChatRoom: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -136,7 +147,15 @@ const ChatRoom: React.FC = () => {
         </TouchableOpacity>
 
         <View style={styles.titleWrap}>
-          <Text style={styles.title}>곰탱이</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>곰탱이</Text>
+            <TouchableOpacity
+              onPress={() => setShowModal(true)}
+              style={styles.dropBtn}
+            >
+              <Image source={dropIcon} style={styles.dropIcon} />
+            </TouchableOpacity>
+          </View>
           <Text style={styles.subtitle}>포메라니안</Text>
         </View>
 
@@ -182,12 +201,36 @@ const ChatRoom: React.FC = () => {
           <Text style={styles.sendIcon}>➤</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Modal */}
+      {showModal && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowModal(false)}
+          />
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalText}>
+              채팅을 시작한 게시글로{"\n"}이동하시겠습니까?
+            </Text>
+            <TouchableOpacity
+              style={styles.moveButton}
+              onPress={handleGoToPost}
+            >
+              <Text style={styles.moveButtonText}>이동</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 };
 
 const BLUE = "#4262FF";
 const BG = "#FFFFFF";
+const STATUSBAR_HEIGHT =
+  Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 24;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
@@ -196,8 +239,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: STATUSBAR_HEIGHT + 12,
     paddingBottom: 8,
+    backgroundColor: BG,
   },
   headerBtn: { padding: 6, marginRight: 6 },
   backIcon: {
@@ -207,7 +251,10 @@ const styles = StyleSheet.create({
     tintColor: "#111",
   },
   titleWrap: { flex: 1, alignItems: "center" },
+  titleRow: { flexDirection: "row", alignItems: "center" },
   title: { fontSize: 18, fontWeight: "800", color: "#111" },
+  dropBtn: { padding: 2, marginLeft: 6 },
+  dropIcon: { width: 12, height: 12, tintColor: "#666" },
   subtitle: { fontSize: 12, color: "#999", marginTop: 2 },
   rightWrap: { width: 36, alignItems: "flex-end" },
   headerAvatar: {
@@ -334,6 +381,62 @@ const styles = StyleSheet.create({
     backgroundColor: BLUE,
   },
   sendIcon: { color: "#fff", fontSize: 16, fontWeight: "800" },
+
+  /* Modal Styles */
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  modalContainer: {
+    position: "absolute",
+    top: STATUSBAR_HEIGHT + 60,
+    left: "50%",
+    transform: [{ translateX: -120 }],
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#979696",
+    padding: 20,
+    alignItems: "center",
+    width: 240,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalText: {
+    fontSize: 14,
+    color: "#686767",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  moveButton: {
+    backgroundColor: BLUE,
+    paddingHorizontal: 24,
+    paddingVertical: 5,
+    borderRadius: 10,
+    minWidth: 60,
+  },
+  moveButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
 });
 
 export default ChatRoom;
