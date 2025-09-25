@@ -3,12 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
-  Image,
   FlatList,
-  Modal,
-  Pressable,
   RefreshControl,
   Alert,
 } from "react-native";
@@ -32,9 +28,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   fetchLostPetList,
   fetchFoundPetList,
-  fetchPetDetail,
   formatDate,
-  getSexInKorean,
   LostPet,
   FoundPet,
   fetchCurrentUserLostPets,
@@ -42,6 +36,7 @@ import {
 } from "../../../services/api/AIScreen";
 import { fetchSearchAllList, PostItem } from "../../../services/api/LostList";
 import { fetchSearchDetail, toLostPostForUI, PostType } from "../../../services/api/SearchDetail";
+import { fetchLostPetsForUser } from "../../../services/api/LostPets";
 
 
 type SelectItem = { label: string; value: number | string };
@@ -90,12 +85,17 @@ const LostPetListScreen: React.FC = () => {
 
   // API 데이터 상태
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
+
   const [foundPets, setFoundPets] = useState<FoundPet[]>([]);
   const [allPosts, setAllPosts] = useState<CombinedPetData[]>([]); 
   const [basePets, setBasePets] = useState<CombinedPetData[]>([]);
   const [combinedPets, setCombinedPets] = useState<CombinedPetData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const USER_ID = 11;
+
+const [isPetListLoading, setPetListLoading] = useState(false);
+const [petListLoaded, setPetListLoaded] = useState(false);
 
   // 사용자 실종 반려견 목록 상태 추가
   const [userLostPets, setUserLostPets] = useState<UserLostPet[]>([]);
@@ -111,8 +111,7 @@ const LostPetListScreen: React.FC = () => {
 
   const userPetItems: SelectItem[] = userLostPets.map((p) => ({
     label: p.dogNm,
-    // value는 실제 사용 중인 식별자에 맞춰 주세요 (예: p.petId, p.id 등)
-    value: (p as any).petId ?? (p as any).id ?? p.dogNm, // 최후 수단으로 이름
+    value: (p as any).petId ?? (p as any).id ?? p.dogNm,
   }));
   // 성별 변환 함수
   const convertGender = (sex: string): "male" | "female" | undefined => {
@@ -160,13 +159,12 @@ const LostPetListScreen: React.FC = () => {
   // 사용자 실종 반려견 목록 로드 함수
   const loadUserLostPets = async () => {
     try {
-      //console.log("사용자 실종 반려견 목록 로딩 중...");
-      const userPets = await fetchCurrentUserLostPets();
-      setUserLostPets(userPets);
-      console.log("사용자 실종 반려견 목록 로딩 완료:", userPets);
+      const list = await fetchLostPetsForUser(USER_ID);
+      setUserLostPets(Array.isArray(list) ? list : []);
+      console.log("✅ 실종 반려견 목록 로딩 완료:", list.length);
     } catch (error) {
-      console.error("사용자 실종 반려견 목록 로딩 오류:", error);
-      setUserLostPets([]); // 오류 시 빈 배열로 설정
+      console.error("❌ 실종 반려견 목록 로딩 오류:", error);
+      setUserLostPets([]); // 실패 시에도 배열 보장
     }
   };
 
@@ -295,6 +293,26 @@ const LostPetListScreen: React.FC = () => {
       loadUserLostPets();
     }, [])
   );
+  useEffect(() => {
+    if (isDropdownVisible && !petListLoaded) {
+      (async () => {
+        try {
+          setPetListLoading(true);
+          console.log("[CALL] fetchLostPetsForUser");
+          const list = await fetchLostPetsForUser(USER_ID);
+          console.log("[RES] lost pets:", Array.isArray(list) ? list.length : list);
+          setUserLostPets(Array.isArray(list) ? list : []);
+          setPetListLoaded(true);
+        } catch (e) {
+          console.error("실종 반려견 목록 로딩 실패:", e);
+          setUserLostPets([]); // ✅ 실패 시 빈배열
+        } finally {
+          setPetListLoading(false);
+        }
+      })();
+    }
+  }, [isPetToggleVisible, isDropdownVisible]);
+
 
   // 카드 클릭 시 상세 정보 조회 및 네비게이션
   const handleCardPress = async (item: CombinedPetData) => {
@@ -321,7 +339,6 @@ const LostPetListScreen: React.FC = () => {
       });
     } catch (error: any) {
       console.error("상세 조회 실패:", error?.message ?? error);
-      // 간단 알림 
       Alert.alert("오류", "게시글 상세 조회에 실패했습니다.");
       navigation.navigate("LostPostDetail", {
         post: {
@@ -434,7 +451,9 @@ const LostPetListScreen: React.FC = () => {
           />
           <Fab
             icon={icon_search}
-            onPress={() => setPetToggleVisible(prev => !prev)}
+            onPress={() => setPetToggleVisible(prev =>{const next = !prev;
+              if (next) setDropdownVisible(true); 
+              return next;})}
           />
 
           {isExpanded && (
