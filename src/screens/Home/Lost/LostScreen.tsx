@@ -10,6 +10,7 @@ import {
   Modal,
   Pressable,
   RefreshControl,
+  Alert,
 } from "react-native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
@@ -36,12 +37,12 @@ import {
   getSexInKorean,
   LostPet,
   FoundPet,
-  PostType,
-  getPetIdByName,
   fetchCurrentUserLostPets,
   UserLostPet,
 } from "../../../services/api/AIScreen";
 import { fetchSearchAllList, PostItem } from "../../../services/api/LostList";
+import { fetchSearchDetail, toLostPostForUI, PostType } from "../../../services/api/SearchDetail";
+
 
 type SelectItem = { label: string; value: number | string };
 // 통합된 Pet 타입 정의
@@ -51,20 +52,20 @@ interface CombinedPetData {
   gender?: "male" | "female";
   name?: string;
   age?: string;
-  breed: string; // kindNm
+  breed: string;
   height?: string;
   weight?: string;
   feature?: string;
   extra?: string;
-  dateTime: string; // lostDate 또는 foundDate를 포맷팅한 것
-  location: string; // lostLocation 또는 foundLocation
+  dateTime: string; 
+  location: string; 
   image?: any;
   postId: number;
   sex: string;
   imgUrl?: string | null;
 }
 
-// ALL
+
 const mapAllToCombined = (rows: PostItem[]): CombinedPetData[] =>
   rows.map((r) => ({
     id: r.id,
@@ -299,58 +300,41 @@ const LostPetListScreen: React.FC = () => {
   const handleCardPress = async (item: CombinedPetData) => {
     try {
       setIsLoading(true);
-      //console.log("카드 클릭:", item.id, item.status);
-
       const postType: PostType = item.status === "실종" ? "LOST" : "FOUND";
-      const detailData = await fetchPetDetail(item.postId, postType);
-
-      if (detailData) {
-        //console.log("상세 데이터 조회 성공:", detailData);
-
-        const postData = {
-          id: item.id,
-          status: item.status,
-          name: detailData.dogNm || item.name,
-          breed: detailData.kindNm || item.breed,
-          gender: convertGender(detailData.sex),
-          age: detailData.age?.toString(),
-          height: detailData.height?.toString(),
-          weight: detailData.weight?.toString(),
-          location: item.location,
-          lostDateTime: item.status === "실종" ? item.dateTime : undefined,
-          foundDateTime: item.status === "발견" ? item.dateTime : undefined,
-          feature: detailData.features,
-          extra: detailData.description,
-          familiar: detailData.favoritePlace,
-          image: detailData.imgUrl ? { uri: detailData.imgUrl } : item.image,
-        };
-
-        navigation.navigate("LostPostDetail", {
-          post: postData,
-          from: "LostPetListScreen",
-        });
-      } else {
-        // 상세 정보 조회 실패 시 기본 정보로 이동
-        console.warn("상세 정보 조회 실패, 기본 정보로 이동");
-
-        const fallbackData = {
+      const detail = await fetchSearchDetail(item.postId, postType);
+      const postFromApi = toLostPostForUI(detail);
+      const isLostCtx = item.status === "실종";
+      
+      const withFallback = {
+        ...postFromApi,
+        // 서버에 없으면 목록값으로 보강
+        status: isLostCtx ? "실종" : "발견",
+        image: postFromApi.image ?? (item.imgUrl ? { uri: item.imgUrl } : item.image),
+        breed: postFromApi.breed ?? item.breed,
+        location: isLostCtx ? (postFromApi.location ?? item.location) : (postFromApi.location ?? item.location),
+        lostDateTime: isLostCtx ? (postFromApi.lostDateTime ?? item.dateTime) : undefined,
+        foundDateTime: !isLostCtx ? (postFromApi.foundDateTime ?? item.dateTime) : undefined,
+      };
+      navigation.navigate("LostPostDetail", {
+        post: withFallback,
+        from: "LostPetListScreen",
+      });
+    } catch (error: any) {
+      console.error("상세 조회 실패:", error?.message ?? error);
+      // 간단 알림 
+      Alert.alert("오류", "게시글 상세 조회에 실패했습니다.");
+      navigation.navigate("LostPostDetail", {
+        post: {
           id: item.id,
           status: item.status,
           breed: item.breed,
-          gender: item.gender,
           location: item.location,
+          image: item.image,
           lostDateTime: item.status === "실종" ? item.dateTime : undefined,
           foundDateTime: item.status === "발견" ? item.dateTime : undefined,
-          image: item.image,
-        };
-
-        navigation.navigate("LostPostDetail", {
-          post: fallbackData,
-          from: "LostPetListScreen",
-        });
-      }
-    } catch (error) {
-      console.error("카드 클릭 처리 중 오류:", error);
+        },
+        from: "LostPetListScreen",
+      });
     } finally {
       setIsLoading(false);
     }
