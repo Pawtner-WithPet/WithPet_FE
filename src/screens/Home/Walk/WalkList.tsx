@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { WalkRecord, Pet } from "../../../types/index";
 import { WalkRecordsList } from "../../../components/Walk/WalkRecordsList";
+import { Colors } from "../../../constants/colors";
 
 interface WalkListScreenProps {
   onBack?: () => void; // 뒤로가기 콜백
@@ -16,7 +17,10 @@ interface WalkListScreenProps {
 
 export const WalkListScreen: React.FC<WalkListScreenProps> = ({ onBack }) => {
   // 샘플 펫 데이터
-  const samplePets: Pet[] = [{ id: 1, name: "곰탱이", isActive: true }];
+  const samplePets: Pet[] = [
+    { id: 1, name: "해피", isActive: true },
+    { id: 2, name: "조이", isActive: true },
+  ];
 
   // 샘플 산책 기록 데이터
   const sampleRecords: WalkRecord[] = [
@@ -59,6 +63,10 @@ export const WalkListScreen: React.FC<WalkListScreenProps> = ({ onBack }) => {
     if (onBack) {
       onBack();
     }
+  };
+
+  const handleSearchPress = () => {
+    Alert.alert("검색", "검색 UI는 추후 연동 예정입니다.");
   };
 
   return (
@@ -147,6 +155,7 @@ const styles = StyleSheet.create({
   recordsContainer: {
     flex: 1,
     marginTop: 14,
+    color: "#000000",
   },
 });
 

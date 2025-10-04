@@ -5,12 +5,14 @@ import { PetTag } from "./PetTag";
 
 interface WalkRecordItemProps {
   record: WalkRecord;
+  textColor?: string; 
   pets?: Pet[];
   onPress: (record: WalkRecord) => void;
 }
 
 export const WalkRecordItem: React.FC<WalkRecordItemProps> = ({
   record,
+  textColor = "#000",  
   pets = [],
   onPress,
 }) => {
@@ -44,7 +46,7 @@ export const WalkRecordItem: React.FC<WalkRecordItemProps> = ({
         <View style={styles.rightSection}>
           <View style={styles.petContainer}>
             {pets.map((pet) => (
-              <PetTag key={pet.id} pet={pet} />
+              <PetTag key={pet.id} pet={pet} />  
             ))}
           </View>
 
@@ -127,6 +129,7 @@ const styles = StyleSheet.create({
   petContainer: {
     flexDirection: "row",
     marginBottom: 12,
+    color: "#000",
   },
   distanceRow: {
     flexDirection: "row",
