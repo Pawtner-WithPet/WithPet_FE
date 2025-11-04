@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  PermissionsAndroid,
+  Alert,
+} from "react-native";
 import LinearGradient from "react-native-linear-gradient";
-import Geolocation from "react-native-geolocation-service";
+import Geolocation from "@react-native-community/geolocation";
 import { Pet, WalkRecord } from "../../types/index";
 
 const today = new Date();
@@ -14,6 +22,12 @@ interface WalkRecordCardProps {
   onStop: (duration: string, distance: string, speed: string) => void;
 }
 
+interface LocationPoint {
+  latitude: number;
+  longitude: number;
+  timestamp: number;
+}
+
 export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
   walkRecord,
   selectedPet,
@@ -22,50 +36,144 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
 }) => {
   const [seconds, setSeconds] = useState(0);
   const [isRunning, setIsRunning] = useState(true);
-  const [totalDistance, setTotalDistance] = useState(0); // 총 거리
-  const [currentSpeed, setCurrentSpeed] = useState(0); // 현재 속도
-  const [watchId, setWatchId] = useState<number | null>(null); // 위치 추적 ID
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [currentSpeed, setCurrentSpeed] = useState(0);
+  const [hasPermission, setHasPermission] = useState(false);
+
+  const watchIdRef = useRef<number | null>(null);
+  const lastPositionRef = useRef<LocationPoint | null>(null);
+
+  // 위치 권한 요청
+  useEffect(() => {
+    requestLocationPermission();
+  }, []);
+  const requestLocationPermission = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: "위치 권한 요청",
+          message: "산책 기록을 위해 위치 권한이 필요합니다.",
+          buttonNeutral: "나중에",
+          buttonNegative: "거부",
+          buttonPositive: "허용",
+        },
+      );
+      setHasPermission(granted === PermissionsAndroid.RESULTS.GRANTED);
+    } catch (err) {
+      console.warn("Permission error:", err);
+      setHasPermission(false);
+    }
+  };
 
   // 타이머 효과
   useEffect(() => {
-    let interval: number | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isRunning) {
       interval = setInterval(() => {
         setSeconds((prevSeconds) => prevSeconds + 1);
       }, 1000);
-    } else if (!isRunning && seconds !== 0) {
-      if (interval) clearInterval(interval);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isRunning, seconds]);
+  }, [isRunning]);
+
+  // 두 지점 간 거리 계산 (Haversine formula)
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number => {
+    const R = 6371e3; // 지구 반지름 (미터)
+    const φ1 = (lat1 * Math.PI) / 180;
+    const φ2 = (lat2 * Math.PI) / 180;
+    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // 미터 단위
+  };
 
   // 위치 추적 시작
   const startTracking = () => {
-    const id = Geolocation.watchPosition(
+    if (!hasPermission) {
+      Alert.alert("권한 필요", "위치 권한이 필요합니다.");
+      return;
+    }
+
+    watchIdRef.current = Geolocation.watchPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
-        const timestamp = new Date().getTime(); // timestamp 대신 현재 시간을 사용
-        // 나머지 로직
+        const { latitude, longitude, speed } = position.coords;
+        const timestamp = position.timestamp;
+
+        // 속도 업데이트 (m/s)
+        if (speed !== null && speed >= 0) {
+          setCurrentSpeed(speed);
+        }
+
+        // 이전 위치가 있으면 거리 계산
+        if (lastPositionRef.current) {
+          const distance = calculateDistance(
+            lastPositionRef.current.latitude,
+            lastPositionRef.current.longitude,
+            latitude,
+            longitude,
+          );
+
+          // 비정상적인 거리 값 필터링 (예: 100m 이상 점프)
+          if (distance < 100) {
+            setTotalDistance((prev) => prev + distance);
+          }
+
+          // 속도가 없는 경우 수동 계산
+          if (speed === null || speed < 0) {
+            const timeDiff =
+              (timestamp - lastPositionRef.current.timestamp) / 1000; // 초
+            if (timeDiff > 0) {
+              const calculatedSpeed = distance / timeDiff; // m/s
+              setCurrentSpeed(calculatedSpeed);
+            }
+          }
+        }
+
+        // 현재 위치 저장
+        lastPositionRef.current = {
+          latitude,
+          longitude,
+          timestamp,
+        };
       },
       (error) => {
-        console.warn(error);
+        console.warn("Location error:", error);
+        if (error.code === 1) {
+          Alert.alert("위치 오류", "위치 권한이 거부되었습니다.");
+        } else if (error.code === 2) {
+          Alert.alert(
+            "위치 오류",
+            "위치를 가져올 수 없습니다. GPS를 확인해주세요.",
+          );
+        }
       },
       {
         enableHighAccuracy: true,
-        distanceFilter: 1,
-        interval: 1000,
+        distanceFilter: 5, // 5미터마다 업데이트
+        interval: 3000, // 3초마다
+        fastestInterval: 2000, // 최소 2초
       },
     );
-    setWatchId(id);
   };
 
   // 위치 추적 종료
   const stopTracking = () => {
-    if (watchId !== null) {
-      Geolocation.clearWatch(watchId);
-      setWatchId(null);
+    if (watchIdRef.current !== null) {
+      Geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
     }
   };
 
@@ -107,14 +215,18 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
     onStop(finalDuration, finalDistance, finalSpeed);
   };
 
-  // 위치 추적 시작
+  // 위치 추적 시작/중지
   useEffect(() => {
-    if (isRunning) {
+    if (isRunning && hasPermission) {
       startTracking();
     } else {
       stopTracking();
     }
-  }, [isRunning]);
+
+    return () => {
+      stopTracking();
+    };
+  }, [isRunning, hasPermission]);
 
   return (
     <>
@@ -144,7 +256,7 @@ export const WalkRecordCard: React.FC<WalkRecordCardProps> = ({
                 selectedPet?.name === "곰탱이" && styles.petTagTextActive,
               ]}
             >
-              곰탱이
+              {selectedPet?.name || "곰탱이"}
             </Text>
           </TouchableOpacity>
         </View>

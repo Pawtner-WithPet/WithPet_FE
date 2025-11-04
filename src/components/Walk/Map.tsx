@@ -6,6 +6,8 @@ import {
   Image,
   Text,
   Alert,
+  Platform,
+  PermissionsAndroid,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Geolocation from "@react-native-community/geolocation";
@@ -38,6 +40,7 @@ export const Map: React.FC<MapProps> = ({
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [showRoute, setShowRoute] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
+  const watchIdRef = useRef<number | null>(null);
 
   const alertMarkers: AlertMarker[] = [
     {
@@ -71,9 +74,46 @@ export const Map: React.FC<MapProps> = ({
   ];
 
   useEffect(() => {
+    requestLocationPermission();
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        Geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
+
+  const requestLocationPermission = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: "위치 권한 요청",
+            message: "지도 사용을 위해 위치 권한이 필요합니다.",
+            buttonNeutral: "나중에",
+            buttonNegative: "거부",
+            buttonPositive: "허용",
+          },
+        );
+
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          startLocationTracking();
+        } else {
+          Alert.alert("권한 필요", "위치 권한이 필요합니다.");
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    } else {
+      startLocationTracking();
+    }
+  };
+
+  const startLocationTracking = () => {
     getCurrentLocation();
 
-    const watchId = Geolocation.watchPosition(
+    watchIdRef.current = Geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setCurrentLocation({ latitude, longitude });
@@ -81,16 +121,17 @@ export const Map: React.FC<MapProps> = ({
           updateMapCenter(latitude, longitude);
         }
       },
-      (error) => console.log("Location watch error:", error),
+      (error) => {
+        console.log("Location watch error:", error);
+      },
       {
         enableHighAccuracy: true,
         distanceFilter: 10,
         interval: 5000,
+        fastestInterval: 2000,
       },
     );
-
-    return () => Geolocation.clearWatch(watchId);
-  }, [isMapLoaded]);
+  };
 
   const getCurrentLocation = () => {
     Geolocation.getCurrentPosition(
@@ -101,8 +142,15 @@ export const Map: React.FC<MapProps> = ({
           initializeMap(latitude, longitude);
         }
       },
-      () => Alert.alert("위치 오류", "현재 위치를 가져올 수 없습니다."),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
+      (error) => {
+        console.log("Location error:", error);
+        Alert.alert("위치 오류", "현재 위치를 가져올 수 없습니다.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 1000,
+      },
     );
   };
 

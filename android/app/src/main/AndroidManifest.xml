@@ -33,7 +33,12 @@
       android:usesCleartextTraffic="true"
       android:supportsRtl="true">
       
-      <!-- 카카오맵 API 키 추가 -->
+      <!-- Google Play Services 메타데이터 추가 -->
+      <meta-data
+        android:name="com.google.android.gms.version"
+        android:value="@integer/google_play_services_version" />
+      
+      <!-- 카카오맵 API 키 -->
       <meta-data
           android:name="com.kakao.sdk.AppKey"
           android:value="dd2fef47c24d115b3ecc01d300acb287"/>

@@ -9,7 +9,6 @@ import {
   Alert,
 } from "react-native";
 import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
-// 필요한 라이브러리들 (설치 필요)
 import ViewShot from "react-native-view-shot";
 import Share from "react-native-share";
 
