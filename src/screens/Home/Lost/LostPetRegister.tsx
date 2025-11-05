@@ -22,7 +22,7 @@ import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
 
 import type { LostStackParamList } from "../../../navigation/LostStack";
-import { postLostPost, LostPostRequest } from "../../../services/api/SearchPost";
+import { postLostPost, LostPostRequest } from "../../../services/api/SearchPet";
 
 const LostPetRegister: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<LostStackParamList>>();
@@ -104,7 +104,7 @@ const LostPetRegister: React.FC = () => {
 
       // 서버 스키마에 맞춘 payload
       const req: LostPostRequest = {
-        owner: 14,         // TODO: 실제 로그인 사용자 ID로 교체
+        owner: 11,         // TODO: 실제 로그인 사용자 ID로 교체
         pet: 2,            // TODO: 실제 반려견 ID로 교체
         height: parseNum(height),
         weight: parseNum(weight),

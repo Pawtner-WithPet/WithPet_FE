@@ -53,7 +53,10 @@ export interface LostPostRequest {
 // 발견 등록 요청 타입 (FoundPost.ts에서 가져옴)
 export interface FoundPostRequest {
   owner: number;                
-  sex: "MALE" | "FEMALE";       
+  sex: "MALE" | "FEMALE";  
+  gender: 'male' | 'female' | 'unknown' | null;  
+  breed: string;   
+  noseprintImageUri: string | null;
   kindNm: string;
   foundDate: string;           
   foundLocation: string;
@@ -125,7 +128,6 @@ const fmtDot = (v: string | number | null | undefined): string => { /* ... (Lost
   }
   return v.replace(/-/g, ".").replace("T", " ").slice(0, 16);
 };
-// 목록 DTO (원래 LostList.ts에서 사용된 응답 데이터 구조)
 interface ListPetDTO {
     postId: number;
     type: string;
@@ -136,8 +138,6 @@ interface ListPetDTO {
     sex: string;
     createdAt: string;
 }
-
-// -----------------------------------------------------------
 
 const mapListResponseToUI = (rows: ListPetDTO[]): PostItem[] => {
     const mapped = rows.map((r) => {
@@ -160,7 +160,6 @@ const mapListResponseToUI = (rows: ListPetDTO[]): PostItem[] => {
             __sort: createdMs || eventMs,              
         };
     });
-    // 정렬 로직 (실종 우선, 최신순)
     mapped.sort((a, b) => (a.__prio - b.__prio) || (b.__sort - a.__sort));
     return mapped.map(({ __prio, __sort, ...rest }) => rest);
 };
@@ -229,14 +228,13 @@ export async function fetchSearchDetail(postId: number, type: PostType): Promise
       params: { postId, type },
     });
     console.log("📄 게시글 상세 응답 데이터:", res.data);
-    return res.data.data; // data.data 반환
+    return res.data.data; 
   } catch (error) {
     handleApiError(error, "fetchSearchDetail");
     throw error;
   }
 }
 
-// SearchDetail.ts의 toLostPostForUI 함수도 여기서 export
 export function toLostPostForUI(d: SearchDetailResponse) {
     const isLost = d.type === "LOST";
 
@@ -269,12 +267,77 @@ export function toLostPostForUI(d: SearchDetailResponse) {
 }
 
 
+// --- [ 4. 게시글 등록 API ] ---
 
+/**
+ * 실종 게시글 등록 (POST /api/search/lostPost)
+ */
+export const postLostPost = async (
+  request: LostPostRequest,
+  image?: UploadImage | null,
+): Promise<any> => {
+    try {
+        const form = new FormData();
+        form.append("request", JSON.stringify(request));
+
+        if (image?.uri) {
+            const filename = image.name ?? `lost_${request.pet}_${Date.now()}.jpg`;
+            const mime = image.type ?? (filename.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+
+            form.append("image", {
+                uri: image.uri,
+                name: filename,
+                type: mime,
+            } as any); 
+        }
+
+        const res = await api.post("/api/search/lostPost", form, {
+            headers: { "Content-Type": "multipart/form-data" },
+            transformRequest: (data) => data,
+        });
+
+        console.log("✅ 실종 게시글 등록 성공:", res.status, res.data);
+        return res.data;
+    } catch (error) {
+        handleApiError(error, "postLostPost");
+        throw error;
+    }
+};
+
+/**
+ * 발견 게시글 등록 (POST /api/search/foundPost)
+ */
+export const postFoundPost = async (
+  request: FoundPostRequest,
+  image?: UploadImage | null,
+): Promise<any> => {
+    try {
+        const form = new FormData();
+        form.append("request", JSON.stringify(request)); 
+
+        if (image?.uri) {
+            form.append("image", {
+                uri: image.uri,
+                name: image.name ?? `found_${request.owner}_${Date.now()}.jpg`,
+                type: image.type ?? "image/jpeg",
+            } as any);
+        }
+
+        const res = await api.post("/api/search/foundPost", form, {
+            transformRequest: (data) => data,
+        });
+
+        console.log("✅ 발견 게시글 등록 성공:", res.status, res.data);
+        return res.data;
+    } catch (error) {
+        handleApiError(error, "postFoundPost");
+        throw error;
+    }
+};
 
 // --- [ 5. 기타 검색 관련 API ] ---
 
 // LostPets.ts의 fetchLostPetsForUser 함수 통합
-// (단, 의존성 문제로 AISUserLostPet 타입은 이 파일 상단에 정의하거나, 해당 파일에서 임포트해야 합니다.)
 type LostPetItemDTO = {
     id?: number;
     petId?: number;
@@ -286,7 +349,6 @@ type LostPetItemDTO = {
     dogImg?: string | null;
   };
   
-  // 임시로 타입을 정의합니다. 실제로는 AIScreen.ts 등에서 가져와야 합니다.
   export type AISUserLostPet = {
     petId: number;
     dogNm: string;                               

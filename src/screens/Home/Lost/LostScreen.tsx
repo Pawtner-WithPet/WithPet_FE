@@ -96,7 +96,7 @@ const LostPetListScreen: React.FC = () => {
   const [combinedPets, setCombinedPets] = useState<CombinedPetData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const USER_ID = 11;
+  const USER_ID = 1;
 
 const [isPetListLoading, setPetListLoading] = useState(false);
 const [petListLoaded, setPetListLoaded] = useState(false);
