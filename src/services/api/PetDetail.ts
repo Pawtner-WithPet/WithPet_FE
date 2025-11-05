@@ -37,3 +37,4 @@ export const uploadPetImage = async (
   });
   return res.data.data;
 };
+

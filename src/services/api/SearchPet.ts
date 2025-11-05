@@ -269,77 +269,7 @@ export function toLostPostForUI(d: SearchDetailResponse) {
 }
 
 
-// --- [ 4. 게시글 등록 API ] ---
 
-/**
- * 실종 게시글 등록 (POST /api/search/lostPost)
- */
-export const postLostPost = async (
-  request: LostPostRequest,
-  image?: UploadImage | null,
-): Promise<any> => {
-    try {
-        const form = new FormData();
-        form.append("request", JSON.stringify(request));
-
-        if (image?.uri) {
-            const filename = image.name ?? `lost_${request.pet}_${Date.now()}.jpg`;
-            const mime = image.type ?? (filename.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
-
-            form.append("image", {
-                uri: image.uri,
-                name: filename,
-                type: mime,
-            } as any); 
-        }
-
-        const res = await api.post("/api/search/lostPost", form, {
-            headers: { "Content-Type": "multipart/form-data" },
-            transformRequest: (data) => data,
-        });
-
-        console.log("✅ 실종 게시글 등록 성공:", res.status, res.data);
-        return res.data;
-    } catch (error) {
-        handleApiError(error, "postLostPost");
-        throw error;
-    }
-};
-
-/**
- * 발견 게시글 등록 (POST /api/search/foundPost)
- */
-export const postFoundPost = async (
-  request: FoundPostRequest,
-  image?: UploadImage | null,
-): Promise<any> => {
-    try {
-        const form = new FormData();
-        form.append("request", JSON.stringify(request));
-
-        if (image?.uri) {
-            const filename = image.name ?? `found_${request.owner}_${Date.now()}.jpg`;
-            const mime = image.type ?? (filename.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
-
-            form.append("image", {
-                uri: image.uri,
-                name: filename,
-                type: mime,
-            } as any);
-        }
-
-        const res = await api.post("/api/search/foundPost", form, {
-            headers: { "Content-Type": "multipart/form-data" },
-            transformRequest: (data) => data,
-        });
-
-        console.log("✅ 발견 게시글 등록 성공:", res.status, res.data);
-        return res.data;
-    } catch (error) {
-        handleApiError(error, "postFoundPost");
-        throw error;
-    }
-};
 
 // --- [ 5. 기타 검색 관련 API ] ---
 

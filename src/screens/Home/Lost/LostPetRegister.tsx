@@ -22,7 +22,7 @@ import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
 
 import type { LostStackParamList } from "../../../navigation/LostStack";
-import { postLostPost, LostPostRequest } from "../../../services/api/SearchPet";
+import { postLostPost, LostPostRequest } from "../../../services/api/SearchPost";
 
 const LostPetRegister: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<LostStackParamList>>();
