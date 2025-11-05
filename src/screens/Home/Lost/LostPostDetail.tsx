@@ -9,6 +9,7 @@ import {
   Modal,
   Pressable,
   ImageSourcePropType,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
@@ -22,6 +23,7 @@ import print from "../../../assets/icons/print.png";
 import poster from "../../../assets/images/poster.png";
 import happy1 from "../../../assets/images/happy1.png";
 import map from "../../../assets/images/map.png";
+import { deleteLostPost, deleteFoundPost } from "../../../services/api/SearchPet";
 
 type Gender = "male" | "female";
 type LostPost = {
@@ -57,6 +59,8 @@ const LostPostDetail: React.FC = () => {
   const [zoomScale, setZoomScale] = useState(1);
   const [confirmOpen, setConfirmOpen] = useState(false);
   let lastTap = 0;
+  // 💡 postId 추출 (CombinedPetData의 postId는 number 타입입니다)
+  const postId = post.postId; 
 
   const isFound = post.status === "발견";
   const fromMyAnimals = route.params?.from === "MyAnimals";
@@ -82,6 +86,38 @@ const LostPostDetail: React.FC = () => {
     </View>
   );
   const [printOpen, setPrintOpen] = useState(false); //printer
+
+  const handleCompletePost = async () => {
+    if (!postId) {
+        Alert.alert("오류", "게시글 ID를 찾을 수 없습니다.");
+        return;
+    }
+
+    try {
+        let result;
+        if (isFound) {
+            // 발견 게시글 완료 (DELETE /api/search/done-found-post/{postId})
+            result = await deleteFoundPost(postId);
+            Alert.alert("완료", "발견 게시글이 완료 처리되었습니다.");
+        } else {
+            // 실종 게시글 완료 (DELETE /api/search/done-lost-post/{postId})
+            result = await deleteLostPost(postId);
+            Alert.alert("완료", "실종 게시글이 미실종 처리되었습니다.");
+        }
+
+        console.log("✅ 완료 API 응답:", result);
+
+        // 완료 후, 목록 화면으로 돌아갑니다.
+        setConfirmOpen(false);
+        navigation.goBack();
+    } catch (error) {
+        Alert.alert("처리 실패", "완료 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        setConfirmOpen(false);
+        console.error("❌ 게시글 완료 처리 실패:", error);
+    }
+  };
+
+  
 
   return (
     <View style={styles.container}>
@@ -324,10 +360,7 @@ const LostPostDetail: React.FC = () => {
 
             <TouchableOpacity
               style={styles.popupPrimaryBtn}
-              onPress={() => {
-                setConfirmOpen(false);
-                navigation.goBack();
-              }}
+              onPress={handleCompletePost} // 💡 API 호출 함수 연결
               activeOpacity={0.9}
             >
               <Text style={styles.popupPrimaryBtnText}>완료하기</Text>

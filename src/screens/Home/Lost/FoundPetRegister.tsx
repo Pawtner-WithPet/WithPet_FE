@@ -22,6 +22,7 @@ import type { LostStackParamList } from "../../../navigation/LostStack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
+import { postFoundPost, FoundPostRequest } from "../../../services/api/SearchPet";
 
 const LostPetRegister: React.FC = () => {
   const navigation = useNavigation<any>();

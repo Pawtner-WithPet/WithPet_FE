@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,37 +6,60 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator, // 로딩 인디케이터 추가
+  Alert, // 오류 알림 추가
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
-import happy1 from "../../../assets/images/happy1.png";
+// happy1 이미지는 실제 이미지 URL을 사용하거나, 로컬 경로를 활용해야 합니다.
+import happy1 from "../../../assets/images/happy1.png"; 
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import iconSearch from "../../../assets/icons/search.png";
 
-const MOCK_DATA = [
-  {
-    id: "1",
-    age: "8살",
-    status: "실종",
-    dateTime: "2025.03.01 11:25",
-    location: "서울특별시 도봉구",
-    breed: "포메라니안",
-    feature: "겁이 많은 편이에요.\n이름을 부르면 알아들어요.",
-    image: happy1,
-  },
-];
+// 1단계에서 정의한 API 함수와 타입을 임포트한다고 가정
+// 만약 이 파일이 없다면, 1단계 코드를 먼저 추가해야 합니다.
+import { fetchUserLostFoundPosts, LostFoundPost } from "../../../services/api/lostAndFound"; 
+
+// MOCK_DATA 제거
 
 const MyAnimals: React.FC = () => {
   const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("전체");
+  
+  // 실제 데이터와 로딩 상태 추가
+  const [posts, setPosts] = useState<LostFoundPost[]>([]); 
+  const [loading, setLoading] = useState(true);
+
+  // 현재 사용자 ID (실제로는 로그인 세션에서 가져와야 함)
+  const currentUserId = 1; 
+
+  // 데이터 로딩 로직
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        // DB와 연동된 API를 호출하여 데이터 가져오기
+        const fetchedPosts = await fetchUserLostFoundPosts(currentUserId); 
+        setPosts(fetchedPosts);
+      } catch (error) {
+        console.error("실종/발견 글 불러오기 실패:", error);
+        Alert.alert("오류", "게시글 데이터를 불러오지 못했습니다."); 
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, [currentUserId]); 
+
 
   const filtered =
     activeTab === "전체"
-      ? MOCK_DATA
-      : MOCK_DATA.filter((d) => d.status === activeTab);
+      ? posts
+      : posts.filter((d) => d.status === activeTab);
 
-  const renderItem = ({ item }: { item: (typeof MOCK_DATA)[0] }) => {
+  const renderItem = ({ item }: { item: LostFoundPost }) => { // 타입 수정
     const post = {
       id: item.id,
       status: item.status,
@@ -46,7 +69,8 @@ const MyAnimals: React.FC = () => {
       location: item.location,
       lostDateTime: item.status === "실종" ? item.dateTime : undefined,
       foundDateTime: item.status === "발견" ? item.dateTime : undefined,
-      image: item.image,
+      // API에서 이미지 URL을 받으면 { uri: item.image }로 사용
+      image: item.image ? { uri: item.image } : happy1, 
     };
 
     return (
@@ -57,12 +81,16 @@ const MyAnimals: React.FC = () => {
         activeOpacity={0.85}
         style={styles.card}
       >
-        <Image source={item.image} style={styles.image} />
+        {/* image source를 조건부로 수정 */}
+        <Image 
+          source={typeof post.image === 'string' ? { uri: post.image } : post.image} 
+          style={styles.image} 
+        />
         <View style={styles.cardInfo}>
           <Text style={styles.date}>{item.dateTime}</Text>
           <Text style={styles.location}>{item.location}</Text>
           <Text style={styles.breedFeature}>
-            {item.breed} / {item.feature}
+            {item.breed} / {item.feature.split('\n')[0]} {/* 특징이 긴 경우 한 줄만 표시 */}
           </Text>
         </View>
         <Image source={icon_detail_page} style={styles.arrowIcon} />
@@ -108,17 +136,27 @@ const MyAnimals: React.FC = () => {
 
       <View style={styles.divider} />
 
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
-        ListEmptyComponent={
-          <Text style={{ textAlign: "center", marginTop: 40 }}>
-            데이터 없음
+      {/* 로딩 인디케이터 */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4262FF" />
+          <Text style={{ textAlign: "center", marginTop: 10, color: "#666" }}>
+            게시글을 불러오는 중...
           </Text>
-        }
-      />
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 8 }}
+          ListEmptyComponent={
+            <Text style={{ textAlign: "center", marginTop: 40, color: "#999" }}>
+              등록된 {activeTab} 게시글이 없습니다.
+            </Text>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -227,6 +265,13 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     tintColor: "#000",
+  },
+  // 로딩 컨테이너 스타일 추가
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
   },
 });
 

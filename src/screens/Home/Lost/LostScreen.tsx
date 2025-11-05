@@ -34,10 +34,14 @@ import {
   fetchCurrentUserLostPets,
   UserLostPet,
 } from "../../../services/api/AIScreen";
-import { fetchSearchAllList, PostItem } from "../../../services/api/LostList";
-import { fetchSearchDetail, toLostPostForUI, PostType } from "../../../services/api/SearchDetail";
-import { fetchLostPetsForUser } from "../../../services/api/LostPets";
-
+import { 
+  fetchSearchAllList, 
+  fetchSearchDetail, 
+  toLostPostForUI, 
+  fetchLostPetsForUser, 
+  PostItem, 
+  PostType 
+} from "../../../services/api/SearchPet";
 
 type SelectItem = { label: string; value: number | string };
 // 통합된 Pet 타입 정의
