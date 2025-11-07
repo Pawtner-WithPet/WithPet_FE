@@ -52,10 +52,8 @@ export interface LostPostRequest {
 
 // 발견 등록 요청 타입 (FoundPost.ts에서 가져옴)
 export interface FoundPostRequest {
-  owner: number;                
+  ownerId: number;                
   sex: "MALE" | "FEMALE";  
-  gender: 'male' | 'female' | 'unknown' | null;  
-  breed: string;   
   noseprintImageUri: string | null;
   kindNm: string;
   foundDate: string;           
@@ -318,7 +316,7 @@ export const postFoundPost = async (
         if (image?.uri) {
             form.append("image", {
                 uri: image.uri,
-                name: image.name ?? `found_${request.owner}_${Date.now()}.jpg`,
+                name: image.name ?? `found_${request.ownerId}_${Date.now()}.jpg`,
                 type: image.type ?? "image/jpeg",
             } as any);
         }

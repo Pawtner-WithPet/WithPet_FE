@@ -62,7 +62,7 @@ const LostPetRegister: React.FC = () => {
         const currentBreed = breed.trim(); 
         
         // noseUri가 있다면 noseprintImageUri로 사용, 없으면 null
-        const currentNoseUri = noseUri || "";
+        const currentNoseUri: string | null = noseUri || null;
         
         
         if (!foundDateIso || !location.trim() || !currentGender || !currentBreed) {
@@ -72,26 +72,13 @@ const LostPetRegister: React.FC = () => {
 
         // 💡 SearchPet.ts의 FoundPostRequest 타입에 맞춰 필드 구성
         const req: FoundPostRequest = {
-            owner: 11, // TODO: 실제 로그인 사용자 ID로 교체
-            
-            // ⚠️ 필수: MALE | FEMALE (성별 입력값에 따라 매핑)
-            sex: currentGender === 'male' ? 'MALE' : (currentGender === 'female' ? 'FEMALE' : 'MALE'), // 불명확(unknown)일 때 임시로 'MALE'로 설정. 서버 요구사항 확인 필요.
-            
-            // ⚠️ 필수: male | female | unknown | null (성별 입력값 그대로 사용)
-            gender: currentGender, 
-            
-            // ⚠️ 필수: string (사용자 입력값 사용)
-            breed: currentBreed, 
-            
-            // ⚠️ 필수: string | null (비문 URI가 없으면 null)
-            noseprintImageUri: currentNoseUri || "",
-            
-            // ⚠️ 필수: string (breed와 동일하게 전송. 서버 API가 kindNm과 breed를 모두 요구)
-            kindNm: currentBreed, 
-
+            ownerId: 11, 
+            sex: currentGender.toUpperCase() as "MALE" | "FEMALE",
+            kindNm: currentBreed,
+            noseprintImageUri: currentNoseUri,
             foundDate: foundDateIso,
             foundLocation: location.trim(),
-            description: description.trim() || undefined, // 선택 필드
+            description: description.trim() || undefined,
         };
 
         const img = profileUri
