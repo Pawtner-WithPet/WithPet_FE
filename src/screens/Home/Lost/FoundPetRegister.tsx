@@ -103,13 +103,17 @@ const LostPetRegister: React.FC = () => {
     } finally {
         setSubmitting(false);
     }
-};
+  };
   const renderClear = (value: string, clearFn: () => void) =>
     value.length > 0 ? (
       <TouchableOpacity onPress={clearFn}>
         <Image source={icon_close} style={styles.clearIcon} />
       </TouchableOpacity>
     ) : null;
+
+    const handleNoseImageCapture = (uri: string) => {
+    setNoseUri(uri);
+  };
 
 
 
@@ -215,7 +219,8 @@ const LostPetRegister: React.FC = () => {
             style={styles.noseBtn}
             onPress={() => {
               navigation.navigate("NoseCamera", {
-                fromScreen: "LostPetRegister",
+                fromScreen: "FoundPetRegister", 
+                onImageCapture: handleNoseImageCapture,
               });
             }}
           >

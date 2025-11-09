@@ -23,9 +23,10 @@ import { launchImageLibrary } from "react-native-image-picker";
 
 import type { LostStackParamList } from "../../../navigation/LostStack";
 import { postLostPost, LostPostRequest } from "../../../services/api/SearchPet";
+import type { RootStackParamList } from "../../../types/NoseCamera";
 
 const LostPetRegister: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<LostStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<any>();
 
   // 업로드에 사용될 이미지 (프로필 이미지로 선택)
@@ -146,6 +147,10 @@ const LostPetRegister: React.FC = () => {
       </TouchableOpacity>
     ) : null;
 
+  const handleNoseImageCapture = (uri: string) => {
+    setNoseUri(uri);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -225,9 +230,10 @@ const LostPetRegister: React.FC = () => {
           <TouchableOpacity
             style={styles.noseBtn}
             onPress={() => {
-              launchImageLibrary({ mediaType: "photo" }, (response) => {
-                const uri = response.assets?.[0]?.uri || null;
-                setNoseUri(uri);
+              // 💡 navigation.navigate 호출 추가
+              navigation.navigate("NoseCamera", {
+                fromScreen: "LostPetRegister", // 현재 화면 정보 전달
+                onImageCapture: handleNoseImageCapture, // 콜백 함수 전달
               });
             }}
           >
@@ -235,12 +241,21 @@ const LostPetRegister: React.FC = () => {
             <Image source={icon_camera} style={styles.iconSm} />
           </TouchableOpacity>
 
+          {/* 비문 등록 완료 상태 표시 */}
           {noseUri && (
-            <View style={[styles.noseBtnDisabled, noseUri && styles.noseBtnActive]}>
-              <Text style={[styles.noseDoneText, noseUri && styles.noseDoneTextActive]}>등록완료</Text>
+            <View
+              style={[styles.noseBtnDisabled, noseUri && styles.noseBtnActive]}
+            >
+              <Text
+                style={[
+                  styles.noseDoneText,
+                  noseUri && styles.noseDoneTextActive,
+                ]}
+              >
+                등록완료
+              </Text>
             </View>
           )}
-
           {renderClear(noseUri ?? "", () => setNoseUri(null))}
         </View>
 
