@@ -8,14 +8,23 @@ import {
   Alert,
   Platform,
   PermissionsAndroid,
+  ActivityIndicator,
 } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
 import Geolocation from "@react-native-community/geolocation";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 
+interface LocationPoint {
+  latitude: number;
+  longitude: number;
+  timestamp?: number;
+}
+
 interface MapProps {
   onMenuPress?: () => void;
   isWalkRecordVisible?: boolean;
+  walkPath?: LocationPoint[];
+  currentLocation?: LocationPoint | null;
 }
 
 interface Location {
@@ -34,6 +43,8 @@ interface AlertMarker {
 export const Map: React.FC<MapProps> = ({
   onMenuPress,
   isWalkRecordVisible = false,
+  walkPath = [],
+  currentLocation: propCurrentLocation,
 }) => {
   const webViewRef = useRef<WebView>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -82,6 +93,20 @@ export const Map: React.FC<MapProps> = ({
       }
     };
   }, []);
+
+  // 산책 경로를 지도에 그리기
+  useEffect(() => {
+    if (isMapLoaded && walkPath.length > 1) {
+      drawWalkPath(walkPath);
+    }
+  }, [isMapLoaded, walkPath]);
+
+  // 현재 위치가 업데이트되면 지도 이동
+  useEffect(() => {
+    if (currentLocation && isMapLoaded) {
+      initializeMap(currentLocation.latitude, currentLocation.longitude);
+    }
+  }, [currentLocation, isMapLoaded]);
 
   const requestLocationPermission = async () => {
     if (Platform.OS === "android") {
@@ -137,18 +162,21 @@ export const Map: React.FC<MapProps> = ({
     Geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setCurrentLocation({ latitude, longitude });
+        const newLocation = { latitude, longitude };
+        setCurrentLocation(newLocation);
+
+        // 지도가 이미 로드되어 있으면 즉시 이동
         if (isMapLoaded) {
           initializeMap(latitude, longitude);
         }
       },
       (error) => {
         console.log("Location error:", error);
-        Alert.alert("위치 오류", "현재 위치를 가져올 수 없습니다.");
+        // 위치를 가져오지 못해도 지도는 표시 (기본 위치 사용)
       },
       {
         enableHighAccuracy: true,
-        timeout: 20000,
+        timeout: 15000, // 15초로 단축
         maximumAge: 1000,
       },
     );
@@ -191,11 +219,75 @@ export const Map: React.FC<MapProps> = ({
     webViewRef.current?.injectJavaScript(script);
   };
 
+  const drawWalkPath = (path: LocationPoint[]) => {
+    if (path.length < 2) return;
+
+    const pathCoordinates = path
+      .map((p) => `new kakao.maps.LatLng(${p.latitude}, ${p.longitude})`)
+      .join(",");
+
+    const script = `
+      if(window.map){
+        // 기존 산책 경로 제거
+        if(window.walkPolyline){ 
+          window.walkPolyline.setMap(null); 
+        }
+
+        // 새로운 산책 경로 그리기
+        var walkPath = [${pathCoordinates}];
+        window.walkPolyline = new kakao.maps.Polyline({
+          path: walkPath,
+          strokeWeight: 5,
+          strokeColor: '#4262FF',
+          strokeOpacity: 0.8,
+          strokeStyle: 'solid'
+        });
+        window.walkPolyline.setMap(window.map);
+
+        // 시작점 마커
+        if(window.startMarker){ 
+          window.startMarker.setMap(null); 
+        }
+        window.startMarker = new kakao.maps.Marker({
+          position: walkPath[0],
+          image: new kakao.maps.MarkerImage(
+            'https://cdn-icons-png.flaticon.com/512/854/854878.png',
+            new kakao.maps.Size(30, 30)
+          )
+        });
+        window.startMarker.setMap(window.map);
+
+        // 끝점 마커
+        if(window.endMarker){ 
+          window.endMarker.setMap(null); 
+        }
+        window.endMarker = new kakao.maps.Marker({
+          position: walkPath[walkPath.length - 1],
+          image: new kakao.maps.MarkerImage(
+            'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+            new kakao.maps.Size(35, 35)
+          )
+        });
+        window.endMarker.setMap(window.map);
+
+        // 경로 전체가 보이도록 지도 범위 조정
+        var bounds = new kakao.maps.LatLngBounds();
+        walkPath.forEach(function(point) {
+          bounds.extend(point);
+        });
+        window.map.setBounds(bounds);
+      }
+      true;
+    `;
+    webViewRef.current?.injectJavaScript(script);
+  };
+
   const handleMenuPress = () => onMenuPress?.();
 
   const handleLocationPress = () => {
-    if (currentLocation) {
-      updateMapCenter(currentLocation.latitude, currentLocation.longitude);
+    const locationToUse = propCurrentLocation || currentLocation;
+    if (locationToUse) {
+      updateMapCenter(locationToUse.latitude, locationToUse.longitude);
     } else {
       getCurrentLocation();
     }
@@ -203,7 +295,9 @@ export const Map: React.FC<MapProps> = ({
 
   const handleMarkerPress = (markerId: string) => {
     const marker = alertMarkers.find((m) => m.id === markerId);
-    if (!marker || !currentLocation) return;
+    const locationToUse = propCurrentLocation || currentLocation;
+
+    if (!marker || !locationToUse) return;
 
     if (selectedMarker === markerId) {
       setShowRoute(false);
@@ -221,7 +315,7 @@ export const Map: React.FC<MapProps> = ({
         if(window.polyline){ window.polyline.setMap(null); }
 
         var linePath = [
-          new kakao.maps.LatLng(${currentLocation.latitude}, ${currentLocation.longitude}),
+          new kakao.maps.LatLng(${locationToUse.latitude}, ${locationToUse.longitude}),
           new kakao.maps.LatLng(${marker.latitude}, ${marker.longitude})
         ];
         window.polyline = new kakao.maps.Polyline({
@@ -252,8 +346,12 @@ export const Map: React.FC<MapProps> = ({
       <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=6a08ee0d9b74e458e946245d621198d4"></script>
       <script>
         var container = document.getElementById('map');
+        
+        // 현재 위치만 사용 (기본 위치 없음)
+        var initialCenter = new kakao.maps.LatLng(${currentLocation?.latitude || 37.5665}, ${currentLocation?.longitude || 126.978});
+        
         var options = {
-          center: new kakao.maps.LatLng(37.5665, 126.978),
+          center: initialCenter,
           level: 3
         };
         window.map = new kakao.maps.Map(container, options);
@@ -292,8 +390,11 @@ export const Map: React.FC<MapProps> = ({
         handleMarkerPress(data.markerId);
       } else if (data.type === "mapLoaded") {
         setIsMapLoaded(true);
+        // 현재 위치가 있으면 바로 이동
         if (currentLocation) {
-          initializeMap(currentLocation.latitude, currentLocation.longitude);
+          setTimeout(() => {
+            initializeMap(currentLocation.latitude, currentLocation.longitude);
+          }, 100);
         }
       }
     } catch {}
@@ -322,10 +423,7 @@ export const Map: React.FC<MapProps> = ({
 
       <View style={styles.headerButtons}>
         <TouchableOpacity style={styles.backButton}>
-          <Image
-            source={require("../../assets/icons/Vector.png")}
-            style={[styles.backButtonImage, { transform: [{ scaleX: -1 }] }]}
-          />
+          <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
 
         <Image
@@ -392,7 +490,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  backButtonImage: { width: 11, height: 21 },
+  backButtonText: {
+    fontSize: 28,
+    color: "#333",
+    fontWeight: "600",
+  },
   logoImage: { width: 46, height: 23 },
   searchButton: {
     width: 44,

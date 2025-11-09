@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,175 +7,213 @@ import {
   Modal,
   Image,
   Alert,
+  Platform,
+  PermissionsAndroid,
 } from "react-native";
-import Svg, { Path, Defs, LinearGradient, Stop } from "react-native-svg";
+import Svg, {
+  Polyline,
+  Circle,
+  Defs,
+  LinearGradient,
+  Stop,
+} from "react-native-svg";
 import ViewShot from "react-native-view-shot";
 import Share from "react-native-share";
+import RNFS from "react-native-fs";
 
 interface WalkCompletionModalProps {
   visible: boolean;
   duration: string;
   distance: string;
   speed: string;
-  walkPath?: string;
+  walkPath?: Array<{ latitude: number; longitude: number }>;
   onSNSShare: () => void;
   onSave: () => void;
   onClose: () => void;
 }
-
-interface SNSShareModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSharePlatform: (platform: string) => void;
-}
-
-// SNS 공유 선택 모달
-const SNSShareModal: React.FC<SNSShareModalProps> = ({
-  visible,
-  onClose,
-  onSharePlatform,
-}) => {
-  return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <TouchableOpacity style={styles.shareOverlay} onPress={onClose}>
-        <View style={styles.shareModalContainer}>
-          <Text style={styles.shareTitle}>공유하기</Text>
-
-          <View style={styles.shareButtonsContainer}>
-            <TouchableOpacity
-              style={styles.shareOptionButton}
-              onPress={() => onSharePlatform("kakao")}
-            >
-              <View
-                style={[
-                  styles.shareIconContainer,
-                  { backgroundColor: "#FEE500" },
-                ]}
-              >
-                <Text style={styles.shareIconText}>카</Text>
-              </View>
-              <Text style={styles.shareOptionText}>카카오톡</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.shareOptionButton}
-              onPress={() => onSharePlatform("twitter")}
-            >
-              <View
-                style={[
-                  styles.shareIconContainer,
-                  { backgroundColor: "#1DA1F2" },
-                ]}
-              >
-                <Text style={styles.shareIconText}>X</Text>
-              </View>
-              <Text style={styles.shareOptionText}>트위터(X)</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.shareOptionButton}
-              onPress={() => onSharePlatform("instagram")}
-            >
-              <View
-                style={[
-                  styles.shareIconContainer,
-                  { backgroundColor: "#E4405F" },
-                ]}
-              >
-                <Text style={styles.shareIconText}>📷</Text>
-              </View>
-              <Text style={styles.shareOptionText}>인스타그램</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-            <Text style={styles.cancelButtonText}>취소</Text>
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    </Modal>
-  );
-};
 
 export const WalkCompletionModal: React.FC<WalkCompletionModalProps> = ({
   visible,
   duration,
   distance,
   speed,
-  walkPath,
+  walkPath = [],
   onSNSShare,
   onSave,
   onClose,
 }) => {
   const viewShotRef = useRef<ViewShot>(null);
-  const [showShareModal, setShowShareModal] = React.useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString("ko-KR");
-  const timeRange = `${today.getHours()}:${today.getMinutes().toString().padStart(2, "0")}~${today.getHours() + 1}:${today.getMinutes().toString().padStart(2, "0")}`;
+  // 위도/경도를 SVG 좌표로 변환
+  const convertToSVGCoordinates = () => {
+    if (walkPath.length === 0) {
+      return { points: "", startPoint: null, endPoint: null };
+    }
+
+    // 경로의 경계 계산
+    const latitudes = walkPath.map((p) => p.latitude);
+    const longitudes = walkPath.map((p) => p.longitude);
+
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const minLng = Math.min(...longitudes);
+    const maxLng = Math.max(...longitudes);
+
+    // SVG 뷰박스 크기
+    const svgWidth = 300;
+    const svgHeight = 200;
+    const padding = 20;
+
+    // 위도/경도를 SVG 좌표로 변환
+    const latRange = maxLat - minLat || 0.001; // 0으로 나누기 방지
+    const lngRange = maxLng - minLng || 0.001;
+
+    const points = walkPath
+      .map((point) => {
+        const x =
+          padding +
+          ((point.longitude - minLng) / lngRange) * (svgWidth - 2 * padding);
+        const y =
+          svgHeight -
+          (padding +
+            ((point.latitude - minLat) / latRange) * (svgHeight - 2 * padding));
+        return `${x},${y}`;
+      })
+      .join(" ");
+
+    // 시작점과 끝점 좌표
+    const firstPoint = walkPath[0];
+    const lastPoint = walkPath[walkPath.length - 1];
+
+    const startPoint = {
+      x:
+        padding +
+        ((firstPoint.longitude - minLng) / lngRange) * (svgWidth - 2 * padding),
+      y:
+        svgHeight -
+        (padding +
+          ((firstPoint.latitude - minLat) / latRange) *
+            (svgHeight - 2 * padding)),
+    };
+
+    const endPoint = {
+      x:
+        padding +
+        ((lastPoint.longitude - minLng) / lngRange) * (svgWidth - 2 * padding),
+      y:
+        svgHeight -
+        (padding +
+          ((lastPoint.latitude - minLat) / latRange) *
+            (svgHeight - 2 * padding)),
+    };
+
+    return { points, startPoint, endPoint };
+  };
+
+  const { points, startPoint, endPoint } = convertToSVGCoordinates();
+
+  const captureImage = async () => {
+    if (viewShotRef.current?.capture) {
+      return await viewShotRef.current.capture();
+    }
+    return null;
+  };
+
+  const requestStoragePermission = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          {
+            title: "저장소 권한 요청",
+            message: "갤러리에 이미지를 저장하기 위해 권한이 필요합니다.",
+            buttonNeutral: "나중에",
+            buttonNegative: "거부",
+            buttonPositive: "허용",
+          },
+        );
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSaveToGallery = async () => {
+    try {
+      const hasPermission = await requestStoragePermission();
+      if (!hasPermission) {
+        Alert.alert(
+          "권한 필요",
+          "갤러리 저장을 위해 저장소 권한이 필요합니다.",
+        );
+        return;
+      }
+
+      const uri = await captureImage();
+      if (!uri) {
+        Alert.alert("오류", "이미지를 생성할 수 없습니다.");
+        return;
+      }
+
+      const timestamp = new Date().getTime();
+      const destPath = Platform.select({
+        ios: `${RNFS.DocumentDirectoryPath}/walk_${timestamp}.png`,
+        android: `${RNFS.PicturesDirectoryPath}/WithPet/walk_${timestamp}.png`,
+      });
+
+      if (Platform.OS === "android") {
+        const dirPath = `${RNFS.PicturesDirectoryPath}/WithPet`;
+        const dirExists = await RNFS.exists(dirPath);
+        if (!dirExists) {
+          await RNFS.mkdir(dirPath);
+        }
+      }
+
+      await RNFS.copyFile(uri, destPath!);
+
+      if (Platform.OS === "android") {
+        await RNFS.scanFile(destPath!);
+      }
+
+      Alert.alert("저장 완료", "갤러리에 이미지가 저장되었습니다.");
+      setShowShareModal(false);
+    } catch (error) {
+      console.error("Save to gallery error:", error);
+      Alert.alert("저장 실패", "갤러리 저장 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleShareToSNS = async () => {
+    try {
+      const uri = await captureImage();
+      if (!uri) {
+        Alert.alert("오류", "이미지를 생성할 수 없습니다.");
+        return;
+      }
+
+      const shareOptions = {
+        title: "산책 완료!",
+        message: `${duration} 동안 ${distance} 산책을 완료했어요! 🐕‍🦺`,
+        url: uri,
+        type: "image/png",
+      };
+
+      await Share.open(shareOptions);
+      setShowShareModal(false);
+    } catch (error) {
+      console.error("Share error:", error);
+      if (error !== "User did not share") {
+        Alert.alert("공유 실패", "공유 중 오류가 발생했습니다.");
+      }
+    }
+  };
 
   const handleSNSShare = () => {
     setShowShareModal(true);
-  };
-
-  const captureAndShare = async (platform: string) => {
-    try {
-      if (viewShotRef.current?.capture) {
-        const uri = await viewShotRef.current.capture();
-
-        const shareOptions = {
-          title: "산책 완료!",
-          message: `${duration} 동안 ${distance} 산책을 완료했어요! 🐕‍🦺`,
-          url: uri,
-          type: "image/png",
-        };
-
-        switch (platform) {
-          case "twitter":
-            // 트위터 공유
-            await Share.shareSingle({
-              ...shareOptions,
-              social: Share.Social.TWITTER as any,
-            });
-            break;
-          case "instagram":
-            // 인스타그램 공유
-            await Share.shareSingle({
-              ...shareOptions,
-              social: Share.Social.INSTAGRAM as any,
-            });
-            break;
-          default:
-            // 일반 공유 (모든 앱)
-            await Share.open(shareOptions);
-            break;
-        }
-
-        setShowShareModal(false);
-      }
-    } catch (error) {
-      console.error("Share error:", error);
-      // 특정 앱 공유 실패시 일반 공유로 대체
-      try {
-        if (viewShotRef.current?.capture) {
-          const uri = await viewShotRef.current.capture();
-          await Share.open({
-            title: "산책 완료!",
-            message: `${duration} 동안 ${distance} 산책을 완료했어요! 🐕‍🦺`,
-            url: uri,
-            type: "image/png",
-          });
-        }
-      } catch (fallbackError) {
-        Alert.alert("공유 실패", "공유 중 오류가 발생했습니다.");
-      }
-      setShowShareModal(false);
-    }
   };
 
   return (
@@ -193,7 +231,6 @@ export const WalkCompletionModal: React.FC<WalkCompletionModalProps> = ({
             style={styles.captureContainer}
           >
             <View style={styles.modalContainer}>
-              {/* 닫기 버튼 */}
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
@@ -202,7 +239,7 @@ export const WalkCompletionModal: React.FC<WalkCompletionModalProps> = ({
                 <Image source={require("../../assets/icons/logo.png")} />
               </View>
 
-              {/* 산책 경로 이미지 영역 */}
+              {/* 실제 산책 경로 */}
               <View style={styles.mapContainer}>
                 <View style={styles.mapPlaceholder}>
                   <Svg
@@ -232,22 +269,78 @@ export const WalkCompletionModal: React.FC<WalkCompletionModalProps> = ({
                         />
                       </LinearGradient>
                     </Defs>
-                    <Path
-                      d="M 50 50 Q 100 30, 150 60 T 250 80 Q 270 90, 280 110 T 250 140 Q 200 160, 150 140 T 80 120 Q 60 110, 50 90"
-                      stroke="url(#pathGradient)"
-                      strokeWidth="4"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+
+                    {/* 실제 경로가 있으면 표시 */}
+                    {points && (
+                      <>
+                        <Polyline
+                          points={points}
+                          stroke="url(#pathGradient)"
+                          strokeWidth="4"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+
+                        {/* 시작점 */}
+                        {startPoint && (
+                          <Circle
+                            cx={startPoint.x}
+                            cy={startPoint.y}
+                            r="6"
+                            fill="#00D4FF"
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                        )}
+
+                        {/* 끝점 */}
+                        {endPoint && (
+                          <Circle
+                            cx={endPoint.x}
+                            cy={endPoint.y}
+                            r="8"
+                            fill="#4262FF"
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                        )}
+                      </>
+                    )}
+
+                    {/* 경로가 없을 때 기본 메시지 */}
+                    {!points && (
+                      <text
+                        x="150"
+                        y="100"
+                        textAnchor="middle"
+                        fill="#999"
+                        fontSize="14"
+                      >
+                        경로 정보 없음
+                      </text>
+                    )}
                   </Svg>
 
-                  <View style={styles.currentLocationDot}>
-                    <Image
-                      source={require("../../assets/icons/puppy.png")}
-                      style={styles.puppyImage}
-                    />
-                  </View>
+                  {/* 현재 위치 아이콘 (끝점에 표시) */}
+                  {endPoint && (
+                    <View
+                      style={[
+                        styles.currentLocationDot,
+                        {
+                          left: `${(endPoint.x / 300) * 100}%`,
+                          top: `${(endPoint.y / 200) * 100}%`,
+                          marginLeft: -17.5,
+                          marginTop: -17.5,
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={require("../../assets/icons/puppy.png")}
+                        style={styles.puppyImage}
+                      />
+                    </View>
+                  )}
                 </View>
               </View>
 
@@ -295,12 +388,50 @@ export const WalkCompletionModal: React.FC<WalkCompletionModalProps> = ({
         </View>
       </Modal>
 
-      {/* SNS 공유 선택 모달 */}
-      <SNSShareModal
+      {/* 공유 옵션 모달 */}
+      <Modal
         visible={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        onSharePlatform={captureAndShare}
-      />
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.shareOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareModal(false)}
+        >
+          <View style={styles.shareModalContainer}>
+            <Text style={styles.shareTitle}>공유 옵션</Text>
+
+            <TouchableOpacity
+              style={styles.shareOptionButton}
+              onPress={handleSaveToGallery}
+            >
+              <View style={styles.shareOptionIcon}>
+                <Text style={styles.shareOptionIconText}>📱</Text>
+              </View>
+              <Text style={styles.shareOptionText}>갤러리에 저장</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.shareOptionButton}
+              onPress={handleShareToSNS}
+            >
+              <View style={styles.shareOptionIcon}>
+                <Text style={styles.shareOptionIconText}>🔗</Text>
+              </View>
+              <Text style={styles.shareOptionText}>다른 앱으로 공유</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowShareModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>취소</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 };
@@ -320,7 +451,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000080",
     borderRadius: 20,
     padding: 10,
-    width: 320, // 고정 너비로 캡처 일관성 보장
+    width: 320,
     alignItems: "center",
     position: "relative",
     borderWidth: 2,
@@ -346,9 +477,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
   },
-  heartIcon: {
-    fontSize: 30,
-  },
   mapContainer: {
     width: "100%",
     height: 200,
@@ -356,6 +484,7 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     position: "relative",
     overflow: "hidden",
+    backgroundColor: "#1a1a1a",
   },
   mapPlaceholder: {
     flex: 1,
@@ -370,8 +499,6 @@ const styles = StyleSheet.create({
   },
   currentLocationDot: {
     position: "absolute",
-    top: 80,
-    left: 45,
     width: 35,
     height: 35,
     borderRadius: 20,
@@ -404,7 +531,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: "white",
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "bold",
   },
   statDivider: {
@@ -450,7 +577,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  // SNS 공유 모달 스타일
   shareOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -461,48 +587,48 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 25,
     paddingBottom: 40,
   },
   shareTitle: {
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 25,
     color: "#333",
   },
-  shareButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 30,
-  },
   shareOptionButton: {
+    flexDirection: "row",
     alignItems: "center",
-    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 12,
+    marginBottom: 12,
   },
-  shareIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  shareOptionIcon: {
+    width: 45,
+    height: 45,
+    borderRadius: 23,
+    backgroundColor: "#4262FF",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 10,
+    marginRight: 15,
   },
-  shareIconText: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "bold",
+  shareOptionIconText: {
+    fontSize: 22,
   },
   shareOptionText: {
-    fontSize: 12,
-    color: "#666",
-    textAlign: "center",
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
   },
   cancelButton: {
     backgroundColor: "#f0f0f0",
     borderRadius: 12,
-    paddingVertical: 15,
+    paddingVertical: 16,
     alignItems: "center",
+    marginTop: 10,
   },
   cancelButtonText: {
     fontSize: 16,

@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import { SafeAreaView, StyleSheet, StatusBar } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  SafeAreaView,
+  StyleSheet,
+  StatusBar,
+  ActivityIndicator,
+  View,
+} from "react-native";
 import { Map } from "../../../components/Walk/Map";
 import { StartBtn } from "../../../components/Walk/StartBtn";
 import { WalkRecordCard } from "../../../components/Walk/WalkRecordCard";
@@ -8,32 +14,102 @@ import { WalkEndConfirmationModal } from "../../../components/Walk/WalkEndConfir
 import { WalkCompletionModal } from "../../../components/Walk/WalkCompletionModal";
 import { WalkListScreen } from "./WalkList";
 import { Pet, WalkRecord } from "../../../types/index";
+import { fetchDogs, Dog } from "../../../services/api/dogs";
+import { useLocationTracking } from "../../../hooks/useLocationTracking";
 
 const WalkScreen: React.FC = () => {
   const [isWalkingStarted, setIsWalkingStarted] = useState(false);
   const [showPetModal, setShowPetModal] = useState(false);
-  const [showWalkList, setShowWalkList] = useState(false); // WalkList 표시 상태
-  const [showEndConfirmation, setShowEndConfirmation] = useState(false); // 종료 확인 모달
-  const [showCompletionModal, setShowCompletionModal] = useState(false); // 완료 모달
+  const [showWalkList, setShowWalkList] = useState(false);
+  const [showEndConfirmation, setShowEndConfirmation] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [finalWalkData, setFinalWalkData] = useState({
     duration: "",
     distance: "",
     speed: "",
+    locations: [] as Array<{ latitude: number; longitude: number }>,
   });
-  const [pets, setPets] = useState<Pet[]>([
-    { id: 1, name: "곰탱이", isActive: false },
-  ]);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [startTime, setStartTime] = useState<number>(0);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
-  const [walkRecord] = useState<WalkRecord>({
-    date: "2025.12.25",
-    time: "16:00~16:32",
-    duration: "31분 15초",
-    distance: "4.42km",
-    speed: "4m/s",
+  // 위치 추적 Hook 사용
+  const { locations, currentLocation, distance, speed, resetTracking } =
+    useLocationTracking(isWalkingStarted);
+
+  const [walkRecord, setWalkRecord] = useState<WalkRecord>({
+    date: "",
+    time: "",
+    duration: "00:00",
+    distance: "0.00km",
+    speed: "0m/s",
   });
+
+  // 타이머 업데이트
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+
+    if (isWalkingStarted) {
+      interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        setElapsedTime(elapsed);
+
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        const formattedDuration = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+        setWalkRecord((prev) => ({
+          ...prev,
+          duration: formattedDuration,
+          distance: `${distance.toFixed(2)}km`,
+          speed: `${speed.toFixed(1)}m/s`,
+        }));
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isWalkingStarted, startTime, distance, speed]);
+
+  // 반려견 목록 불러오기
+  useEffect(() => {
+    loadPets();
+  }, []);
+
+  const loadPets = async () => {
+    try {
+      setIsLoading(true);
+      const userId = 1; // TODO: 실제 userId 가져오기
+
+      const dogs = await fetchDogs(userId);
+
+      const convertedPets: Pet[] = dogs.map((dog) => ({
+        id: dog.id,
+        name: dog.dogNm,
+        isActive: false,
+      }));
+
+      setPets(convertedPets);
+
+      if (convertedPets.length === 0) {
+        console.log("등록된 반려견이 없습니다.");
+      }
+    } catch (error) {
+      console.error("반려견 목록 불러오기 실패:", error);
+      setPets([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleStartWalk = () => {
+    if (pets.length === 0) {
+      console.log("등록된 반려견이 없습니다. 반려견을 먼저 등록해주세요.");
+      return;
+    }
     setShowPetModal(true);
   };
 
@@ -46,31 +122,40 @@ const WalkScreen: React.FC = () => {
     setSelectedPet(updatedPets.find((pet) => pet.id === petId) || null);
     setShowPetModal(false);
     setIsWalkingStarted(true);
+    setStartTime(Date.now());
+
+    // 산책 시작 시 날짜/시간 설정
+    const now = new Date();
+    setWalkRecord((prev) => ({
+      ...prev,
+      date: now.toLocaleDateString("ko-KR"),
+      time: `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`,
+    }));
   };
 
   const handlePause = () => {
     console.log("산책 일시정지");
+    // TODO: 일시정지 기능 구현
   };
 
-  const handleStop = (
-    finalDuration?: string,
-    finalDistance?: string,
-    finalSpeed?: string,
-  ) => {
-    if (finalDuration && finalDistance && finalSpeed) {
-      // 최종 데이터 저장
-      setFinalWalkData({
-        duration: finalDuration,
-        distance: finalDistance,
-        speed: finalSpeed,
-      });
-    }
+  const handleStop = () => {
+    // 최종 데이터 저장
+    const finalMinutes = Math.floor(elapsedTime / 60);
+    const finalSeconds = elapsedTime % 60;
 
-    // 종료 확인 모달 표시
+    setFinalWalkData({
+      duration: `${finalMinutes}분 ${finalSeconds}초`,
+      distance: `${distance.toFixed(2)}km`,
+      speed: `${speed.toFixed(1)}m/s`,
+      locations: locations.map((loc) => ({
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+      })),
+    });
+
     setShowEndConfirmation(true);
   };
 
-  // 산책 종료 확인
   const handleConfirmEnd = () => {
     setShowEndConfirmation(false);
     setIsWalkingStarted(false);
@@ -78,43 +163,53 @@ const WalkScreen: React.FC = () => {
     const resetPets = pets.map((pet) => ({ ...pet, isActive: false }));
     setPets(resetPets);
 
-    // 완료 모달 표시
     setShowCompletionModal(true);
   };
 
-  // 산책 종료 취소
   const handleCancelEnd = () => {
     setShowEndConfirmation(false);
   };
 
-  // SNS 공유 핸들러
   const handleSNSShare = () => {
     console.log("SNS 공유하기");
-    // SNS 공유 로직 구현
     setShowCompletionModal(false);
   };
 
-  // 저장 핸들러
   const handleSaveWalk = () => {
     console.log("산책 기록 저장");
     console.log(`- 시간: ${finalWalkData.duration}`);
     console.log(`- 거리: ${finalWalkData.distance}`);
     console.log(`- 속도: ${finalWalkData.speed}`);
-    // 저장 로직 구현
+    console.log(`- 경로 포인트 수: ${finalWalkData.locations.length}`);
+    // TODO: 서버에 저장 API 호출
     setShowCompletionModal(false);
+
+    // 추적 데이터 초기화
+    resetTracking();
+    setElapsedTime(0);
   };
 
-  // 메뉴 버튼 클릭 핸들러
   const handleMenuPress = () => {
     setShowWalkList(true);
   };
 
-  // WalkList에서 뒤로가기 핸들러
   const handleBackFromWalkList = () => {
     setShowWalkList(false);
   };
 
-  // WalkList 화면을 보여주는 경우
+  // 로딩 화면
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="white" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4262FF" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // WalkList 화면
   if (showWalkList) {
     return (
       <SafeAreaView style={styles.container}>
@@ -131,9 +226,10 @@ const WalkScreen: React.FC = () => {
       <Map
         onMenuPress={handleMenuPress}
         isWalkRecordVisible={isWalkingStarted}
+        walkPath={locations}
+        currentLocation={currentLocation}
       />
       {!isWalkingStarted && <StartBtn onPress={handleStartWalk} />}
-      {/* Only render WalkRecordCard when selectedPet is not null */}
       {isWalkingStarted && selectedPet && (
         <WalkRecordCard
           walkRecord={walkRecord}
@@ -160,6 +256,7 @@ const WalkScreen: React.FC = () => {
         duration={finalWalkData.duration}
         distance={finalWalkData.distance}
         speed={finalWalkData.speed}
+        walkPath={finalWalkData.locations}
         onSNSShare={handleSNSShare}
         onSave={handleSaveWalk}
         onClose={() => setShowCompletionModal(false)}
@@ -169,7 +266,15 @@ const WalkScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
 
 export default WalkScreen;
