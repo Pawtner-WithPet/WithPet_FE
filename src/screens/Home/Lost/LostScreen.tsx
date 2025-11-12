@@ -38,10 +38,12 @@ import {
   fetchSearchAllList, 
   fetchSearchDetail, 
   toLostPostForUI, 
-  fetchLostPetsForUser, 
   PostItem, 
   PostType 
 } from "../../../services/api/SearchPet";
+import { fetchDogs, Dog } from "../../../services/api/dogs";
+
+
 
 type SelectItem = { label: string; value: number | string };
 // 통합된 Pet 타입 정의
@@ -98,15 +100,16 @@ const LostPetListScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const USER_ID = 1;
 
-const [isPetListLoading, setPetListLoading] = useState(false);
-const [petListLoaded, setPetListLoaded] = useState(false);
+  const [isPetListLoading, setPetListLoading] = useState(false);
+  const [petListLoaded, setPetListLoaded] = useState(false);
 
   // 사용자 실종 반려견 목록 상태 추가
-  const [userLostPets, setUserLostPets] = useState<UserLostPet[]>([]);
+  const [userLostPets, setUserLostPets] = useState<Dog[]>([]);
 
   const [selectedPet, setSelectedPet] = useState();
   const [isPetToggleVisible, setPetToggleVisible] = useState(false);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
+  
 
 
   // 동적으로 사용자 반려견 이름 목록 생성
@@ -161,16 +164,25 @@ const [petListLoaded, setPetListLoaded] = useState(false);
   };
 
   // 사용자 실종 반려견 목록 로드 함수
+  
   const loadUserLostPets = async () => {
+    setPetListLoading(true);
     try {
-      const list = await fetchLostPetsForUser(USER_ID);
+      console.log("➡️ API 호출 시도 USER_ID:", USER_ID);
+      const list = await fetchDogs(USER_ID);
+
+      console.log("✅ fetchLostPetsForUser 응답 개수:", Array.isArray(list) ? list.length : '0 (목록 아님)');
       setUserLostPets(Array.isArray(list) ? list : []);
       console.log("✅ 실종 반려견 목록 로딩 완료:", list.length);
     } catch (error) {
       console.error("❌ 실종 반려견 목록 로딩 오류:", error);
-      setUserLostPets([]); // 실패 시에도 배열 보장
+      setUserLostPets([]); 
+    } finally {
+      setPetListLoading(false); 
     }
+
   };
+
 
   // 데이터 로드 함수
   const loadPetData = async (showLoading = true) => {
@@ -282,11 +294,13 @@ const [petListLoaded, setPetListLoaded] = useState(false);
       setCombinedPets(applySearch(filteredByTab, searchText));
     }
   }, [activeTab, allPosts, lostPets, foundPets]);
+
+
+
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
     loadAllList();   
     loadPetData(false);
-    loadUserLostPets();
   }, []);
 
   // 화면이 포커스될 때마다 데이터 새로고침
@@ -297,25 +311,6 @@ const [petListLoaded, setPetListLoaded] = useState(false);
       loadUserLostPets();
     }, [])
   );
-  useEffect(() => {
-    if (isDropdownVisible && !petListLoaded) {
-      (async () => {
-        try {
-          setPetListLoading(true);
-          console.log("[CALL] fetchLostPetsForUser");
-          const list = await fetchLostPetsForUser(USER_ID);
-          console.log("[RES] lost pets:", Array.isArray(list) ? list.length : list);
-          setUserLostPets(Array.isArray(list) ? list : []);
-          setPetListLoaded(true);
-        } catch (e) {
-          console.error("실종 반려견 목록 로딩 실패:", e);
-          setUserLostPets([]); // ✅ 실패 시 빈배열
-        } finally {
-          setPetListLoading(false);
-        }
-      })();
-    }
-  }, [isPetToggleVisible, isDropdownVisible]);
 
 
   // 카드 클릭 시 상세 정보 조회 및 네비게이션
@@ -487,7 +482,7 @@ const [petListLoaded, setPetListLoaded] = useState(false);
         open={registerModalOpen}
         title="반려견 선택"
         items={userPetItems} 
-        emptyText="등록된 반려견이 없습니다"
+        emptyText={isPetListLoading ? "반려견 목록을 불러오는 중..." : "등록된 반려견이 없습니다"}
         onSelect={(petId) => {
           setRegisterModalOpen(false);
           const petName = userPetItems.find(p => p.value === petId)?.label ?? "";
