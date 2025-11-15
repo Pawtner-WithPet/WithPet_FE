@@ -59,8 +59,8 @@ const LostPostDetail: React.FC = () => {
   const [zoomScale, setZoomScale] = useState(1);
   const [confirmOpen, setConfirmOpen] = useState(false);
   let lastTap = 0;
-  // 💡 postId 추출 (CombinedPetData의 postId는 number 타입입니다)
-  const postId = post.postId; 
+  // postId 추출 
+  const postId = post.postId || (post.id && !isNaN(Number(post.id)) ? Number(post.id) : undefined);
 
   const isFound = post.status === "발견";
   const fromMyAnimals = route.params?.from === "MyAnimals";
@@ -88,7 +88,9 @@ const LostPostDetail: React.FC = () => {
   const [printOpen, setPrintOpen] = useState(false); //printer
 
   const handleCompletePost = async () => {
-    if (!postId) {
+    console.log("🐛 handleCompletePost 호출, postId:", postId);
+    if (typeof postId !== 'number' || postId <= 0) { 
+        console.error("❌ 유효하지 않은 게시글 ID:", postId);
         Alert.alert("오류", "게시글 ID를 찾을 수 없습니다.");
         return;
     }
@@ -96,11 +98,11 @@ const LostPostDetail: React.FC = () => {
     try {
         let result;
         if (isFound) {
-            // 발견 게시글 완료 (DELETE /api/search/done-found-post/{postId})
+            // 발견 게시글 완료 (DELETE /api/search/found-post/{postId})
             result = await deleteFoundPost(postId);
             Alert.alert("완료", "발견 게시글이 완료 처리되었습니다.");
         } else {
-            // 실종 게시글 완료 (DELETE /api/search/done-lost-post/{postId})
+            // 실종 게시글 완료 (DELETE /api/search/lost-post/{postId})
             result = await deleteLostPost(postId);
             Alert.alert("완료", "실종 게시글이 미실종 처리되었습니다.");
         }
@@ -360,7 +362,7 @@ const LostPostDetail: React.FC = () => {
 
             <TouchableOpacity
               style={styles.popupPrimaryBtn}
-              onPress={handleCompletePost} // 💡 API 호출 함수 연결
+              onPress={handleCompletePost}
               activeOpacity={0.9}
             >
               <Text style={styles.popupPrimaryBtnText}>완료하기</Text>

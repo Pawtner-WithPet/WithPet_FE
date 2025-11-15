@@ -17,6 +17,7 @@ import iconSearch from "../../../assets/icons/search.png";
 const MOCK_DATA = [
   {
     id: "1",
+    postId:"1",
     age: "8살",
     status: "실종",
     dateTime: "2025.03.01 11:25",
