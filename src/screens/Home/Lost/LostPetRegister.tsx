@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { Colors } from "../../../constants/colors";
@@ -16,21 +17,21 @@ import icon_close from "../../../assets/icons/icon_close.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import enter_image from "../../../assets/icons/enter_image.png";
 import icon_calendar from "../../../assets/icons/icon_calendar.png";
-import happy1 from "../../../assets/images/happy1.png";
-import Header from "../../../components/Header";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { LostStackParamList } from "../../../navigation/LostStack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
+import { registerLostPetWithFormData } from "../../../services/api/LostPetRegister";
+import type { LostPetRegisterRequest } from "../../../services/api/LostPetRegister";
 
 const LostPetRegister: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<LostStackParamList>>();
+  const route = useRoute<any>();
 
   const [profileUri, setProfileUri] = useState<string | null>(null);
-
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [age, setAge] = useState("");
@@ -48,14 +49,7 @@ const LostPetRegister: React.FC = () => {
   const [familiar, setFamiliar] = useState("");
   const [description, setDescription] = useState("");
 
-  const renderClear = (value: string, clearFn: () => void) =>
-    value.length > 0 ? (
-      <TouchableOpacity onPress={clearFn}>
-        <Image source={icon_close} style={styles.clearIcon} />
-      </TouchableOpacity>
-    ) : null;
-
-  const route = useRoute<any>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (route.params?.petName === "곰탱이") {
@@ -65,6 +59,85 @@ const LostPetRegister: React.FC = () => {
       setBreed("포메라니안");
     }
   }, [route.params?.petName]);
+
+  const validateForm = (): string | null => {
+    if (!name.trim()) return "이름을 입력해주세요.";
+    if (!gender) return "성별을 선택해주세요.";
+    if (!age.trim()) return "나이를 입력해주세요.";
+    if (!breed.trim()) return "견종을 입력해주세요.";
+    if (!date) return "실종 날짜를 선택해주세요.";
+    if (!location.trim()) return "실종 장소를 입력해주세요.";
+    return null;
+  };
+
+  const handleSubmit = async () => {
+    // 유효성 검사
+    const validationError = validateForm();
+    if (validationError) {
+      Alert.alert("입력 오류", validationError);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // 실종 일시 조합
+      const lostDateTime = new Date(date!);
+      lostDateTime.setHours(parseInt(hour));
+      lostDateTime.setMinutes(parseInt(minute));
+
+      const petData: LostPetRegisterRequest = {
+        userId: 1, // TODO: 실제 userId 가져오기
+        dogId: route.params?.dogId, // 등록된 반려견 선택한 경우
+        name: name.trim(),
+        gender: gender === "male" ? "MALE" : "FEMALE",
+        age: parseInt(age),
+        height: height ? parseFloat(height) : 0,
+        weight: weight ? parseFloat(weight) : 0,
+        breed: breed.trim(),
+        feature: feature.trim() || undefined,
+        lostDate: lostDateTime.toISOString(),
+        lostLocation: location.trim(),
+        familiarPlace: familiar.trim() || undefined,
+        description: description.trim() || undefined,
+      };
+
+      console.log("📤 실종동물 등록 요청:", {
+        ...petData,
+        profileImage: profileUri ? "있음" : "없음",
+        noseImage: noseUri ? "있음" : "없음",
+      });
+
+      const lostPostId = await registerLostPetWithFormData(
+        petData,
+        profileUri || undefined,
+        noseUri || undefined,
+      );
+
+      Alert.alert("등록 완료", "실종동물이 등록되었습니다.", [
+        {
+          text: "확인",
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (error: any) {
+      console.error("등록 실패:", error);
+      Alert.alert(
+        "등록 실패",
+        error.response?.data?.message ||
+          "실종동물 등록 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const renderClear = (value: string, clearFn: () => void) =>
+    value.length > 0 ? (
+      <TouchableOpacity onPress={clearFn}>
+        <Image source={icon_close} style={styles.clearIcon} />
+      </TouchableOpacity>
+    ) : null;
 
   return (
     <View style={styles.container}>
@@ -114,10 +187,7 @@ const LostPetRegister: React.FC = () => {
         <Text style={styles.label}>성별</Text>
         <View style={styles.row}>
           <TouchableOpacity
-            style={[
-              styles.selectBox,
-              gender === "male" && styles.selectedBox, // 선택 시 스타일
-            ]}
+            style={[styles.selectBox, gender === "male" && styles.selectedBox]}
             onPress={() => setGender("male")}
           >
             <Text
@@ -275,8 +345,16 @@ const LostPetRegister: React.FC = () => {
           onChangeText={setDescription}
         />
 
-        <TouchableOpacity style={styles.submitBtn}>
-          <Text style={styles.submitText}>등록하기</Text>
+        <TouchableOpacity
+          style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitText}>등록하기</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
 
@@ -360,18 +438,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     marginBottom: 20,
   },
-
   backButton: {
     marginRight: 90,
   },
-
   backIcon: {
     width: 40,
     height: 40,
     resizeMode: "contain",
     transform: [{ scaleX: -1 }],
   },
-
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
@@ -437,13 +512,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 4,
   },
-
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 6,
-  },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -500,7 +568,6 @@ const styles = StyleSheet.create({
   noseBtnActive: {
     backgroundColor: "#4262FF",
   },
-
   noseDoneTextActive: {
     color: "#fff",
     fontWeight: "bold",
@@ -515,43 +582,22 @@ const styles = StyleSheet.create({
     color: "#979696",
     fontSize: 14,
   },
-
   noseDoneText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
-
-  noseCancelBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#979696",
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 6,
-  },
-
-  noseCancelText: {
-    fontSize: 16,
-    color: "#979696",
-    fontWeight: "bold",
-  },
-
   sectionHeader: {
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 16,
     marginBottom: 6,
   },
-
   datetimeRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 10,
   },
-
   dateBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -561,19 +607,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginRight: 8,
   },
-
   dateText: {
     fontSize: 14,
     color: "#333",
     marginRight: 6,
   },
-
   calendarIcon: {
     width: 16,
     height: 16,
     tintColor: "#999",
   },
-
   pickerBox: {
     width: 100,
     height: 44,
@@ -584,19 +627,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-
-  picker: {
-    width: "100%",
-    height: 40,
-    color: "#333",
-  },
-
   timeLabel: {
     fontSize: 14,
     color: "#333",
     marginHorizontal: 4,
   },
-
   divider: {
     borderBottomColor: "#ccc",
     borderBottomWidth: 1,
@@ -609,6 +644,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
     marginBottom: 30,
+  },
+  submitBtnDisabled: {
+    backgroundColor: "#9CA3AF",
   },
   submitText: {
     color: "#fff",

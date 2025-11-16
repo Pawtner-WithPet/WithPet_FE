@@ -124,13 +124,18 @@ export type PetDetailResponse = {
 };
 
 // 사용자 실종 반려견 데이터 타입
-export type UserLostPet = {
-  petId: number;
+export interface UserLostPet {
+  petId: number; // dogId → petId
   dogNm: string;
-  kindNm: string;
-  sex: string;
-  status: boolean;
-};
+  kindNm: string; // 추가
+  status: string; // 추가
+  age?: number;
+  breed?: string;
+  sex?: string;
+  weight?: number;
+  height?: number;
+  imgUrl?: string | null;
+}
 
 // API 응답 타입
 export type UserLostPetsResponse = {
