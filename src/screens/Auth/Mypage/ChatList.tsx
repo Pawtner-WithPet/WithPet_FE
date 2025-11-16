@@ -1,5 +1,4 @@
-// src/screens/Home/Mypage/ChatList.tsx
-import React, { useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,9 +6,11 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { Colors } from "../../../constants/colors";
 import { useNavigation } from "@react-navigation/native";
+import { getChatRooms } from "../../../services/api/MessageList";
 
 const iconBack = require("../../../assets/icons/icon_detail_page.png");
 const iconSearch = require("../../../assets/icons/search.png");
@@ -22,40 +23,44 @@ type Chat = {
   time?: string;
   updatedAt: string;
   unreadCount: number;
-  profile?: number;
+  profile?: any;
 };
 
-const mockChats: Chat[] = [
-  {
-    id: 1,
-    name: "곰탱이",
-    preview: "네, 맞습니다.",
-    profile: require("../../../assets/images/happy1.png"),
-    unreadCount: 0,
-    updatedAt: "2025-08-14T12:10:00+09:00",
-  },
-  {
-    id: 2,
-    name: "두부",
-    preview: "안녕하세요.",
-    profile: require("../../../assets/images/happy1.png"),
-    unreadCount: 0,
-    updatedAt: "2025-08-14T12:10:00+09:00",
-  },
-  {
-    id: 3,
-    name: "망고",
-    preview: "사진 보내드렸어요!",
-    profile: require("../../../assets/images/happy2.png"),
-    unreadCount: 1,
-    updatedAt: "2025-07-20T10:05:00+09:00",
-  },
-];
-
 const ChatList: React.FC = () => {
-  const [chatList] = useState<Chat[]>(mockChats);
   const navigation = useNavigation();
-  const getAvatarSource = (chat: Chat) => chat.profile ?? profilePlaceholder;
+
+  const [rooms, setRooms] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        setLoading(true);
+        const chatRooms = await getChatRooms();
+        // API 데이터를 Chat 타입에 맞게 변환
+        const formattedRooms: Chat[] = chatRooms.map((r: any) => ({
+          id: r.roomId,
+          name: r.opponentNickname,
+          profile: r.opponentProfileImg
+            ? { uri: r.opponentProfileImg }
+            : undefined,
+          preview: r.lastMessageContent,
+          updatedAt: r.lastMessageAt,
+          unreadCount: r.unreadCount,
+        }));
+        setRooms(formattedRooms);
+        setError(null);
+      } catch (err) {
+        let errorMessage = "알 수 없는 오류가 발생했습니다.";
+        if (err instanceof Error) errorMessage = err.message;
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRooms();
+  }, []);
 
   const isToday = (d: Date) => {
     const now = new Date();
@@ -89,14 +94,12 @@ const ChatList: React.FC = () => {
       activeOpacity={0.9}
       onPress={() => navigation.navigate("ChatRoom" as never)}
     >
-      {/* 왼쪽 프로필 */}
-      {item.profile ? (
-        <Image source={item.profile} style={styles.avatar} />
-      ) : (
-        <View style={styles.avatar}>
-          <Image source={profilePlaceholder} style={styles.placeholderIcon} />
-        </View>
-      )}
+      <View style={styles.avatar}>
+        <Image
+          source={item.profile ?? profilePlaceholder}
+          style={styles.placeholderIcon}
+        />
+      </View>
 
       <View style={styles.middle}>
         <Text style={styles.name} numberOfLines={1}>
@@ -108,9 +111,7 @@ const ChatList: React.FC = () => {
       </View>
 
       <View style={styles.right}>
-        <Text style={styles.time}>
-          {formatChatTime(item.updatedAt, item.time)}
-        </Text>
+        <Text style={styles.time}>{formatChatTime(item.updatedAt)}</Text>
         {item.unreadCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.unreadCount}</Text>
@@ -120,59 +121,43 @@ const ChatList: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const ItemSeparator = () => <View style={styles.divider} />;
+  if (loading)
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+
+  if (error)
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+
+  if (rooms.length === 0)
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>채팅방이 없습니다.</Text>
+      </View>
+    );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.headerBtn}
-          onPress={() => navigation.goBack()}
-        >
-          <Image source={iconBack} style={styles.headerIconBack} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>채팅</Text>
-        <TouchableOpacity style={styles.headerBtn}>
-          <Image source={iconSearch} style={styles.headerIcon} />
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        data={chatList}
-        keyExtractor={(item) => String(item.id)}
-        renderItem={renderItem}
-        ItemSeparatorComponent={ItemSeparator}
-        contentContainerStyle={styles.content}
-      />
-    </View>
+    <FlatList
+      data={rooms}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.id.toString()}
+      ItemSeparatorComponent={() => <View style={styles.divider} />}
+      contentContainerStyle={{ backgroundColor: "#fff" }}
+    />
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    height: 56,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginTop: 30,
-    backgroundColor: "#fff",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E5E7EB",
-  },
-  headerBtn: { padding: 6 },
-  headerIconBack: {
-    width: 28,
-    height: 28,
-    resizeMode: "contain",
-    transform: [{ scaleX: -1 }],
-  },
-  headerIcon: { width: 24, height: 24, resizeMode: "contain" },
-  headerTitle: { fontSize: 18, fontWeight: "bold", color: "#111" },
-  content: { paddingVertical: 4, backgroundColor: "#fff" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  errorText: { color: "red", fontSize: 16, fontWeight: "bold" },
+  emptyContainer: { padding: 50, alignItems: "center" },
+  emptyText: { color: "#666", fontSize: 16 },
 
   chatItem: {
     flexDirection: "row",
@@ -189,10 +174,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEE",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   placeholderIcon: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
     resizeMode: "contain",
   },
   middle: { flex: 1, justifyContent: "center" },
