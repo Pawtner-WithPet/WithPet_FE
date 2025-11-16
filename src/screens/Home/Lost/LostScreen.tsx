@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import TabNavigation from "../../../components/Lost/TabNavigation";
@@ -8,15 +9,19 @@ import SearchBar from "../../../components/Lost/SearchBar";
 import PetList from "../../../components/Lost/PetList";
 import FloatingButtonContainer from "../../../components/Lost/FloatingButtonContainer";
 import PetSelectionModal from "../../../components/Lost/PetSelectionModal";
+
 import {
   usePetData,
   CombinedPetData,
 } from "../../../components/Lost/usePetData";
+
 import {
   fetchPetDetail,
   PostType,
   getPetIdByName,
 } from "../../../services/api/AIScreen";
+
+import { fetchDogs, Dog } from "../../../services/api/dogs";
 
 const LostPetListScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState("전체");
@@ -25,6 +30,10 @@ const LostPetListScreen: React.FC = () => {
   const [searchText, setSearchText] = useState("");
   const [isPetToggleVisible, setPetToggleVisible] = useState(false);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
+
+  // 서버에서 가져온 반려견 목록
+  const [myPets, setMyPets] = useState<Dog[]>([]);
+  const [petNames, setPetNames] = useState<string[]>([]);
 
   const navigation = useNavigation<any>();
 
@@ -41,22 +50,31 @@ const LostPetListScreen: React.FC = () => {
     convertGender,
   } = usePetData();
 
-  const PET_NAMES = userLostPets.map((pet) => pet.dogNm);
+  const loadPetList = async () => {
+    try {
+      const userId = 1; // 🔥 스크린에서 임의로 1
+      const petList = await fetchDogs(userId);
 
-  // 화면이 포커스될 때마다 데이터 새로고침
+      setMyPets(petList);
+
+      setPetNames(petList.map((p) => p.dogNm));
+    } catch (error) {
+      console.error("🔥 반려견 목록 로드 실패:", error);
+    }
+  };
+
+  // 화면 focus 시 데이터 새로고침
   useFocusEffect(
     React.useCallback(() => {
       loadPetData(false);
       loadUserLostPets();
+      loadPetList();
     }, []),
   );
 
-  // 검색 함수
-  const handleSearch = () => {
-    performSearch(searchText);
-  };
+  const handleSearch = () => performSearch(searchText);
 
-  // 탭에 따른 데이터 필터링
+  // 탭 필터링
   const filteredData = combinedPets.filter((item) => {
     if (activeTab === "전체") return true;
     if (activeTab === "실종동물") return item.status === "실종";
@@ -64,91 +82,77 @@ const LostPetListScreen: React.FC = () => {
     return true;
   });
 
-  // 카드 클릭 시 상세 정보 조회 및 네비게이션
+  // 카드 클릭 → 상세 화면 이동
   const handleCardPress = async (item: CombinedPetData) => {
     try {
       setIsLoading(true);
-      console.log("카드 클릭:", item.id, item.status);
 
       const postType: PostType = item.status === "실종" ? "LOST" : "FOUND";
       const detailData = await fetchPetDetail(item.postId, postType);
 
-      if (detailData) {
-        console.log("상세 데이터 조회 성공:", detailData);
+      const postData = detailData
+        ? {
+            id: item.id,
+            status: item.status,
+            name: detailData.dogNm || item.name,
+            breed: detailData.kindNm || item.breed,
+            gender: convertGender(detailData.sex),
+            age: detailData.age?.toString(),
+            height: detailData.height?.toString(),
+            weight: detailData.weight?.toString(),
+            location: item.location,
+            lostDateTime: item.status === "실종" ? item.dateTime : undefined,
+            foundDateTime: item.status === "발견" ? item.dateTime : undefined,
+            feature: detailData.features,
+            extra: detailData.description,
+            familiar: detailData.favoritePlace,
+            image: detailData.imgUrl ? { uri: detailData.imgUrl } : item.image,
+          }
+        : {
+            id: item.id,
+            status: item.status,
+            breed: item.breed,
+            gender: item.gender,
+            location: item.location,
+            lostDateTime: item.status === "실종" ? item.dateTime : undefined,
+            foundDateTime: item.status === "발견" ? item.dateTime : undefined,
+            image: item.image,
+          };
 
-        const postData = {
-          id: item.id,
-          status: item.status,
-          name: detailData.dogNm || item.name,
-          breed: detailData.kindNm || item.breed,
-          gender: convertGender(detailData.sex),
-          age: detailData.age?.toString(),
-          height: detailData.height?.toString(),
-          weight: detailData.weight?.toString(),
-          location: item.location,
-          lostDateTime: item.status === "실종" ? item.dateTime : undefined,
-          foundDateTime: item.status === "발견" ? item.dateTime : undefined,
-          feature: detailData.features,
-          extra: detailData.description,
-          familiar: detailData.favoritePlace,
-          image: detailData.imgUrl ? { uri: detailData.imgUrl } : item.image,
-        };
-
-        navigation.navigate("LostPostDetail", {
-          post: postData,
-          from: "LostPetListScreen",
-        });
-      } else {
-        console.warn("상세 정보 조회 실패, 기본 정보로 이동");
-
-        const fallbackData = {
-          id: item.id,
-          status: item.status,
-          breed: item.breed,
-          gender: item.gender,
-          location: item.location,
-          lostDateTime: item.status === "실종" ? item.dateTime : undefined,
-          foundDateTime: item.status === "발견" ? item.dateTime : undefined,
-          image: item.image,
-        };
-
-        navigation.navigate("LostPostDetail", {
-          post: fallbackData,
-          from: "LostPetListScreen",
-        });
-      }
+      navigation.navigate("LostPostDetail", {
+        post: postData,
+        from: "LostPetListScreen",
+      });
     } catch (error) {
       console.error("카드 클릭 처리 중 오류:", error);
     }
   };
 
-  // 반려견 선택 핸들러
+  // AI 탐색 버튼
   const handleSelectPetForAI = (petName: string, petId: number) => {
     setDropdownVisible(false);
     setPetToggleVisible(false);
+
     navigation.navigate("AIScreen", {
       selectedPet: petName,
-      petId: petId,
+      petId,
     });
   };
 
-  // AI 검색 버튼 토글 핸들러
   const handleTogglePetSearch = () => {
     setPetToggleVisible((prev) => !prev);
-    if (!isPetToggleVisible) {
-      setDropdownVisible(true); // 버튼을 누르면 드롭다운도 자동으로 열림
-    } else {
-      setDropdownVisible(false);
-    }
+    setDropdownVisible((prev) => !prev);
   };
 
-  // 실종동물 등록 모달에서 반려견 선택
+  // 실종동물 등록 모달 선택
   const handleSelectPetForRegister = (petName: string) => {
     setRegisterModalOpen(false);
-    const petId = getPetIdByName(userLostPets, petName);
+
+    const selectedPet = myPets.find((p) => p.dogNm === petName);
+
     navigation.navigate("LostPetRegister", {
-      petName: petName,
-      petId: petId ?? 0,
+      petName,
+      petId: selectedPet?.id ?? 0,
     });
   };
 
@@ -193,7 +197,7 @@ const LostPetListScreen: React.FC = () => {
 
       <PetSelectionModal
         visible={registerModalOpen}
-        petNames={PET_NAMES}
+        petNames={petNames}
         onClose={() => setRegisterModalOpen(false)}
         onSelectPet={handleSelectPetForRegister}
       />
