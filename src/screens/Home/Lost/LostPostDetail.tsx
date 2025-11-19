@@ -9,10 +9,13 @@ import {
   Modal,
   Pressable,
   ImageSourcePropType,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import { Colors } from "../../../constants/colors";
+import { enterChatRoomFromPost } from "../../../services/api/Chat";
 import iconChat from "../../../assets/icons/chat.png";
 import woman from "../../../assets/icons/woman.png";
 import man from "../../../assets/icons/man.png";
@@ -40,6 +43,12 @@ type LostPost = {
   extra?: string;
   familiar?: string;
   image?: ImageSourcePropType | { uri: string };
+  ownerId?: string;
+  userId?: string;
+  petId?: string;
+  dogNm?: string;
+  kindNm?: string;
+  imgUrl?: string;
 };
 type LostPostDetailParams = {
   post: any;
@@ -56,6 +65,8 @@ const LostPostDetail: React.FC = () => {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [printOpen, setPrintOpen] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
   let lastTap = 0;
 
   const isFound = post.status === "발견";
@@ -81,7 +92,78 @@ const LostPostDetail: React.FC = () => {
       <Text style={styles.chipValue}>{value?.trim() ? value : "미측정"}</Text>
     </View>
   );
-  const [printOpen, setPrintOpen] = useState(false); //printer
+
+  /**
+   * 채팅 버튼 클릭 핸들러
+   */
+  const handleChatPress = async () => {
+    try {
+      setIsChatLoading(true);
+
+      // 🔍 post 객체 전체 확인
+      console.log("=== post 객체 전체 ===");
+      console.log(JSON.stringify(post, null, 2));
+
+      // postId 추출 (postId 우선, 없으면 id, petId 순서)
+      const postId = post.postId || post.id || post.petId;
+
+      // ownerId 추출
+      const ownerId =
+        post.ownerId ||
+        post.userId ||
+        post.user_id ||
+        post.memberId ||
+        post.member_id ||
+        post.writerId ||
+        post.writer_id ||
+        post.authorId ||
+        post.author_id;
+
+      // postType 결정 (type 필드 우선, 없으면 status 사용)
+      const postType =
+        post.type === "발견" || post.status === "발견" ? "FOUND" : "LOST";
+
+      console.log("=== 추출된 값 ===");
+      console.log("postId:", postId, "타입:", typeof postId);
+      console.log("ownerId:", ownerId, "타입:", typeof ownerId);
+      console.log("postType:", postType);
+
+      if (!postId) {
+        Alert.alert("오류", "게시글 ID를 찾을 수 없습니다.");
+        return;
+      }
+
+      if (!ownerId) {
+        Alert.alert("오류", "게시글 작성자 정보를 찾을 수 없습니다.");
+        return;
+      }
+
+      // API 호출
+      const chatRoom = await enterChatRoomFromPost({
+        postId: postId,
+        ownerId: ownerId,
+        postType: postType,
+      });
+
+      console.log("채팅방 입장 성공:", chatRoom);
+
+      // ChatRoom 화면으로 이동
+      navigation.navigate("ChatRoom", {
+        title: post?.name ?? post?.dogNm ?? "채팅",
+        subtitle: post?.breed ?? post?.kindNm ?? "",
+        avatar: post?.image ?? post?.imgUrl,
+        roomId: chatRoom.roomId,
+      });
+    } catch (error: any) {
+      console.error("채팅방 입장 오류:", error);
+      Alert.alert(
+        "채팅방 입장 실패",
+        error.message || "채팅방에 입장할 수 없습니다.",
+      );
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -112,7 +194,6 @@ const LostPostDetail: React.FC = () => {
           onPress={() => setPrintOpen(false)}
         >
           <View style={styles.printCard} pointerEvents="box-none">
-            {/* 닫기(X) 버튼 */}
             <TouchableOpacity
               style={styles.printClose}
               onPress={() => setPrintOpen(false)}
@@ -121,7 +202,6 @@ const LostPostDetail: React.FC = () => {
               <Text style={styles.printCloseText}>×</Text>
             </TouchableOpacity>
 
-            {/* 실제 이미지 */}
             <Image
               source={poster}
               resizeMode="contain"
@@ -158,16 +238,14 @@ const LostPostDetail: React.FC = () => {
           <TouchableOpacity
             style={styles.chatBtn}
             activeOpacity={0.9}
-            onPress={() =>
-              navigation.navigate("ChatRoom", {
-                title: post?.name ?? "채팅",
-                subtitle: post?.breed ?? "",
-                avatar: post?.image,
-                roomId: post?.id,
-              })
-            }
+            onPress={handleChatPress}
+            disabled={isChatLoading}
           >
-            <Image source={iconChat} style={styles.chatIcon} />
+            {isChatLoading ? (
+              <ActivityIndicator size="small" color="#4262FF" />
+            ) : (
+              <Image source={iconChat} style={styles.chatIcon} />
+            )}
           </TouchableOpacity>
 
           {(!isFound || post.name || post.gender) && (
@@ -241,15 +319,6 @@ const LostPostDetail: React.FC = () => {
                 style={styles.familiarImage}
                 resizeMode="cover"
               />
-              {/*
-              {post.familiar && post.familiar.trim() ? (
-                <Image source={map} style={styles.familiarImage} resizeMode="cover" />
-              ) : (
-                <View style={styles.familiarPlaceholder}>
-                  <Text style={styles.familiarPlaceholderText}>정보 없음</Text>
-                </View>
-              )}
-              */}
             </View>
           )}
 
@@ -290,7 +359,6 @@ const LostPostDetail: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* 완료하기 버튼 */}
       {fromMyAnimals && (
         <View style={styles.bottomBar}>
           <TouchableOpacity
@@ -318,7 +386,7 @@ const LostPostDetail: React.FC = () => {
               <Text style={{ fontSize: 20 }}>×</Text>
             </TouchableOpacity>
             <Text style={styles.popupText}>
-              지금부터 해당 반려견은 “미실종” 처리가 되며, {"\n"}
+              지금부터 해당 반려견은 "미실종" 처리가 되며, {"\n"}
               게시글도 영원히 삭제가 됩니다{"\n"}
             </Text>
 
@@ -371,13 +439,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1A1A1A",
   },
-
   headerImg: {
     width: 28,
     height: 28,
   },
-
-  // ⬇️ 프린트 팝업
   printBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.55)",
@@ -413,7 +478,6 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "contain",
   },
-
   coverWrap: {
     position: "relative",
     overflow: "hidden",
@@ -449,7 +513,6 @@ const styles = StyleSheet.create({
   dotActive: {
     backgroundColor: "#fff",
   },
-
   infoCard: {
     marginTop: -20,
     backgroundColor: "#fff",
@@ -472,7 +535,6 @@ const styles = StyleSheet.create({
     height: 50,
     tintColor: "#4262FF",
   },
-
   nameRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -507,7 +569,6 @@ const styles = StyleSheet.create({
   genderInactive: {
     backgroundColor: "#D9D9D9",
   },
-
   chipsRow: {
     flexDirection: "row",
     gap: 10,
@@ -536,7 +597,6 @@ const styles = StyleSheet.create({
     color: "#4262FF",
     textAlign: "center",
   },
-
   section: {
     paddingHorizontal: 18,
     paddingTop: 16,
@@ -551,7 +611,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#333",
   },
-
   familiarImage: {
     width: "100%",
     height: 160,
@@ -570,7 +629,6 @@ const styles = StyleSheet.create({
     color: "#777",
     fontSize: 14,
   },
-
   featureText: {
     fontSize: 13,
     color: "#333",
@@ -581,7 +639,6 @@ const styles = StyleSheet.create({
     color: "#333",
     lineHeight: 18,
   },
-
   mapPlaceholder: {
     height: 160,
     borderRadius: 12,
@@ -590,7 +647,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 8,
   },
-
   zoomBackdrop: {
     flex: 1,
     backgroundColor: "#000",
@@ -610,7 +666,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000066",
     borderRadius: 20,
   },
-
   bottomBar: {
     position: "absolute",
     left: 0,
@@ -631,7 +686,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
   },
-
   popupBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",

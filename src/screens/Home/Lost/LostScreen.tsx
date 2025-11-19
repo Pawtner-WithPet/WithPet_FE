@@ -93,6 +93,9 @@ const LostPetListScreen: React.FC = () => {
       const postData = detailData
         ? {
             id: item.id,
+            postId: detailData.postId,
+            ownerId: detailData.ownerId,
+            type: detailData.type,
             status: item.status,
             name: detailData.dogNm || item.name,
             breed: detailData.kindNm || item.breed,
@@ -110,6 +113,7 @@ const LostPetListScreen: React.FC = () => {
           }
         : {
             id: item.id,
+            postId: item.postId, // ✅ 추가
             status: item.status,
             breed: item.breed,
             gender: item.gender,
@@ -117,6 +121,7 @@ const LostPetListScreen: React.FC = () => {
             lostDateTime: item.status === "실종" ? item.dateTime : undefined,
             foundDateTime: item.status === "발견" ? item.dateTime : undefined,
             image: item.image,
+            // ownerId가 없는 경우 대비
           };
 
       navigation.navigate("LostPostDetail", {
@@ -125,6 +130,8 @@ const LostPetListScreen: React.FC = () => {
       });
     } catch (error) {
       console.error("카드 클릭 처리 중 오류:", error);
+    } finally {
+      setIsLoading(false); // ✅ finally 추가
     }
   };
 
