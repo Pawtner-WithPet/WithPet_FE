@@ -62,6 +62,7 @@ const LostPetListScreen: React.FC = () => {
 
   const {
     combinedPets,
+    setCombinedPets,
     userLostPets,
     isLoading,
     isRefreshing,
@@ -87,12 +88,28 @@ const LostPetListScreen: React.FC = () => {
 
   };
 
+  const loadAllPosts = async () => {
+    try {
+      setIsLoading(true);
+
+      const rows = await fetchSearchAllList();
+      const merged = mapAllToCombined(rows);
+
+      setCombinedPets(merged);
+    } catch (err) {
+      console.error("🔥 전체 목록 로드 실패", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 화면 focus 시 데이터 새로고침
   useFocusEffect(
     React.useCallback(() => {
       loadPetData(false);
       loadUserLostPets();
       loadPetList();
+      loadAllPosts(); 
     }, []),
   );
 

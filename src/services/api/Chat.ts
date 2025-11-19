@@ -1,5 +1,8 @@
 import api from "./api";
 
+/**
+ * 사용자 ID 가져오기 (임시 11)
+ */
 const getUserId = async (): Promise<string | null> => {
   try {
     const userId = "11";
@@ -11,7 +14,12 @@ const getUserId = async (): Promise<string | null> => {
   }
 };
 
-
+/**
+ * 게시글에서 채팅방 입장 요청
+ * @param postId - 게시글 ID
+ * @param ownerId - 게시글 작성자 ID
+ * @param postType - 게시글 타입 ("LOST" | "FOUND")
+ */
 export interface EnterChatRoomRequest {
   postId: string | number;
   ownerId: string | number;

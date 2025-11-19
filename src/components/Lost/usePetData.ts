@@ -153,6 +153,7 @@ export const usePetData = () => {
     lostPets,
     foundPets,
     combinedPets,
+    setCombinedPets,
     userLostPets,
     isLoading,
     isRefreshing,

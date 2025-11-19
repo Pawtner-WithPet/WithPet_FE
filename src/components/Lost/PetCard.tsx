@@ -8,6 +8,7 @@ interface PetCardProps {
   dateTime: string;
   location: string;
   breed: string;
+  gender?: "male" | "female"; 
   image: any;
   onPress: () => void;
 }
@@ -17,6 +18,7 @@ const PetCard: React.FC<PetCardProps> = ({
   dateTime,
   location,
   breed,
+  gender,
   image,
   onPress,
 }) => {
@@ -39,6 +41,9 @@ const PetCard: React.FC<PetCardProps> = ({
         <Text style={styles.dateText}>{dateTime}</Text>
         <Text style={styles.locationText}>{location}</Text>
         <Text style={styles.breedText}>{breed}</Text>
+        <Text style={styles.genderText}>
+          {gender === "male" ? "수컷" : gender === "female" ? "암컷" : ""}
+        </Text>
       </View>
       <Image source={icon_detail_page} style={styles.arrowIcon} />
     </TouchableOpacity>
@@ -110,6 +115,11 @@ const styles = StyleSheet.create({
     height: 40,
     tintColor: "#000",
     marginLeft: 8,
+  },
+
+  genderText: {
+    fontSize: 17,
+    color: "#999",
   },
 });
 

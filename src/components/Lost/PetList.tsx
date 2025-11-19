@@ -45,6 +45,7 @@ const PetList: React.FC<PetListProps> = ({
       dateTime={item.dateTime}
       location={item.location}
       breed={item.breed}
+      gender={item.gender} 
       image={item.image}
       onPress={() => onCardPress(item)}
     />
