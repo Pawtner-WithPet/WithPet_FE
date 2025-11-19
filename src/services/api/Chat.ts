@@ -50,7 +50,6 @@ export const enterChatRoomFromPost = async (
 
     console.log("채팅방 입장 성공:", response.data);
 
-    // 응답 구조: { status, code, message, data: {...} }
     const data = response.data?.data;
 
     if (!data || !data.roomId) {
@@ -66,7 +65,6 @@ export const enterChatRoomFromPost = async (
   } catch (error: any) {
     console.error("채팅방 입장 실패:", error);
 
-    // 에러 메시지 처리
     if (error.response?.data?.message) {
       throw new Error(error.response.data.message);
     }

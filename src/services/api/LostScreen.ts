@@ -2,9 +2,6 @@ import api from "./api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserLostPet } from "../../types/Lost";
 
-/**
- * 사용자 ID 가져오기 (임시 11)
- */
 const getUserId = async (): Promise<string | null> => {
   try {
     const userId = "11";
