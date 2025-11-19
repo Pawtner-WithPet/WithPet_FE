@@ -5,6 +5,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import Header from "../../../components/Header";
 import { Colors } from "../../../constants/colors";
 import TabNavigation from "../../../components/Lost/TabNavigation";
+import happy1 from "../../../assets/images/happy1.png";
 import SearchBar from "../../../components/Lost/SearchBar";
 import PetList from "../../../components/Lost/PetList";
 import FloatingButtonContainer from "../../../components/Lost/FloatingButtonContainer";
@@ -20,10 +21,33 @@ import {
   PostType,
   getPetIdByName,
 } from "../../../services/api/AIScreen";
-
+import { 
+  fetchSearchAllList, 
+  fetchSearchDetail, 
+  toLostPostForUI, 
+  PostItem, 
+} from "../../../services/api/SearchPet";
 import { fetchDogs, Dog } from "../../../services/api/dogs";
 
+
+
+const mapAllToCombined = (rows: PostItem[]): CombinedPetData[] =>
+  rows.map((r) => ({
+    id: r.id,
+    status: r.status,         
+    gender: r.gender,
+    breed: r.breed,
+    dateTime: r.dateTime,
+    location: r.location,
+    image: r.image ?? happy1,
+    postId: r.postId,
+    sex: r.sex ?? "",
+    imgUrl: r.raw?.imgUrl ?? null,
+  }));
+
+
 const LostPetListScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [activeTab, setActiveTab] = useState("전체");
   const [isExpanded, setIsExpanded] = useState(false);
   const [registerModalOpen, setRegisterModalOpen] = useState(false);
@@ -31,11 +55,10 @@ const LostPetListScreen: React.FC = () => {
   const [isPetToggleVisible, setPetToggleVisible] = useState(false);
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
+
   // 서버에서 가져온 반려견 목록
   const [myPets, setMyPets] = useState<Dog[]>([]);
   const [petNames, setPetNames] = useState<string[]>([]);
-
-  const navigation = useNavigation<any>();
 
   const {
     combinedPets,
@@ -61,6 +84,7 @@ const LostPetListScreen: React.FC = () => {
     } catch (error) {
       console.error("🔥 반려견 목록 로드 실패:", error);
     }
+
   };
 
   // 화면 focus 시 데이터 새로고침

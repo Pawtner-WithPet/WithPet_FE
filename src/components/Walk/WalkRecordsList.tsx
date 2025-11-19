@@ -14,8 +14,8 @@ export const WalkRecordsList: React.FC<WalkRecordsListProps> = ({
   pets,
   onRecordPress,
 }) => {
-  const renderItem = ({ item, index }: { item: WalkRecord; index: number }) => (
-    <WalkRecordItem record={item} pets={pets} onPress={onRecordPress} />
+  const renderItem = ({ item }: { item: WalkRecord; index: number }) => (
+    <WalkRecordItem record={{ ...item, isFavorite: false }} pets={pets} onPress={onRecordPress} />
   );
 
   return (

@@ -7,47 +7,115 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Platform,
+  Alert,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { Colors } from "../../../constants/colors";
 import icon_camera from "../../../assets/icons/camera.png";
 import icon_close from "../../../assets/icons/icon_close.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import enter_image from "../../../assets/icons/enter_image.png";
 import icon_calendar from "../../../assets/icons/icon_calendar.png";
-import Header from "../../../components/Header";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { LostStackParamList } from "../../../navigation/LostStack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
+import { postFoundPost, FoundPostRequest } from "../../../services/api/SearchPet";
+
+const toLocalIsoSeconds = (d: Date) => {
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
+};
 
 const LostPetRegister: React.FC = () => {
   const navigation = useNavigation<any>();
-
   const [profileUri, setProfileUri] = useState<string | null>(null);
-
-  const [gender, setGender] = useState<"male" | "female" | "unknown" | null>(
-    null,
-  );
+  const [gender, setGender] = useState<"male" | "female" | "unknown" | null>(null);
   const [breed, setBreed] = useState("");
   const [noseUri, setNoseUri] = useState<string | null>(null);
-
   const [date, setDate] = useState<Date | null>(null);
   const [hour, setHour] = useState("0");
   const [minute, setMinute] = useState("0");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [location, setLocation] = useState("");
-
   const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
+  const buildFoundDate = (): string | null => {
+    if (!date) return null;
+    const h = parseInt(hour || "0", 10) || 0;
+    const m = parseInt(minute || "0", 10) || 0;
+    const composed = new Date(date);
+    composed.setHours(h, m, 0, 0);
+    return toLocalIsoSeconds(composed);
+  };
+
+  const onPressRegisterFound = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    
+    try {
+        const foundDateIso = buildFoundDate();
+        // gender 상태가 null인 경우 'unknown'으로 처리하거나, 서버가 받는 형식에 맞게 유효성 검사 강화
+        const currentGender = gender || 'unknown'; 
+        
+        // breed는 입력 필드인 state를 사용
+        const currentBreed = breed.trim(); 
+        
+        // noseUri가 있다면 noseprintImageUri로 사용, 없으면 null
+        const currentNoseUri: string | null = noseUri || null;
+        
+        
+        if (!foundDateIso || !location.trim() || !currentGender || !currentBreed) {
+            Alert.alert("입력 필요", "발견 날짜, 장소, 성별, 견종을 모두 선택/입력해 주세요.");
+            return;
+        }
+
+        // 💡 SearchPet.ts의 FoundPostRequest 타입에 맞춰 필드 구성
+        const req: FoundPostRequest = {
+            ownerId: 11, 
+            sex: currentGender.toUpperCase() as "MALE" | "FEMALE",
+            kindNm: currentBreed,
+            noseprintImageUri: currentNoseUri,
+            foundDate: foundDateIso,
+            foundLocation: location.trim(),
+            description: description.trim() || undefined,
+        };
+
+        const img = profileUri
+            ? { uri: profileUri, name: "found.jpg", type: "image/jpeg" }
+            : null;
+
+        console.log("➡️[FORM] /api/search/foundPost request:", req, "image:", !!img);
+        
+        // postFoundPost 함수 호출
+        const res = await postFoundPost(req, img); 
+        console.log("✅ 등록 성공:", res);
+
+        Alert.alert("등록 완료", "발견 게시글이 등록되었습니다.", [
+            {
+                text: "확인",
+                onPress: () => navigation.goBack(), 
+            },
+        ]);
+    } catch (e){
+        console.error("❌ 등록 실패:", e); // 오류 처리 로그
+        Alert.alert("등록 실패", "게시글 등록 중 오류가 발생했습니다.");
+    } finally {
+        setSubmitting(false);
+    }
+  };
   const renderClear = (value: string, clearFn: () => void) =>
     value.length > 0 ? (
       <TouchableOpacity onPress={clearFn}>
         <Image source={icon_close} style={styles.clearIcon} />
       </TouchableOpacity>
     ) : null;
+
+    const handleNoseImageCapture = (uri: string) => {
+    setNoseUri(uri);
+  };
+
+
 
   return (
     <View style={styles.container}>
@@ -151,7 +219,8 @@ const LostPetRegister: React.FC = () => {
             style={styles.noseBtn}
             onPress={() => {
               navigation.navigate("NoseCamera", {
-                fromScreen: "LostPetRegister",
+                fromScreen: "FoundPetRegister", 
+                onImageCapture: handleNoseImageCapture,
               });
             }}
           >
@@ -236,8 +305,12 @@ const LostPetRegister: React.FC = () => {
           onChangeText={setDescription}
         />
 
-        <TouchableOpacity style={styles.submitBtn}>
-          <Text style={styles.submitText}>등록하기</Text>
+        <TouchableOpacity 
+            style={[styles.submitBtn, { backgroundColor: submitting ? "#999" : "#4262FF" }]}
+            onPress={onPressRegisterFound} 
+            disabled={submitting}
+        >
+          <Text style={styles.submitText}>{submitting ? "등록 중..." : "등록하기"}</Text>
         </TouchableOpacity>
       </ScrollView>
 

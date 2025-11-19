@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import {
   View,
   Text,
@@ -9,14 +9,22 @@ import {
 } from "react-native";
 import { WalkRecord, Pet } from "../../../types/index";
 import { WalkRecordsList } from "../../../components/Walk/WalkRecordsList";
+import { WalkRecordDetail } from "./WalkRecordDetail";
+
+
+
 
 interface WalkListScreenProps {
   onBack?: () => void; // 뒤로가기 콜백
 }
 
 export const WalkListScreen: React.FC<WalkListScreenProps> = ({ onBack }) => {
+  const [selectedRecord, setSelectedRecord] = useState<WalkRecord | null>(null);
   // 샘플 펫 데이터
-  const samplePets: Pet[] = [{ id: 1, name: "곰탱이", isActive: true }];
+  const samplePets: Pet[] = [
+    { id: 1, name: "해피", isActive: true },
+    { id: 2, name: "조이", isActive: true },
+  ];
 
   // 샘플 산책 기록 데이터
   const sampleRecords: WalkRecord[] = [
@@ -50,16 +58,32 @@ export const WalkListScreen: React.FC<WalkListScreenProps> = ({ onBack }) => {
     },
   ];
 
-  const handleRecordPress = (record: WalkRecord) => {
-    Alert.alert("산책 기록", `${record.date} 산책 기록을 선택했습니다.`);
-    // 여기서 상세 화면으로 네비게이션하거나 다른 액션을 수행할 수 있습니다.
-  };
+  
 
   const handleBackPress = () => {
     if (onBack) {
       onBack();
     }
   };
+
+  const handleSearchPress = () => {
+    Alert.alert("검색", "검색 UI는 추후 연동 예정입니다.");
+  };
+
+  const handleRecordPress = (record: WalkRecord) => {
+    Alert.alert("산책 기록", `${record.date} 산책 기록을 선택했습니다.`);
+    setSelectedRecord(record);
+  };
+
+
+  if (selectedRecord) {
+  return (
+    <WalkRecordDetail
+      record={selectedRecord}
+      onBack={() => setSelectedRecord(null)}
+    />
+  );
+}
 
   return (
     <View style={styles.container}>
@@ -147,6 +171,7 @@ const styles = StyleSheet.create({
   recordsContainer: {
     flex: 1,
     marginTop: 14,
+    color: "#000000",
   },
 });
 

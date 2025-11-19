@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,28 +10,31 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Colors } from "../../../constants/colors";
 import icon_camera from "../../../assets/icons/camera.png";
 import icon_close from "../../../assets/icons/icon_close.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import enter_image from "../../../assets/icons/enter_image.png";
 import icon_calendar from "../../../assets/icons/icon_calendar.png";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { LostStackParamList } from "../../../navigation/LostStack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
 import { registerLostPetWithFormData } from "../../../services/api/LostPetRegister";
 import type { LostPetRegisterRequest } from "../../../services/api/LostPetRegister";
+import { postLostPost, LostPostRequest } from "../../../services/api/SearchPet";
+import type { RootStackParamList } from "../../../types/NoseCamera";
 
 const LostPetRegister: React.FC = () => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<LostStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<any>();
 
+  // 업로드에 사용될 이미지 (프로필 이미지로 선택)
   const [profileUri, setProfileUri] = useState<string | null>(null);
+
+  // 폼 상태
   const [name, setName] = useState("");
   const [gender, setGender] = useState<"male" | "female" | null>(null);
   const [age, setAge] = useState("");
@@ -45,9 +48,11 @@ const LostPetRegister: React.FC = () => {
   const [hour, setHour] = useState("0");
   const [minute, setMinute] = useState("0");
   const [showDatePicker, setShowDatePicker] = useState(false);
+
   const [location, setLocation] = useState("");
   const [familiar, setFamiliar] = useState("");
   const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -142,25 +147,20 @@ const LostPetRegister: React.FC = () => {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* 헤더 */}
         <View style={styles.headerWrapper}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Image source={icon_detail_page} style={styles.backIcon} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>실종동물 등록</Text>
         </View>
 
-        {/* 프로필 */}
+        {/* 프로필 이미지 (업로드 대상) */}
         <View style={styles.profileContainer}>
           <View style={styles.profileImageWrapper}>
             <View style={styles.petImage}>
               {profileUri ? (
-                <Image
-                  source={{ uri: profileUri }}
-                  style={styles.petImageIcon}
-                />
+                <Image source={{ uri: profileUri }} style={styles.petImageIcon} />
               ) : (
                 <Image source={enter_image} style={styles.enterImageIcon} />
               )}
@@ -169,9 +169,8 @@ const LostPetRegister: React.FC = () => {
               style={styles.cameraButton}
               onPress={() => {
                 launchImageLibrary({ mediaType: "photo" }, (response) => {
-                  if (response.assets && response.assets.length > 0) {
-                    setProfileUri(response.assets[0].uri || null);
-                  }
+                  const uri = response.assets?.[0]?.uri || null;
+                  setProfileUri(uri);
                 });
               }}
             >
@@ -190,31 +189,13 @@ const LostPetRegister: React.FC = () => {
             style={[styles.selectBox, gender === "male" && styles.selectedBox]}
             onPress={() => setGender("male")}
           >
-            <Text
-              style={[
-                styles.selectText,
-                gender === "male" && styles.selectedText,
-              ]}
-            >
-              수컷
-            </Text>
+            <Text style={[styles.selectText, gender === "male" && styles.selectedText]}>수컷</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={[
-              styles.selectBox,
-              gender === "female" && styles.selectedBox,
-            ]}
+            style={[styles.selectBox, gender === "female" && styles.selectedBox]}
             onPress={() => setGender("female")}
           >
-            <Text
-              style={[
-                styles.selectText,
-                gender === "female" && styles.selectedText,
-              ]}
-            >
-              암컷
-            </Text>
+            <Text style={[styles.selectText, gender === "female" && styles.selectedText]}>암컷</Text>
           </TouchableOpacity>
         </View>
 
@@ -226,19 +207,11 @@ const LostPetRegister: React.FC = () => {
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>신장</Text>
-            <InputWithClear
-              value={height}
-              setValue={setHeight}
-              placeholder="0 cm"
-            />
+            <InputWithClear value={height} setValue={setHeight} placeholder="0 cm" />
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>체중</Text>
-            <InputWithClear
-              value={weight}
-              setValue={setWeight}
-              placeholder="0 kg"
-            />
+            <InputWithClear value={weight} setValue={setWeight} placeholder="0 kg" />
           </View>
         </View>
 
@@ -250,10 +223,9 @@ const LostPetRegister: React.FC = () => {
           <TouchableOpacity
             style={styles.noseBtn}
             onPress={() => {
-              launchImageLibrary({ mediaType: "photo" }, (response) => {
-                if (response.assets && response.assets.length > 0) {
-                  setNoseUri(response.assets[0].uri || null);
-                }
+              // 💡 navigation.navigate 호출 추가
+              navigation.navigate("NoseCamera", {
+                fromScreen: "LostPetRegister", // 현재 화면 정보 전달
               });
             }}
           >
@@ -261,6 +233,7 @@ const LostPetRegister: React.FC = () => {
             <Image source={icon_camera} style={styles.iconSm} />
           </TouchableOpacity>
 
+          {/* 비문 등록 완료 상태 표시 */}
           {noseUri && (
             <View
               style={[styles.noseBtnDisabled, noseUri && styles.noseBtnActive]}
@@ -275,7 +248,6 @@ const LostPetRegister: React.FC = () => {
               </Text>
             </View>
           )}
-
           {renderClear(noseUri ?? "", () => setNoseUri(null))}
         </View>
 
@@ -288,26 +260,17 @@ const LostPetRegister: React.FC = () => {
         <Text style={styles.sectionHeader}>실종 정보</Text>
         <Text style={styles.label}>실종 일시</Text>
         <View style={styles.datetimeRow}>
-          {/* 날짜 선택 */}
-          <TouchableOpacity
-            style={styles.dateBox}
-            onPress={() => setShowDatePicker(true)}
-          >
+          {/* 날짜 */}
+          <TouchableOpacity style={styles.dateBox} onPress={() => setShowDatePicker(true)}>
             <Text style={styles.dateText}>
-              {date
-                ? `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.`
-                : "날짜 선택"}
+              {date ? `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}.` : "날짜 선택"}
             </Text>
             <Image source={icon_calendar} style={styles.calendarIcon} />
           </TouchableOpacity>
 
-          {/* 시 선택 */}
+          {/* 시간(시/분) */}
           <View style={styles.pickerBox}>
-            <Picker
-              selectedValue={hour}
-              onValueChange={(val) => setHour(val)}
-              dropdownIconColor="#000"
-            >
+            <Picker selectedValue={hour} onValueChange={(val) => setHour(val)} dropdownIconColor="#000">
               {[...Array(24).keys()].map((h) => (
                 <Picker.Item key={h} label={`${h}`} value={`${h}`} />
               ))}
@@ -315,12 +278,8 @@ const LostPetRegister: React.FC = () => {
           </View>
           <Text style={styles.timeLabel}>시</Text>
 
-          {/* 분 선택 */}
           <View style={styles.pickerBox}>
-            <Picker
-              selectedValue={minute}
-              onValueChange={(val) => setMinute(val)}
-            >
+            <Picker selectedValue={minute} onValueChange={(val) => setMinute(val)}>
               {[...Array(60).keys()].map((m) => (
                 <Picker.Item key={m} label={`${m}`} value={`${m}`} />
               ))}
@@ -329,21 +288,9 @@ const LostPetRegister: React.FC = () => {
           <Text style={styles.timeLabel}>분</Text>
         </View>
 
-        <LabelInput
-          label="실종 장소"
-          value={location}
-          onChangeText={setLocation}
-        />
-        <LabelInput
-          label="익숙한 장소"
-          value={familiar}
-          onChangeText={setFamiliar}
-        />
-        <LabelInput
-          label="추가 설명"
-          value={description}
-          onChangeText={setDescription}
-        />
+        <LabelInput label="실종 장소" value={location} onChangeText={setLocation} />
+        <LabelInput label="익숙한 장소" value={familiar} onChangeText={setFamiliar} />
+        <LabelInput label="추가 설명" value={description} onChangeText={setDescription} />
 
         <TouchableOpacity
           style={[styles.submitBtn, isSubmitting && styles.submitBtnDisabled]}
@@ -362,8 +309,8 @@ const LostPetRegister: React.FC = () => {
       <DateTimePickerModal
         isVisible={showDatePicker}
         mode="date"
-        onConfirm={(date) => {
-          setDate(date);
+        onConfirm={(d) => {
+          setDate(d);
           setShowDatePicker(false);
         }}
         onCancel={() => setShowDatePicker(false)}
@@ -384,12 +331,7 @@ const LabelInput = ({
   <View style={{ marginBottom: 12 }}>
     <Text style={styles.label}>{label}</Text>
     <View style={styles.inputWrapper}>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={label}
-      />
+      <TextInput style={styles.input} value={value} onChangeText={onChangeText} placeholder={label} />
       {value.length > 0 && (
         <TouchableOpacity onPress={() => onChangeText("")}>
           <Image source={icon_close} style={styles.clearIcon} />

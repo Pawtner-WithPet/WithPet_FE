@@ -34,9 +34,10 @@ import {
 } from "../../../services/api/NoseRegister";
 
 type NoseCameraRouteParams = {
-  fromScreen?: "PetDetail" | "NoseList" | "NoseScreen";
+  fromScreen?: "PetDetail" | "NoseList" | "NoseScreen" | "LostPetRegister" | "FoundPetRegister";
   petId?: string;
   hasNoseprint?: boolean;
+  onImageCapture?: (uri: string) => void;
 };
 
 type NoseStackParamList = {
@@ -52,7 +53,7 @@ const NoseCamera = () => {
   const tabNavigation =
     useTabNavigation<BottomTabNavigationProp<TabParamList>>();
   const route = useRoute<RouteProp<NoseStackParamList, "NoseCamera">>();
-  const { fromScreen, petId, hasNoseprint } = route.params || {};
+  const { fromScreen, petId, hasNoseprint, onImageCapture } = route.params || {};
 
   const cameraRef = useRef<Camera>(null);
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -91,12 +92,20 @@ const NoseCamera = () => {
       const imageUri = `file://${photo.path}`;
       setCapturedImageUri(imageUri);
 
+      if (
+        (fromScreen === "LostPetRegister" ||
+          fromScreen === "FoundPetRegister") &&
+        onImageCapture
+      ) {
+        onImageCapture(imageUri); 
+        navigation.goBack(); 
+        return; 
+      }
+
       // fromScreen에 따라 다른 모달 열기
       if (fromScreen === "NoseList" || fromScreen === "NoseScreen") {
-        // 비문 등록/수정 모달 열기
         setShowNoseImageRModal(true);
       } else {
-        // 실종/발견 동물 선택 모달 열기 (기본값)
         setShowNoseImagePickModal(true);
       }
     } catch (error) {
@@ -115,7 +124,18 @@ const NoseCamera = () => {
       });
 
       if (result.assets?.[0]?.uri) {
-        setCapturedImageUri(result.assets[0].uri);
+        const imageUri = result.assets[0].uri; 
+        setCapturedImageUri(imageUri);
+
+        if (
+          (fromScreen === "LostPetRegister" ||
+            fromScreen === "FoundPetRegister") &&
+          onImageCapture
+        ) {
+          onImageCapture(imageUri); 
+          navigation.goBack(); 
+          return; 
+        }
 
         // fromScreen에 따라 다른 모달 열기
         if (fromScreen === "NoseList" || fromScreen === "NoseScreen") {
