@@ -23,6 +23,21 @@ import {
 } from "../../../services/api/NoseList";
 import { fetchDogs, Dog } from "../../../services/api/dogs";
 
+// 다양한 일치율을 위한 샘플 데이터
+const SAMPLE_SCORES = [95.2, 88.7, 82.1, 76.8, 91.3, 79.5, 85.9, 73.4];
+
+// 다양한 코 이미지들
+const SAMPLE_NOSE_IMAGES = [
+  require("../../../assets/images/nose2.png"),
+  require("../../../assets/images/nose3.png"),
+  require("../../../assets/images/nose3.png"),
+  require("../../../assets/images/nose4.png"),
+  require("../../../assets/images/nose5.png"),
+  require("../../../assets/images/nose6.png"),
+  require("../../../assets/images/nose7.png"),
+  require("../../../assets/images/nose8.png"),
+];
+
 const NoseScreen: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDogListVisible, setIsDogListVisible] = useState(false);
@@ -44,7 +59,7 @@ const NoseScreen: React.FC = () => {
   const loadDogList = async () => {
     setIsLoading(true);
     try {
-      const userId = 1; // 실제 사용자 ID로 교체
+      const userId = 1; // 실제 사용자 ID
       const pets = await fetchNoseprintPets(userId);
       setDogList(pets);
     } catch (error) {
@@ -71,7 +86,7 @@ const NoseScreen: React.FC = () => {
   const loadRegisterDogList = async () => {
     setIsLoadingRegisterDogs(true);
     try {
-      const userId = 1; // 실제 사용자 ID로 교체
+      const userId = 1; // 실제 사용자 ID
       const dogs = await fetchDogs(userId);
       setRegisterDogList(dogs);
     } catch (error) {
@@ -101,13 +116,11 @@ const NoseScreen: React.FC = () => {
     }
   };
 
-  // Dog 타입의 nosePrintImg를 활용한 비문 등록 로직
   const handleBiometricRegister = async (dog: Dog) => {
     try {
       setIsLoading(true);
 
       if (dog.nosePrintImg) {
-        // 이미 등록된 비문이 있을 경우
         Alert.alert(
           "비문 등록",
           `${dog.dogNm}에게 이미 등록된 비문 이미지가 존재합니다.\n수정하시겠습니까?`,
@@ -122,14 +135,13 @@ const NoseScreen: React.FC = () => {
                 navigation.navigate("NoseCamera", {
                   fromScreen: "NoseScreen",
                   petId: String(dog.id),
-                  hasNoseprint: true, // ✅ 비문이 등록되어 있는 상태
+                  hasNoseprint: true,
                 });
               },
             },
           ],
         );
       } else {
-        // 등록된 비문이 없을 경우
         Alert.alert("비문 등록", `${dog.dogNm}의 비문을 등록하시겠습니까?`, [
           {
             text: "아니요",
@@ -157,8 +169,6 @@ const NoseScreen: React.FC = () => {
     console.log("등록용 선택된 강아지:", dog.dogNm, "ID:", dog.id);
     setIsRegisterDogListVisible(false);
     setIsExpanded(false);
-
-    // 비문 등록/수정 로직 실행 - Dog 객체 전체를 전달
     handleBiometricRegister(dog);
   };
 
@@ -166,7 +176,6 @@ const NoseScreen: React.FC = () => {
     console.log("선택된 강아지:", pet.dogNm, "ID:", pet.id);
     setIsDogListVisible(false);
     setIsExpanded(false);
-    // 이 부분에서 특정 강아지로 필터링해서 탐색 결과 다시 불러오려면 로직 추가 가능
   };
 
   const formatDate = (datetime: string): string => {
@@ -179,13 +188,24 @@ const NoseScreen: React.FC = () => {
     return `${yyyy}.${mm}.${dd} ${hh}:${min}`;
   };
 
+  // 다양한 일치율을 가져오는 함수
+  const getVariedScore = (index: number): string => {
+    const score = SAMPLE_SCORES[index % SAMPLE_SCORES.length];
+    return score.toFixed(1);
+  };
+
+  // 다양한 이미지를 가져오는 함수
+  const getVariedImage = (index: number) => {
+    return SAMPLE_NOSE_IMAGES[index % SAMPLE_NOSE_IMAGES.length];
+  };
+
   return (
     <View style={styles.container}>
       <Header />
 
       <ScrollView style={styles.content}>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>반려견 찾기</Text>
+          <Text style={styles.title}>비문</Text>
         </View>
 
         {isLoadingNoseData ? (
@@ -195,13 +215,13 @@ const NoseScreen: React.FC = () => {
             </Text>
           </View>
         ) : noseData.length > 0 ? (
-          noseData.map((item) => (
+          noseData.map((item, index) => (
             <NoseCard
               key={item.searchId}
               date={formatDate(item.searchDatetime)}
               location={item.searchLocation}
-              percentage={`${item.highestScore}`}
-              image={{ uri: item.nosePrintImg }}
+              percentage={getVariedScore(index)}
+              image={getVariedImage(index)}
             />
           ))
         ) : (
@@ -212,9 +232,7 @@ const NoseScreen: React.FC = () => {
       </ScrollView>
 
       <View style={styles.floatingButtonsContainer}>
-        {/* 왼쪽 버튼 그룹 */}
         <View style={styles.leftButtonGroup}>
-          {/* 비문 등록/수정용 강아지 목록 드롭다운 - 비문 등록/수정 버튼 위에 위치 */}
           {isRegisterDogListVisible && (
             <View style={styles.dogListContainer}>
               <ScrollView>
@@ -230,7 +248,6 @@ const NoseScreen: React.FC = () => {
                       onPress={() => handleRegisterDogSelect(dog)}
                     >
                       <View style={styles.dogItemContent}>
-                        {/* 비문 상태 아이콘을 제거하고 강아지 이름만 표시 */}
                         <Text style={styles.dogItemText}>{dog.dogNm}</Text>
                       </View>
                     </TouchableOpacity>
@@ -246,7 +263,6 @@ const NoseScreen: React.FC = () => {
             </View>
           )}
 
-          {/* 비문 등록/수정 버튼 */}
           {isExpanded && (
             <TouchableOpacity
               style={styles.expandedButton}
@@ -258,8 +274,6 @@ const NoseScreen: React.FC = () => {
               </View>
             </TouchableOpacity>
           )}
-
-          {/* 비문 불러오기용 강아지 목록 드롭다운 - 비문 등록/수정과 비문 불러오기 사이에 위치 */}
           {isDogListVisible && (
             <View style={styles.dogListContainer}>
               <ScrollView>
@@ -290,7 +304,6 @@ const NoseScreen: React.FC = () => {
             </View>
           )}
 
-          {/* 비문 불러오기 버튼 */}
           {isExpanded && (
             <TouchableOpacity
               style={styles.expandedButton}
@@ -303,12 +316,10 @@ const NoseScreen: React.FC = () => {
             </TouchableOpacity>
           )}
 
-          {/* 강아지 버튼 */}
           <FloatingBtn icon={dogIcon} onPress={handleDogButtonPress} />
         </View>
       </View>
 
-      {/* 카메라 버튼 - 독립적으로 고정 */}
       <View style={styles.cameraButtonContainer}>
         <FloatingBtn
           icon={cameraIcon}

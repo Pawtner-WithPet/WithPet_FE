@@ -183,7 +183,22 @@ const PetDetailScreen: React.FC = () => {
         );
         setNoseprintModalVisible(true);
       } else {
-        Alert.alert("비문 정보 없음", "등록된 비문 정보가 없습니다.");
+        Alert.alert(
+          "비문 정보 없음",
+          "등록된 비문 정보가 없습니다. 등록하러 가시겠습니까?",
+          [
+            {
+              text: "아니오",
+              style: "cancel",
+            },
+            {
+              text: "네",
+              onPress: () => {
+                navigation.navigate("NoseList");
+              },
+            },
+          ],
+        );
       }
     } catch (err) {
       Alert.alert("비문 확인 실패", "비문 확인 중 오류가 발생했습니다.");
@@ -232,7 +247,7 @@ const PetDetailScreen: React.FC = () => {
             <View style={styles.nameAgeWrapper}>
               <DisabledInput
                 label="이름"
-                placeholder="해피"
+                placeholder="곰탱이"
                 value={petInfo.name}
                 required
               />
@@ -328,7 +343,12 @@ const PetDetailScreen: React.FC = () => {
             {noseprintImage && (
               <Image
                 source={{ uri: noseprintImage }}
-                style={{ width: 300, height: 300, marginBottom: 16 }}
+                style={{
+                  width: "100%",
+                  height: 250,
+                  marginBottom: 16,
+                  borderRadius: 8,
+                }}
                 resizeMode="contain"
               />
             )}
