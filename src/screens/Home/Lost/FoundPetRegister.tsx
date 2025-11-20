@@ -19,7 +19,6 @@ import icon_calendar from "../../../assets/icons/icon_calendar.png";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
-import { postFoundPost, FoundPostRequest } from "../../../services/api/SearchPet";
 
 const toLocalIsoSeconds = (d: Date) => {
     const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -49,61 +48,7 @@ const LostPetRegister: React.FC = () => {
     return toLocalIsoSeconds(composed);
   };
 
-  const onPressRegisterFound = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    
-    try {
-        const foundDateIso = buildFoundDate();
-        // gender 상태가 null인 경우 'unknown'으로 처리하거나, 서버가 받는 형식에 맞게 유효성 검사 강화
-        const currentGender = gender || 'unknown'; 
-        
-        // breed는 입력 필드인 state를 사용
-        const currentBreed = breed.trim(); 
-        
-        // noseUri가 있다면 noseprintImageUri로 사용, 없으면 null
-        const currentNoseUri: string | null = noseUri || null;
-        
-        
-        if (!foundDateIso || !location.trim() || !currentGender || !currentBreed) {
-            Alert.alert("입력 필요", "발견 날짜, 장소, 성별, 견종을 모두 선택/입력해 주세요.");
-            return;
-        }
 
-        // 💡 SearchPet.ts의 FoundPostRequest 타입에 맞춰 필드 구성
-        const req: FoundPostRequest = {
-            ownerId: 11, 
-            sex: currentGender.toUpperCase() as "MALE" | "FEMALE",
-            kindNm: currentBreed,
-            noseprintImageUri: currentNoseUri,
-            foundDate: foundDateIso,
-            foundLocation: location.trim(),
-            description: description.trim() || undefined,
-        };
-
-        const img = profileUri
-            ? { uri: profileUri, name: "found.jpg", type: "image/jpeg" }
-            : null;
-
-        console.log("➡️[FORM] /api/search/foundPost request:", req, "image:", !!img);
-        
-        // postFoundPost 함수 호출
-        const res = await postFoundPost(req, img); 
-        console.log("✅ 등록 성공:", res);
-
-        Alert.alert("등록 완료", "발견 게시글이 등록되었습니다.", [
-            {
-                text: "확인",
-                onPress: () => navigation.goBack(), 
-            },
-        ]);
-    } catch (e){
-        console.error("❌ 등록 실패:", e); // 오류 처리 로그
-        Alert.alert("등록 실패", "게시글 등록 중 오류가 발생했습니다.");
-    } finally {
-        setSubmitting(false);
-    }
-  };
   const renderClear = (value: string, clearFn: () => void) =>
     value.length > 0 ? (
       <TouchableOpacity onPress={clearFn}>
@@ -307,7 +252,6 @@ const LostPetRegister: React.FC = () => {
 
         <TouchableOpacity 
             style={[styles.submitBtn, { backgroundColor: submitting ? "#999" : "#4262FF" }]}
-            onPress={onPressRegisterFound} 
             disabled={submitting}
         >
           <Text style={styles.submitText}>{submitting ? "등록 중..." : "등록하기"}</Text>

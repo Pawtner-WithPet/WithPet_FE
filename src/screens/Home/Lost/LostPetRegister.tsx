@@ -22,10 +22,12 @@ import type { LostStackParamList } from "../../../navigation/LostStack";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
-import { registerLostPetWithFormData } from "../../../services/api/LostPetRegister";
-import type { LostPetRegisterRequest } from "../../../services/api/LostPetRegister";
-import { postLostPost, LostPostRequest } from "../../../services/api/SearchPet";
 import type { RootStackParamList } from "../../../types/NoseCamera";
+
+import { postLostPet } from "../../../services/api/postLostPet";
+import { UploadImage } from "src/types/UploadImage";
+import { fetchDogs } from "../../../services/api/dogs";
+
 
 const LostPetRegister: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -55,15 +57,32 @@ const LostPetRegister: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<UploadImage | null>(null);
+
 
   React.useEffect(() => {
-    if (route.params?.petName === "곰탱이") {
-      setName("곰탱이");
-      setGender("female");
-      setAge("1");
-      setBreed("포메라니안");
-    }
-  }, [route.params?.petName]);
+    const petId = route.params?.petId;
+    if (!petId || petId === 0) return;
+
+    const loadPetInfo = async () => {
+      try {
+        const pets = await fetchDogs(1); // ← userId 넣기
+        const pet = pets.find((p) => p.id === petId);
+
+        if (pet) {
+          setName(pet.dogNm);
+          setGender(pet.sexNm === "수컷" ? "male" : "female");
+          setAge(String(pet.dogAge));
+          setBreed(pet.kindNm ?? pet.breed ?? pet.kind ?? "");
+          setProfileUri(pet.dogImg);
+        }
+      } catch (err) {
+        console.log("반려견 정보 로드 실패:", err);
+      }
+    };
+
+    loadPetInfo();
+  }, [route.params?.petId]);
 
   const validateForm = (): string | null => {
     if (!name.trim()) return "이름을 입력해주세요.";
@@ -76,73 +95,32 @@ const LostPetRegister: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    // 유효성 검사
-    const validationError = validateForm();
-    if (validationError) {
-      Alert.alert("입력 오류", validationError);
-      return;
-    }
-
-    setIsSubmitting(true);
+    const request = {
+      owner: 12,
+      pet: 2,
+      height: 45,
+      weight: 30,
+      lostDate: "2025-08-24T14:30:00",
+      lostLocation: "서울 ",
+      favoritePlace: "공원",
+      description: "음"
+    };
+    
 
     try {
-      // 실종 일시 조합
-      const lostDateTime = new Date(date!);
-      lostDateTime.setHours(parseInt(hour));
-      lostDateTime.setMinutes(parseInt(minute));
+      if (selectedImage === null) {
+        await postLostPet(request, null);
+      } else {
+        await postLostPet(request, selectedImage);
+      }
 
-      const petData: LostPetRegisterRequest = {
-        userId: 1, // TODO: 실제 userId 가져오기
-        dogId: route.params?.dogId, // 등록된 반려견 선택한 경우
-        name: name.trim(),
-        gender: gender === "male" ? "MALE" : "FEMALE",
-        age: parseInt(age),
-        height: height ? parseFloat(height) : 0,
-        weight: weight ? parseFloat(weight) : 0,
-        breed: breed.trim(),
-        feature: feature.trim() || undefined,
-        lostDate: lostDateTime.toISOString(),
-        lostLocation: location.trim(),
-        familiarPlace: familiar.trim() || undefined,
-        description: description.trim() || undefined,
-      };
-
-      console.log("📤 실종동물 등록 요청:", {
-        ...petData,
-        profileImage: profileUri ? "있음" : "없음",
-        noseImage: noseUri ? "있음" : "없음",
-      });
-
-      const lostPostId = await registerLostPetWithFormData(
-        petData,
-        profileUri || undefined,
-        noseUri || undefined,
-      );
-
-      Alert.alert("등록 완료", "실종동물이 등록되었습니다.", [
-        {
-          text: "확인",
-          onPress: () => navigation.goBack(),
-        },
-      ]);
-    } catch (error: any) {
-      console.error("등록 실패:", error);
-      Alert.alert(
-        "등록 실패",
-        error.response?.data?.message ||
-          "실종동물 등록 중 오류가 발생했습니다.",
-      );
-    } finally {
-      setIsSubmitting(false);
+      console.log("등록 성공");
+    } catch (e) {
+      console.log("등록 실패", e);
     }
   };
 
-  const renderClear = (value: string, clearFn: () => void) =>
-    value.length > 0 ? (
-      <TouchableOpacity onPress={clearFn}>
-        <Image source={icon_close} style={styles.clearIcon} />
-      </TouchableOpacity>
-    ) : null;
+
 
   return (
     <View style={styles.container}>
@@ -223,9 +201,16 @@ const LostPetRegister: React.FC = () => {
           <TouchableOpacity
             style={styles.noseBtn}
             onPress={() => {
-              // 💡 navigation.navigate 호출 추가
               navigation.navigate("NoseCamera", {
-                fromScreen: "LostPetRegister", // 현재 화면 정보 전달
+                fromScreen: "LostPetRegister",
+                onImageCapture: (uri: string) => {
+                  setNoseUri(uri);             
+                  setSelectedImage({            
+                    uri: uri,
+                    type: "image/jpeg",
+                    fileName: "nose.jpg",
+                  });
+                },
               });
             }}
           >
@@ -248,7 +233,6 @@ const LostPetRegister: React.FC = () => {
               </Text>
             </View>
           )}
-          {renderClear(noseUri ?? "", () => setNoseUri(null))}
         </View>
 
         <LabelInput label="특징" value={feature} onChangeText={setFeature} />
@@ -300,7 +284,7 @@ const LostPetRegister: React.FC = () => {
           {isSubmitting ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.submitText}>등록하기</Text>
+            <Text style={styles.submitText} onPress={handleSubmit}>등록하기</Text>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -325,46 +309,66 @@ const LabelInput = ({
   onChangeText,
 }: {
   label: string;
-  value: string;
+  value: string | null | undefined;
   onChangeText: (text: string) => void;
-}) => (
-  <View style={{ marginBottom: 12 }}>
-    <Text style={styles.label}>{label}</Text>
-    <View style={styles.inputWrapper}>
-      <TextInput style={styles.input} value={value} onChangeText={onChangeText} placeholder={label} />
-      {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText("")}>
-          <Image source={icon_close} style={styles.clearIcon} />
-        </TouchableOpacity>
-      )}
+}) => {
+  const safeValue = value ?? "";
+
+  return (
+    <View style={{ marginBottom: 12 }}>
+      <Text style={styles.label}>{label}</Text>
+
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={styles.input}
+          value={safeValue}
+          onChangeText={onChangeText}
+          placeholder={label}
+        />
+
+        {safeValue.length > 0 && (
+          <TouchableOpacity onPress={() => onChangeText("")}>
+            <Image source={icon_close} style={styles.clearIcon} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
-  </View>
-);
+  );
+};
+
+
 
 const InputWithClear = ({
   value,
   setValue,
   placeholder,
 }: {
-  value: string;
+  value: string | null | undefined;
   setValue: (val: string) => void;
   placeholder: string;
-}) => (
-  <View style={[styles.inputWrapper, { flex: 1, marginHorizontal: 4 }]}>
-    <TextInput
-      style={[styles.input, { flex: 1 }]}
-      value={value}
-      onChangeText={setValue}
-      placeholder={placeholder}
-      keyboardType="numeric"
-    />
-    {value.length > 0 && (
-      <TouchableOpacity onPress={() => setValue("")}>
-        <Image source={icon_close} style={styles.clearIcon} />
-      </TouchableOpacity>
-    )}
-  </View>
-);
+}) => {
+  const safeValue = value ?? "";
+
+  return (
+    <View style={[styles.inputWrapper, { flex: 1, marginHorizontal: 4 }]}>
+      <TextInput
+        style={[styles.input, { flex: 1 }]}
+        value={safeValue}
+        onChangeText={setValue}
+        placeholder={placeholder}
+        keyboardType="numeric"
+      />
+
+      {safeValue.length > 0 && (
+        <TouchableOpacity onPress={() => setValue("")}>
+          <Image source={icon_close} style={styles.clearIcon} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -598,3 +602,7 @@ const styles = StyleSheet.create({
 });
 
 export default LostPetRegister;
+function onChangeText(arg0: string): void {
+  throw new Error("Function not implemented.");
+}
+
