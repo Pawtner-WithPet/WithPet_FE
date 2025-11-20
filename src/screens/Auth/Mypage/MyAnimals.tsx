@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Header from "../../../components/Header";
@@ -13,6 +14,7 @@ import { Colors } from "../../../constants/colors";
 import happy1 from "../../../assets/images/happy1.png";
 import icon_detail_page from "../../../assets/icons/icon_detail_page.png";
 import iconSearch from "../../../assets/icons/search.png";
+import { deleteFoundPost } from "src/services/api/deletepet";
 
 const MOCK_DATA = [
   {
@@ -70,6 +72,22 @@ const MyAnimals: React.FC = () => {
       </TouchableOpacity>
     );
   };
+
+  const postId = 1;
+  const handleDelete = async () => {
+    try {
+      const res = await deleteFoundPost(postId);
+      Alert.alert("삭제 완료!");
+      navigation.goBack(); // 목록으로 이동
+    } catch (err: any) {
+      if (err.code === "FoundPetPost_NOT_FOUND") {
+        Alert.alert("삭제할 글을 찾을 수 없습니다.");
+      } else {
+        Alert.alert("서버 오류 발생. 다시 시도해주세요.");
+      }
+    }
+  };
+
 
   return (
     <View style={styles.container}>

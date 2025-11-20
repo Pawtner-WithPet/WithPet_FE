@@ -25,7 +25,8 @@ import print from "../../../assets/icons/print.png";
 import poster from "../../../assets/images/poster.png";
 import happy1 from "../../../assets/images/happy1.png";
 import map from "../../../assets/images/map.png";
-import { deleteLostPost, deleteFoundPost } from "../../../services/api/postPet";
+import { deleteFoundPost, deleteLostPost } from "../../../services/api/deletepet";
+
 
 type Gender = "male" | "female";
 type LostPost = {
@@ -70,8 +71,7 @@ const LostPostDetail: React.FC = () => {
   const [isChatLoading, setIsChatLoading] = useState(false);
   let lastTap = 0;
   // postId 추출 
-  const postId = post.postId || (post.id && !isNaN(Number(post.id)) ? Number(post.id) : undefined);
-
+  const postId = Number(post.postId ?? post.id ?? post.petId ?? NaN);
   const isFound = post.status === "발견";
   const fromMyAnimals = route.params?.from === "MyAnimals";
 
@@ -168,37 +168,46 @@ const LostPostDetail: React.FC = () => {
     }
   };
 
-  const handleCompletePost = async () => {
-    console.log("🐛 handleCompletePost 호출, postId:", postId);
-    if (typeof postId !== 'number' || postId <= 0) { 
-        console.error("❌ 유효하지 않은 게시글 ID:", postId);
-        Alert.alert("오류", "게시글 ID를 찾을 수 없습니다.");
-        return;
+ const handleCompletePost = async () => {
+  console.log("🐛 handleCompletePost 호출, postId:", postId);
+
+  if (!postId || typeof postId !== "number" || isNaN(postId)) {
+    Alert.alert("오류", "게시글 ID가 유효하지 않습니다.");
+    return;
+  }
+
+  try {
+    let result;
+
+    if (isFound) {
+      // 발견 글 삭제
+      result = await deleteFoundPost(postId);
+      Alert.alert("삭제 완료", "발견 게시글이 성공적으로 삭제되었습니다.");
+    } else {
+      // 실종 글 삭제
+      result = await deleteLostPost(postId);
+      Alert.alert("삭제 완료", "실종 게시글이 성공적으로 삭제되었습니다.");
     }
 
-    try {
-        let result;
-        if (isFound) {
-            // 발견 게시글 완료 (DELETE /api/search/found-post/{postId})
-            result = await deleteFoundPost(postId);
-            Alert.alert("완료", "발견 게시글이 완료 처리되었습니다.");
-        } else {
-            // 실종 게시글 완료 (DELETE /api/search/lost-post/{postId})
-            result = await deleteLostPost(postId);
-            Alert.alert("완료", "실종 게시글이 미실종 처리되었습니다.");
-        }
+    console.log("삭제 결과:", result);
 
-        console.log("✅ 완료 API 응답:", result);
+    setConfirmOpen(false);
+    navigation.goBack();
 
-        // 완료 후, 목록 화면으로 돌아갑니다.
-        setConfirmOpen(false);
-        navigation.goBack();
-    } catch (error) {
-        Alert.alert("처리 실패", "완료 처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
-        setConfirmOpen(false);
-        console.error("❌ 게시글 완료 처리 실패:", error);
+  } catch (error: any) {
+    console.log("❌ 삭제 오류:", error);
+
+    if (error.code === "FoundPetPost_NOT_FOUND") {
+      Alert.alert("오류", "해당 게시글을 찾을 수 없습니다.");
+    } else if (error.code === "LostPetPost_NOT_FOUND") {
+      Alert.alert("오류", "해당 게시글을 찾을 수 없습니다.");
+    } else {
+      Alert.alert("오류", "서버 오류가 발생했습니다. 다시 시도해주세요.");
     }
-  };
+
+    setConfirmOpen(false);
+  }
+};
 
   
 
