@@ -25,7 +25,7 @@ import print from "../../../assets/icons/print.png";
 import poster from "../../../assets/images/poster.png";
 import happy1 from "../../../assets/images/happy1.png";
 import map from "../../../assets/images/map.png";
-import { deleteLostPost, deleteFoundPost } from "../../../services/api/postLostPet";
+import { deleteLostPost, deleteFoundPost } from "../../../services/api/postPet";
 
 type Gender = "male" | "female";
 type LostPost = {

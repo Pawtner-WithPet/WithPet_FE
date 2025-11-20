@@ -24,7 +24,7 @@ import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
 import type { RootStackParamList } from "../../../types/NoseCamera";
 
-import { postLostPet } from "../../../services/api/postLostPet";
+import { postLostPet } from "../../../services/api/postPet";
 import { UploadImage } from "src/types/UploadImage";
 import { fetchDogs } from "../../../services/api/dogs";
 
@@ -115,6 +115,7 @@ const LostPetRegister: React.FC = () => {
       }
 
       console.log("등록 성공");
+      navigation.goBack();
     } catch (e) {
       console.log("등록 실패", e);
     }

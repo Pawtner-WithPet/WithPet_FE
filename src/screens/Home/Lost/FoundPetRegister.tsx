@@ -19,10 +19,12 @@ import icon_calendar from "../../../assets/icons/icon_calendar.png";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Picker } from "@react-native-picker/picker";
 import { launchImageLibrary } from "react-native-image-picker";
+import { postFoundPet } from "src/services/api/postPet";
+import { UploadImage } from "src/types/UploadImage";
 
 const toLocalIsoSeconds = (d: Date) => {
     const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
-    return local.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
+    return local.toISOString().slice(0, 19); 
 };
 
 const LostPetRegister: React.FC = () => {
@@ -38,6 +40,9 @@ const LostPetRegister: React.FC = () => {
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<UploadImage | null>(null);
+
+
 
   const buildFoundDate = (): string | null => {
     if (!date) return null;
@@ -58,6 +63,42 @@ const LostPetRegister: React.FC = () => {
 
     const handleNoseImageCapture = (uri: string) => {
     setNoseUri(uri);
+  };
+
+  const handleImagePicker = () => {
+    launchImageLibrary({ mediaType: "photo" }, (res) => {
+      const a = res.assets?.[0];
+      if (!a) return;
+
+      setSelectedImage({
+        uri: a.uri!,
+        type: a.type || "image/jpeg",
+        fileName: a.fileName || "found_pet.jpg",
+      });
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedImage) {
+      return Alert.alert("이미지를 선택해주세요.");
+    }
+    const request = {
+      owner: 1,
+      sex: "MALE",
+      kindNm: breed,
+      foundDate: "2025-08-24T14:30:00",
+      foundLocation: location,
+      description: description,
+    };
+
+    try {
+      const result = await postFoundPet(request, selectedImage);
+      console.log("발견 등록 성공:", result);
+      Alert.alert(result.message);
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert("발견 등록 실패. 다시 시도하세요.");
+    }
   };
 
 
@@ -165,7 +206,14 @@ const LostPetRegister: React.FC = () => {
             onPress={() => {
               navigation.navigate("NoseCamera", {
                 fromScreen: "FoundPetRegister", 
-                onImageCapture: handleNoseImageCapture,
+                onImageCapture: (uri: string) => {
+                  setNoseUri(uri);             
+                  setSelectedImage({            
+                    uri: uri,
+                    type: "image/jpeg",
+                    fileName: "nose.jpg",
+                  });
+                },
               });
             }}
           >
@@ -174,15 +222,8 @@ const LostPetRegister: React.FC = () => {
           </TouchableOpacity>
 
           {noseUri && (
-            <View
-              style={[styles.noseBtnDisabled, noseUri && styles.noseBtnActive]}
-            >
-              <Text
-                style={[
-                  styles.noseDoneText,
-                  noseUri && styles.noseDoneTextActive,
-                ]}
-              >
+            <View style={[styles.noseBtnDisabled, noseUri && styles.noseBtnActive]} >
+              <Text style={[ styles.noseDoneText, noseUri && styles.noseDoneTextActive, ]} >
                 등록완료
               </Text>
             </View>
@@ -254,7 +295,7 @@ const LostPetRegister: React.FC = () => {
             style={[styles.submitBtn, { backgroundColor: submitting ? "#999" : "#4262FF" }]}
             disabled={submitting}
         >
-          <Text style={styles.submitText}>{submitting ? "등록 중..." : "등록하기"}</Text>
+          <Text style={styles.submitText} onPress={handleSubmit}>{submitting ? "등록 중..." : "등록하기"}</Text>
         </TouchableOpacity>
       </ScrollView>
 
